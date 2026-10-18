@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Server key: a three-slab server rack on a keycap face. 108dp adaptive canvas, art inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Keycap body -->
+    <path
+        android:fillColor="#FF2B3038"
+        android:pathData="M37,31 H71 A13,13 0 0 1 84,44 V65 A13,13 0 0 1 71,78 H37 A13,13 0 0 1 24,65 V44 A13,13 0 0 1 37,31 Z" />
+    <!-- Key face -->
+    <path
+        android:fillColor="#FF1A1D23"
+        android:strokeColor="#FFFFB37A"
+        android:strokeWidth="3"
+        android:pathData="M37,32 H71 A9,9 0 0 1 80,41 V57 A9,9 0 0 1 71,66 H37 A9,9 0 0 1 28,57 V41 A9,9 0 0 1 37,32 Z" />
+    <!-- Server slabs -->
+    <path
+        android:fillColor="#FF2B3038"
+        android:strokeColor="#FFFFB37A"
+        android:strokeWidth="1.6"
+        android:pathData="M42,37 H66 A2,2 0 0 1 68,39 V42 A2,2 0 0 1 66,44 H42 A2,2 0 0 1 40,42 V39 A2,2 0 0 1 42,37 Z M42,45.5 H66 A2,2 0 0 1 68,47.5 V50.5 A2,2 0 0 1 66,52.5 H42 A2,2 0 0 1 40,50.5 V47.5 A2,2 0 0 1 42,45.5 Z M42,54 H66 A2,2 0 0 1 68,56 V59 A2,2 0 0 1 66,61 H42 A2,2 0 0 1 40,59 V56 A2,2 0 0 1 42,54 Z" />
+    <!-- Status lights -->
+    <path
+        android:fillColor="#FFFFB37A"
+        android:pathData="M45.5,40.5 m-1.6,0 a1.6,1.6 0 1 0 3.2,0 a1.6,1.6 0 1 0 -3.2,0 M45.5,49 m-1.6,0 a1.6,1.6 0 1 0 3.2,0 a1.6,1.6 0 1 0 -3.2,0 M45.5,57.5 m-1.6,0 a1.6,1.6 0 1 0 3.2,0 a1.6,1.6 0 1 0 -3.2,0" />
+    <!-- Vents -->
+    <path
+        android:strokeColor="#FF9AA1AD"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M52,40.5 H63 M52,49 H63 M52,57.5 H63" />
+    <!-- Bar on the front of the key -->
+    <path
+        android:strokeColor="#FF5A616C"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M47,72.5 H61" />
+</vector>

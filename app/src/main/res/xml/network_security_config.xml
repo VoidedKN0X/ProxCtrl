@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Proxmox VE only speaks HTTPS (port 8006), so plain HTTP is switched off for the whole app.
+     System and user-installed CAs are trusted so servers behind a private CA or Nginx Proxy Manager
+     work. A self-signed Proxmox certificate is never trusted here: the app pins the exact certificate
+     the user confirmed by its SHA-256 fingerprint, per server, in code (Tls.kt). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
