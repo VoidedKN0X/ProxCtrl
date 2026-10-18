@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ProxCtrl</string>
+    <string name="vendor">VKNXWorks</string>
+
+    <!-- Tabs -->
+    <string name="tab_overview">Overview</string>
+    <string name="tab_guests">Guests</string>
+    <string name="tab_storage">Storage</string>
+    <string name="tab_tasks">Tasks</string>
+    <string name="tab_node">Node</string>
+
+    <!-- Common -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="selected">Selected</string>
+    <string name="account_and_settings">Account and settings</string>
+
+    <!-- Empty states while no server is set up -->
+    <string name="no_server_title">No Proxmox server yet</string>
+    <string name="no_server_body">Server setup arrives in the next build. Your node, guests, storage and tasks will show up here once you\'ve added your Proxmox VE server.</string>
+    <string name="overview_empty_hint">Node health and anything that needs attention.</string>
+    <string name="guests_empty_hint">All your containers and virtual machines.</string>
+    <string name="storage_empty_hint">Storages, disks, ZFS, LVM and backups.</string>
+    <string name="tasks_empty_hint">Running and recent tasks with their logs.</string>
+    <string name="node_empty_hint">Node details, network, updates, services and shell.</string>
+
+    <!-- Account page (opened from the profile picture) -->
+    <string name="you_title">Account</string>
+    <string name="you_not_connected">Not connected</string>
+    <string name="you_not_connected_body">Add your Proxmox VE server to get started.</string>
+    <string name="settings">Settings</string>
+    <string name="settings_subtitle">Appearance</string>
+    <string name="support_title">Support ProxCtrl</string>
+    <string name="support_subtitle">ProxCtrl is free and open source. Sponsor development on GitHub</string>
+    <string name="source_title">Source code and issues</string>
+    <string name="source_subtitle">github.com/VoidedKN0X/ProxCtrl</string>
+    <string name="licence_title">Licence</string>
+    <string name="licence_subtitle">GNU General Public License v3.0</string>
+    <string name="about_footer">%1$s %2$s  ·  %3$s</string>
+    <string name="group_about">About</string>
+
+    <!-- Settings -->
+    <string name="group_appearance">Appearance</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">Follow system</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_black">Pure black</string>
+    <string name="dynamic_colour">Dynamic colour</string>
+    <string name="dynamic_colour_subtitle">Use colours from your wallpaper</string>
+</resources>
