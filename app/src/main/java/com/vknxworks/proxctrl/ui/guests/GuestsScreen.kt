@@ -150,10 +150,11 @@ fun GuestsScreen() {
                 )
             }
 
+            val refreshError = state.error
             if (access.error != null) {
                 ConnectionBanner()
-            } else if (state.error != null) {
-                StaleBanner(state.updatedAt, state.error, server?.host.orEmpty(), server?.auth) {
+            } else if (refreshError != null) {
+                StaleBanner(state.updatedAt, refreshError, server?.host.orEmpty(), server?.auth) {
                     scope.launch { c.guests.refresh() }
                 }
             }
