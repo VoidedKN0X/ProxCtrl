@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 @Serializable data object TasksRoute
 @Serializable data object NodeRoute
 
+@Serializable data class GuestRoute(val node: String, val type: String, val vmid: Int)
+
 // Account and settings, opened from the profile picture
 @Serializable data object YouRoute
 @Serializable data object SettingsRoute

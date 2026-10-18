@@ -64,6 +64,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.toRoute
 import com.vknxworks.proxctrl.ui.components.LocalBottomClearance
 import com.vknxworks.proxctrl.ui.components.LocalHazeState
+import com.vknxworks.proxctrl.ui.guests.GuestScreen
 import com.vknxworks.proxctrl.ui.guests.GuestsScreen
 import com.vknxworks.proxctrl.ui.node.NodeScreen
 import com.vknxworks.proxctrl.ui.overview.OverviewScreen
@@ -205,6 +206,11 @@ private fun AppNavHost(navController: NavHostController) {
         composable<StorageRoute> { StorageScreen() }
         composable<TasksRoute> { TasksScreen() }
         composable<NodeRoute> { NodeScreen() }
+
+        composable<GuestRoute> {
+            val r = it.toRoute<GuestRoute>()
+            GuestScreen(r.node, r.type, r.vmid)
+        }
 
         composable<YouRoute> { YouScreen() }
         composable<SettingsRoute> { SettingsScreen() }
