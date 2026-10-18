@@ -4,6 +4,24 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.3.0 (2026-10-19)
+
+The Guests tab now lists all your containers and VMs.
+
+### New
+
+- **Guest list** with the same information as the Proxmox resource view: a container, VM or template icon with a status dot, ID and name, uptime, and CPU, memory and disk use as bars with percentages. Tags show as chips in the colours the Proxmox web UI uses, including any custom tag colours set under Datacenter › Options › Tag Style. Locked guests and HA states are shown under the name
+- **Disk use for VMs**: Proxmox doesn't report disk use inside VMs, so ProxCtrl asks the QEMU guest agent for it about once a minute (VMs without a running agent show "—")
+- **Disk warnings**: a guest's disk bar turns yellow from 80 % and red from 90 % full. The level is set under Settings › Warnings › Disk warning
+- **Search** by name, ID or tag
+- **Sort** by ID, name, CPU, memory, disk or uptime, lowest or highest first. Guests without a value (stopped guests for CPU and memory, VMs without guest-agent data for disk) always go last. Your choice is remembered
+- **Filter** by type (containers, VMs, templates), status (running, stopped), tag and, in a cluster, node. A dot on the sort button shows when a filter is on, and the list says how many guests are shown
+- **Compact view**: one line per guest with CPU, memory and disk percentages, for seeing all your guests at once. Switch with the button next to search; it's remembered
+- **Bulk start, shut down, reboot and stop**: long-press a guest to start selecting, tap more, or select all. ProxCtrl lists the guests the action will run on and skips the ones it doesn't apply to (already running or stopped, locked, templates, or not allowed for your sign-in). Stop needs an extra tick because it cuts power immediately. A message at the bottom says how many succeeded and which failed. Selecting isn't offered in read-only mode or when your sign-in can't power guests on or off
+- **Live updates**: the list refreshes every 5 seconds while it's on screen, stops when ProxCtrl is in the background, and slows down when the server can't be reached. Pull down to refresh by hand
+- **Works offline**: the last list is kept on the phone, so it shows straight away when you open the app. When the server can't be reached the list stays visible with a note saying when it was last updated and why it couldn't refresh
+- Tapping a guest opens its page, which for now shows its row; the full guest page comes next
+
 ## v0.2.0 (2026-10-19)
 
 ProxCtrl now connects to your Proxmox VE server. The tabs still show placeholders; they fill in over the next versions, starting with Guests.

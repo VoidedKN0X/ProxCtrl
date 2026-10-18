@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -48,6 +49,14 @@ fun SettingsScreen() {
                     checked = settings.dynamicColor,
                     icon = Icons.Filled.Palette,
                 ) { on -> c.appScope.launch { c.settings.update { it.copy(dynamicColor = on) } } }
+            }
+            Group(stringResource(R.string.group_warnings)) {
+                GroupChoice(
+                    stringResource(R.string.disk_warn_title),
+                    listOf(70, 75, 80, 85, 90, 95).map { it to stringResource(R.string.disk_warn_subtitle, it) },
+                    settings.diskWarnPercent,
+                    icon = Icons.Filled.Storage,
+                ) { pct -> c.appScope.launch { c.settings.update { it.copy(diskWarnPercent = pct) } } }
             }
         }
     }
