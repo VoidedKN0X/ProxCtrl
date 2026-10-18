@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.RestartAlt
@@ -38,11 +40,14 @@ import com.vknxworks.proxctrl.data.guests.PowerAction
 import com.vknxworks.proxctrl.data.guests.power
 import com.vknxworks.proxctrl.ui.theme.Gutter
 
-private fun PowerAction.icon(): ImageVector = when (this) {
+fun PowerAction.icon(): ImageVector = when (this) {
     PowerAction.START -> Icons.Filled.PlayArrow
     PowerAction.SHUTDOWN -> Icons.Filled.PowerSettingsNew
     PowerAction.REBOOT -> Icons.Filled.RestartAlt
     PowerAction.STOP -> Icons.Filled.Stop
+    PowerAction.SUSPEND -> Icons.Filled.Pause
+    PowerAction.RESUME -> Icons.Filled.PlayArrow
+    PowerAction.HIBERNATE -> Icons.Filled.Bedtime
 }
 
 fun PowerAction.label(): Int = when (this) {
@@ -50,13 +55,16 @@ fun PowerAction.label(): Int = when (this) {
     PowerAction.SHUTDOWN -> R.string.action_shutdown
     PowerAction.REBOOT -> R.string.action_reboot
     PowerAction.STOP -> R.string.action_stop
+    PowerAction.SUSPEND -> R.string.action_suspend
+    PowerAction.RESUME -> R.string.action_resume
+    PowerAction.HIBERNATE -> R.string.action_hibernate
 }
 
 private fun PowerAction.confirmTitle(): Int = when (this) {
     PowerAction.START -> R.string.bulk_confirm_title_start
     PowerAction.SHUTDOWN -> R.string.bulk_confirm_title_shutdown
     PowerAction.REBOOT -> R.string.bulk_confirm_title_reboot
-    PowerAction.STOP -> R.string.bulk_confirm_title_stop
+    else -> R.string.bulk_confirm_title_stop
 }
 
 /** The four actions for the selected guests. */
@@ -66,7 +74,7 @@ fun BulkActionRow(onAction: (PowerAction) -> Unit) {
         Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        PowerAction.entries.forEach { action ->
+        PowerAction.BULK.forEach { action ->
             FilledTonalButton(
                 onClick = { onAction(action) },
                 modifier = Modifier.weight(1f),
@@ -108,7 +116,7 @@ fun BulkPowerDialog(
                     PowerAction.START -> Text(stringResource(R.string.bulk_confirm_body_start))
                     PowerAction.SHUTDOWN -> Text(stringResource(R.string.bulk_confirm_body_shutdown))
                     PowerAction.REBOOT -> Text(stringResource(R.string.bulk_confirm_body_reboot))
-                    PowerAction.STOP -> Text(stringResource(R.string.bulk_stop_warning), color = MaterialTheme.colorScheme.error)
+                    else -> Text(stringResource(R.string.bulk_stop_warning), color = MaterialTheme.colorScheme.error)
                 }
                 Text(
                     targets.joinToString("\n") { "${it.vmid}  ${it.name}" },
