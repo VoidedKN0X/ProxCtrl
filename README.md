@@ -41,6 +41,14 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 
 If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X/ProxCtrl` in Obtainium by hand.
 
+## Getting started
+
+1. [Create an API token](#create-an-api-token-for-proxctrl) for ProxCtrl on your Proxmox node.
+2. Open ProxCtrl and enter your node's address, like `192.168.1.10`. Without `https://` and a port, ProxCtrl uses port 8006. For a reverse proxy, enter the full address, like `https://pve.example.com`.
+3. Choose **API token** and enter the token ID and secret, or choose **Password** to sign in with a Proxmox user (two-factor codes work too).
+4. If your node uses the self-signed certificate Proxmox created on install, compare the fingerprint ProxCtrl shows with the one under Datacenter › your node › System › Certificates (or `pvenode cert info`), then tap **Trust**.
+5. ProxCtrl shows what your sign-in is allowed to do. Tap **Continue**.
+
 ## Create an API token for ProxCtrl
 
 ProxCtrl works best with its own Proxmox user and an API token that can only do what the app needs. Run these on your Proxmox node as root.
@@ -72,6 +80,16 @@ pveum acl modify / --tokens 'proxctrl@pve!phone' --roles ProxCtrl.Operator
 
 The second command prints the token secret **once**. In ProxCtrl, enter the token ID `proxctrl@pve!phone` and that secret. With `--privsep 1` the token can never do more than the user, so it needs the role on both.
 
+**3. Optional: updates and services.** Proxmox only shows available updates to users with `Sys.Modify`, which also allows restarting services and changing node settings such as DNS and network interfaces. To allow it on one node only (here `VKLab`), not the whole datacenter, give it as a separate role on that node's path:
+
+```bash
+pveum role add ProxCtrl.Node --privs "Sys.Modify"
+pveum acl modify /nodes/VKLab --users proxctrl@pve --roles ProxCtrl.Node
+pveum acl modify /nodes/VKLab --tokens 'proxctrl@pve!phone' --roles ProxCtrl.Node
+```
+
+Even with this the token can't install updates (you run the upgrade in the node shell yourself) and can't touch disks, ZFS or LVM, which need permissions on `/`. If you skip it, Proxmox can still tell you about new updates through its own notifications.
+
 **What each privilege is for:**
 
 | Privilege | Used for |
@@ -97,7 +115,7 @@ The second command prints the token secret **once**. In ProxCtrl, enter the toke
 | `VM.Clone`, `VM.Allocate` | Cloning guests and templates |
 | `Datastore.AllocateTemplate` | Uploading ISOs and downloading container templates |
 | `Sys.PowerMgmt` | Rebooting and shutting down the node |
-| `Sys.Modify` | Restarting services and **seeing available updates** (Proxmox requires it for the update list). It also allows changing node settings, so only add it if you want that |
+| `Sys.Modify` on `/nodes/<node>` | Seeing available updates and restarting services; see step 3 |
 
 ProxCtrl checks what your token can do when it connects and greys out anything it isn't allowed to.
 

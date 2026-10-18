@@ -47,7 +47,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vknxworks.proxctrl.container
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -102,8 +105,10 @@ fun TabTitle(
  * Shows the first letter of the signed-in user once a server is connected.
  */
 @Composable
-fun ProfileButton(initial: String? = null) {
+fun ProfileButton() {
     val nav = LocalNavigator.current
+    val active by LocalContext.current.container.sessions.active.collectAsStateWithLifecycle()
+    val initial = active?.server?.initial
     val label = stringResource(R.string.account_and_settings)
     IconButton(onClick = { nav.navigate(YouRoute) }) {
         Box(

@@ -12,3 +12,6 @@ import kotlinx.serialization.Serializable
 // Account and settings, opened from the profile picture
 @Serializable data object YouRoute
 @Serializable data object SettingsRoute
+@Serializable data object ServersRoute
+@Serializable data object AddServerRoute
+@Serializable data class EditServerRoute(val id: String)
