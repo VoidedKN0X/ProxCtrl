@@ -4,6 +4,24 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.4.0 (2026-10-19)
+
+Tapping a guest now opens its full page with live status, power controls, details, notes and graphs.
+
+### New
+
+- **Guest page header** with the status (running, stopped, paused or hibernated), the node it runs on, uptime, whether it's a container or VM, and its tags. Status refreshes every 3 seconds while the page is open
+- **Power controls**: Start, Shut down, Reboot and Stop, and for VMs Pause, Resume and Hibernate in the ⋮ menu. Buttons that don't apply right now are greyed out (for example Start on a running guest, or anything on a locked guest). Every action asks for confirmation first; Stop is shown in red with a warning that it cuts power immediately. A message confirms the action started, or says why it failed, and the status updates within a few seconds. A hibernated VM shows as "Hibernated" and comes back with Start. The buttons are hidden in read-only mode and greyed out with a note when your sign-in isn't allowed to power guests
+- **Usage** of CPU (with the number of cores), memory (used of total) and disk (used of total), with bars. VM disk use comes from the guest agent; without it the page says so instead of showing 0
+- **Details**: IP addresses per network interface (from the container, or from the QEMU guest agent for VMs, leaving out loopback and link-local addresses), operating system (the agent's full name for VMs, the OS type for containers), hostname for containers, high-availability state, whether it starts at boot, and its start order with up and down delays
+- **Notes** from the guest's Notes in Proxmox, shown with formatting: headings, bold, italic, code, lists and links. Tap **Edit notes** to change them (needs the `VM.Config.Options` privilege). If someone else changed the guest at the same time, ProxCtrl doesn't overwrite their change and tells you
+- **Graphs** for CPU, memory, network in/out and disk read/write, for the last hour, day, week, month or year. Touch or drag across a graph to see the values at that moment; the legend always shows the latest values. The graphs refresh every minute while the page is open
+- When the server can't be reached, the page keeps showing the last status with a note saying when it was last updated
+
+### Changed
+
+- The guest list's bulk actions stay Start, Shut down, Reboot and Stop; Pause, Resume and Hibernate are only on a VM's own page
+
 ## v0.3.0 (2026-10-19)
 
 The Guests tab now lists all your containers and VMs.
