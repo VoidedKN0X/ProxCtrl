@@ -16,9 +16,7 @@
     <string name="selected">Selected</string>
     <string name="account_and_settings">Account and settings</string>
 
-    <!-- Empty states while no server is set up -->
-    <string name="no_server_title">No Proxmox server yet</string>
-    <string name="no_server_body">Server setup arrives in the next build. Your node, guests, storage and tasks will show up here once you\'ve added your Proxmox VE server.</string>
+    <!-- What each tab shows -->
     <string name="overview_empty_hint">Node health and anything that needs attention.</string>
     <string name="guests_empty_hint">All your containers and virtual machines.</string>
     <string name="storage_empty_hint">Storages, disks, ZFS, LVM and backups.</string>
@@ -49,4 +47,122 @@
     <string name="theme_black">Pure black</string>
     <string name="dynamic_colour">Dynamic colour</string>
     <string name="dynamic_colour_subtitle">Use colours from your wallpaper</string>
+
+    <!-- Server setup -->
+    <string name="setup_title">Add your Proxmox server</string>
+    <string name="setup_intro">ProxCtrl talks to the Proxmox VE API on your node. An API token that can only do what the app needs is the safest way in.</string>
+    <string name="edit_server_title">Server and sign-in</string>
+    <string name="field_name">Name (optional)</string>
+    <string name="field_name_hint">Defaults to your node or cluster name</string>
+    <string name="field_address">Address</string>
+    <string name="field_address_hint">192.168.1.10 or https://pve.example.com</string>
+    <string name="address_resolves">Connects to %1$s</string>
+    <string name="address_invalid">Enter the address of your Proxmox node, like 192.168.1.10 or https://pve.example.com</string>
+    <string name="address_http">Proxmox VE only uses HTTPS. Use https:// or leave the scheme out.</string>
+    <string name="auth_method">Sign in with</string>
+    <string name="auth_token">API token</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_token_note">Recommended. See the README for a token with only the permissions ProxCtrl needs.</string>
+    <string name="auth_password_note">Uses a Proxmox login session, renewed automatically. Two-factor codes are supported.</string>
+    <string name="field_token_id">Token ID</string>
+    <string name="field_token_id_hint">proxctrl@pve!phone</string>
+    <string name="field_token_secret">Token secret</string>
+    <string name="token_id_invalid">A token ID looks like user@realm!name, for example proxctrl@pve!phone</string>
+    <string name="field_username">Username</string>
+    <string name="field_password">Password</string>
+    <string name="field_realm">Realm</string>
+    <string name="realm_pam">Linux PAM (pam)</string>
+    <string name="realm_pve">Proxmox VE (pve)</string>
+    <string name="show_secret">Show</string>
+    <string name="hide_secret">Hide</string>
+    <string name="connect">Connect</string>
+    <string name="connecting">Connecting…</string>
+    <string name="save_changes">Save</string>
+    <string name="continue_label">Continue</string>
+    <string name="retry">Retry</string>
+    <string name="done">Done</string>
+
+    <!-- Certificate -->
+    <string name="cert_title">Trust this certificate?</string>
+    <string name="cert_changed_title">Certificate changed</string>
+    <string name="cert_intro">%1$s uses a certificate your phone doesn\'t know, like the self-signed certificate Proxmox creates on install.</string>
+    <string name="cert_changed_warning">%1$s now presents a different certificate from the one you trusted. Only continue if you replaced or renewed it yourself.</string>
+    <string name="cert_check">Check that this SHA-256 fingerprint matches the one on your node (Datacenter › your node › System › Certificates, or run: pvenode cert info):</string>
+    <string name="cert_issued_to">Issued to: %1$s</string>
+    <string name="cert_pin_note">From now on ProxCtrl only accepts this exact certificate from this server.</string>
+    <string name="cert_trust">Trust</string>
+    <string name="cert_fetch_failed">Couldn\'t read the certificate from %1$s.</string>
+
+    <!-- Two-factor -->
+    <string name="tfa_title">Two-factor code</string>
+    <string name="tfa_body">Enter the 6-digit code from your authenticator app.</string>
+    <string name="tfa_code">Code</string>
+    <string name="tfa_use_recovery">Use a recovery key instead</string>
+    <string name="tfa_use_code">Use an authenticator code instead</string>
+    <string name="tfa_recovery_body">Enter one of your Proxmox recovery keys. Each key works once.</string>
+    <string name="tfa_recovery">Recovery key</string>
+    <string name="tfa_unsupported">This account only has a security key (WebAuthn) or Yubico OTP as its second factor. ProxCtrl supports authenticator codes and recovery keys; use an API token instead.</string>
+    <string name="verify">Verify</string>
+
+    <!-- Errors -->
+    <string name="error_unreachable">Can\'t reach %1$s. Check the address and that your phone is on a network that can reach it.</string>
+    <string name="error_untrusted_cert">The certificate of %1$s isn\'t trusted.</string>
+    <string name="error_pin_mismatch">%1$s presents a different certificate from the one you trusted. ProxCtrl stopped connecting to protect your sign-in.</string>
+    <string name="error_bad_token">Proxmox rejected the token. Check the token ID and secret, and that the token hasn\'t expired or been removed.</string>
+    <string name="error_bad_password">Wrong username, realm or password.</string>
+    <string name="error_bad_tfa">That code wasn\'t accepted. Wait for a new code and try again.</string>
+    <string name="error_session_ended">Your session on %1$s ended. Sign in again.</string>
+    <string name="error_forbidden">Your token or user isn\'t allowed to do this.</string>
+    <string name="error_not_proxmox">%1$s answered, but not like a Proxmox VE server. Check the address and port (Proxmox uses 8006).</string>
+    <string name="error_server">Proxmox returned an error (%1$d).</string>
+    <string name="error_with_detail">%1$s\n\n%2$s</string>
+    <string name="error_generic">Something went wrong.</string>
+
+    <!-- Connection result and access -->
+    <string name="connected_to">Connected to %1$s</string>
+    <string name="pve_version">Proxmox VE %1$s</string>
+    <string name="signed_in_as">Signed in as %1$s</string>
+    <string name="access_title">What this sign-in can do</string>
+    <string name="access_footer">Anything not allowed is greyed out in the app. Change the token\'s role on Proxmox to allow more; see the README.</string>
+    <string name="access_none_warning">This sign-in can\'t see anything yet. Give it a role on / (see the README), then check again.</string>
+    <string name="cap_guests">See containers and VMs</string>
+    <string name="cap_node">Node status and graphs</string>
+    <string name="cap_storage">Storages and backups</string>
+    <string name="cap_agent">VM addresses and disk use from the guest agent</string>
+    <string name="cap_power">Start, stop and reboot guests</string>
+    <string name="cap_console">Consoles</string>
+    <string name="cap_snapshots">Snapshots</string>
+    <string name="cap_backups">Back up and restore</string>
+    <string name="cap_shell">Node shell</string>
+    <string name="cap_updates">Updates and services</string>
+    <string name="cap_node_power">Reboot and shut down the node</string>
+    <string name="allowed">Allowed</string>
+    <string name="not_allowed">Not allowed</string>
+    <string name="read_only_suggest">This sign-in can only look, not change anything, so read-only mode is turned on.</string>
+
+    <!-- Servers -->
+    <string name="servers_title">Servers</string>
+    <string name="servers_subtitle">Switch, add or remove Proxmox servers</string>
+    <string name="add_server">Add server</string>
+    <string name="active_server">In use</string>
+    <string name="switch_to">Switch to this server</string>
+    <string name="edit_server">Change address or sign-in</string>
+    <string name="remove_server">Remove server</string>
+    <string name="remove_server_title">Remove %1$s?</string>
+    <string name="remove_server_body">ProxCtrl forgets this server and deletes its saved token or password from the phone. Nothing changes on the server itself.</string>
+    <string name="remove">Remove</string>
+    <string name="read_only_mode">Read-only mode</string>
+    <string name="read_only_mode_subtitle">Hide every action that changes something on this server</string>
+    <string name="cert_pinned">Pinned certificate</string>
+    <string name="cert_system">Certificate trusted by your phone</string>
+    <string name="sign_in_again">Sign in again</string>
+    <string name="check_again">Check again</string>
+    <string name="auth_summary_token">API token %1$s</string>
+    <string name="auth_summary_password">%1$s with password</string>
+    <string name="auth_summary_password_tfa">%1$s with password and two-factor</string>
+
+    <!-- Connected placeholders -->
+    <string name="tab_coming_title">Coming in the next updates</string>
+    <string name="tab_coming_body">Connected to %1$s. This tab is filled in as ProxCtrl is built, one part at a time.</string>
+    <string name="connection_problem">Connection problem</string>
 </resources>
