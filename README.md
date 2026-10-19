@@ -32,6 +32,7 @@ Not in the app yet: the **Storage** tab (storages, backups, ISOs and templates, 
 
 - Android 13 or newer
 - Proxmox VE 8 or 9
+- **Google-free:** works without Google Play services, contains no Google libraries that contact Google, and draws emoji with your phone's own emoji font. The built-in web view used for the consoles and node shell has Google Safe Browsing and WebView usage reports turned off
 
 ## Install
 
