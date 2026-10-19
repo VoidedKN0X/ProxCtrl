@@ -3,6 +3,23 @@
 // a WebSocket-like object and back. `ProxBridge` is the app's JavaScript interface.
 (function () {
   'use strict';
+  // Counters for the app's diagnostics panel. Only counts, never what was typed.
+  const stats = { recv: 0, sent: 0, blocked: 0, frames: 0, ticking: false };
+  window.pcStats = stats;
+  function report(msg) {
+    try { ProxBridge.log(String(msg).slice(0, 300)); } catch (_) { /* bridge missing */ }
+  }
+  window.addEventListener('error', function (e) {
+    report((e.message || 'error') + ' @ ' + String(e.filename || '').split('/').pop() + ':' + (e.lineno || 0));
+  });
+  window.addEventListener('unhandledrejection', function (e) { report('rejection: ' + (e.reason && e.reason.message || e.reason)); });
+  // Counts animation frames while the panel is open: if this stops, the page isn't being drawn.
+  window.pcTick = function () {
+    if (stats.ticking) return;
+    stats.ticking = true;
+    (function tick() { stats.frames++; requestAnimationFrame(tick); })();
+  };
+
   function b64ToBytes(b64) {
     const bin = atob(b64);
     const out = new Uint8Array(bin.length);
@@ -28,7 +45,8 @@
     onclose: null,
     onerror: null,
     send(data) {
-      if (this.readyState !== 'open') return;
+      if (this.readyState !== 'open') { stats.blocked++; return; }
+      stats.sent++;
       if (typeof data === 'string') {
         ProxBridge.sendText(data);
       } else {
@@ -49,6 +67,7 @@
     if (channel.onopen) channel.onopen({ type: 'open' });
   };
   window.pcRecv = function (b64) {
+    stats.recv++;
     if (channel.onmessage) channel.onmessage({ data: b64ToBytes(b64).buffer });
   };
   window.pcClosed = function (code, reason) {

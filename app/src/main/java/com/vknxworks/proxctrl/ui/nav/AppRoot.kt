@@ -114,6 +114,9 @@ private fun MainScaffold() {
     val backStack by navController.currentBackStackEntryAsState()
     val dest = backStack?.destination
     val selectedIndex = topDestinations.indexOfFirst { top -> dest?.hierarchy?.any { it.hasRoute(top.route::class) } == true }
+    // Consoles get the whole screen, and stay out of the glass effect: a WebView drawn inside the
+    // blur source isn't redrawn when its page changes, so the console looked frozen.
+    val inConsole = dest?.hasRoute(ConsoleRoute::class) == true
     val tabs = topDestinations.map { TabItem(stringResource(it.label), it.icon, it.selectedIcon) }
 
     fun selectTab(i: Int) {
@@ -150,7 +153,7 @@ private fun MainScaffold() {
             if (maxWidth >= 600.dp) {
                 // Tablets, unfolded foldables and landscape: a side rail.
                 Row(Modifier.fillMaxSize()) {
-                    NavigationRail(
+                    if (!inConsole) NavigationRail(
                         containerColor = MaterialTheme.colorScheme.background,
                         modifier = Modifier.fillMaxHeight().statusBarsPadding(),
                     ) {
@@ -173,6 +176,7 @@ private fun MainScaffold() {
                     navController = navController,
                     tabs = tabs,
                     showTabs = selectedIndex >= 0,
+                    blurContent = !inConsole,
                     selectedIndex = selectedIndex,
                     onSelect = ::selectTab,
                 )
@@ -190,6 +194,7 @@ private fun PhoneLayout(
     navController: NavHostController,
     tabs: List<TabItem>,
     showTabs: Boolean,
+    blurContent: Boolean,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
 ) {
@@ -202,7 +207,7 @@ private fun PhoneLayout(
         LocalBottomClearance provides if (showTabs) overlayHeight else 0.dp,
     ) {
         Box(Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize().hazeSource(hazeState)) {
+            Box(Modifier.fillMaxSize().then(if (blurContent) Modifier.hazeSource(hazeState) else Modifier)) {
                 AppNavHost(navController)
             }
             Box(

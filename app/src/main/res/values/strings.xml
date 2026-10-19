@@ -516,6 +516,9 @@
     <string name="console_not_running">The guest isn\'t running.</string>
     <string name="console_token_login">You\'re signed in with an API token, so the node asks for a Linux login. Only root@pam with a password gets a shell straight away.</string>
     <string name="console_rotate">Rotate</string>
+    <string name="console_diagnostics">Diagnostics</string>
+    <string name="console_diagnostics_copy">Copy</string>
+    <string name="console_diagnostics_copied">Diagnostics copied</string>
     <string name="console_keyboard">Keyboard</string>
     <string name="console_paste">Paste</string>
     <string name="console_font_bigger">Bigger text</string>

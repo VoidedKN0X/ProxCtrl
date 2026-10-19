@@ -87,3 +87,12 @@ window.pcKeyboard = (show) => { if (show) { kbd.focus(); } else { kbd.blur(); } 
 window.pcFocus = () => rfb.focus();
 
 ProxBridge.pageReady();
+
+window.pcDiag = () => {
+  window.pcTick();
+  const s = window.pcStats;
+  return JSON.stringify({
+    page: 'vnc', rfb: rfb._rfbConnectionState, init: rfb._rfbInitState, recv: s.recv, sent: s.sent, blocked: s.blocked,
+    frames: s.frames, screen: rfb._fbWidth + 'x' + rfb._fbHeight, view: innerWidth + 'x' + innerHeight,
+  });
+};
