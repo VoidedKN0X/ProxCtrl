@@ -8,6 +8,9 @@ import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -69,6 +72,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -87,7 +92,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -157,6 +161,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     var showDiag by remember { mutableStateOf(false) }
     var fieldFocused by remember { mutableStateOf(false) }
     val diag = remember { ConsoleDiag() }
+    var consoleBounds by remember { mutableStateOf<List<Int>?>(null) }
 
     fun js(code: String) {
         main.post { webView?.evaluateJavascript(code, null) }
@@ -320,6 +325,98 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         return true
     }
 
+    /*
+     * The console page runs in a WebView added straight to the activity's window, on top of the
+     * app, instead of inside the Compose layout. Drawn inside Compose, the page stopped being
+     * redrawn on some phones: typing and output reached the server and the page, but the screen
+     * stayed frozen on its first frame.
+     */
+    val consoleHost = remember(activity) { activity?.findViewById<ViewGroup>(android.R.id.content) }
+    DisposableEffect(consoleHost) {
+        val host = consoleHost
+        val wv = host?.let { h ->
+            val ctx = h.context
+            val loader = WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(ctx))
+                .build()
+            WebView(ctx).apply {
+                setBackgroundColor(Color.BLACK)
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = false
+                settings.allowFileAccess = false
+                settings.allowContentAccess = false
+                settings.setSupportZoom(false)
+                settings.mediaPlaybackRequiresUserGesture = true
+                webViewClient = object : WebViewClient() {
+                    override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+                        loader.shouldInterceptRequest(request.url)
+
+                    // Only the bundled pages may load; nothing navigates anywhere else.
+                    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
+                }
+                webChromeClient = object : WebChromeClient() {
+                    override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+                        if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                            diag.log("js: ${message.message().take(200)} @ ${message.sourceId().substringAfterLast('/')}:${message.lineNumber()}")
+                        }
+                        return true
+                    }
+                }
+                addJavascriptInterface(bridge, "ProxBridge")
+                // Keyboard input goes through the app's own field, never into the page.
+                isFocusable = false
+                isFocusableInTouchMode = false
+                if (!target.isScreen) {
+                    // A tap on a terminal brings up the keyboard; drags still scroll it.
+                    val slop = android.view.ViewConfiguration.get(ctx).scaledTouchSlop
+                    var downX = 0f
+                    var downY = 0f
+                    setOnTouchListener { _, e ->
+                        when (e.actionMasked) {
+                            android.view.MotionEvent.ACTION_DOWN -> { downX = e.x; downY = e.y }
+                            android.view.MotionEvent.ACTION_UP ->
+                                if (kotlin.math.abs(e.x - downX) < slop && kotlin.math.abs(e.y - downY) < slop) main.post { showKeyboard() }
+                        }
+                        false
+                    }
+                }
+                val page = if (target.isScreen) "vnc.html" else "terminal.html?font=$fontSize"
+                loadUrl("$ASSET_HOST/assets/console/$page")
+                webView = this
+            }
+        }
+        if (host != null && wv != null) host.addView(wv, FrameLayout.LayoutParams(0, 0))
+        onDispose {
+            if (wv != null) {
+                host?.removeView(wv)
+                wv.destroy()
+            }
+            webView = null
+        }
+    }
+
+    // Keep the page exactly over its spot in the layout (it moves with the keyboard and banners).
+    LaunchedEffect(consoleBounds, webView) {
+        val wv = webView ?: return@LaunchedEffect
+        val host = consoleHost ?: return@LaunchedEffect
+        val (x, y, w, h) = consoleBounds ?: return@LaunchedEffect
+        val origin = IntArray(2).also(host::getLocationInWindow)
+        wv.translationX = (x - origin[0]).toFloat()
+        wv.translationY = (y - origin[1]).toFloat()
+        val lp = wv.layoutParams
+        if (lp.width != w || lp.height != h) {
+            lp.width = w
+            lp.height = h
+            wv.layoutParams = lp
+        }
+    }
+
+    // Only show the page once it's connected, so the progress and error cards (drawn by the app,
+    // underneath the page) stay visible until then.
+    LaunchedEffect(state, webView) {
+        webView?.visibility = if (state == ConsoleState.CONNECTED) View.VISIBLE else View.INVISIBLE
+    }
+
     Column(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF0D0F12)).imePadding()) {
         // Compact bar: back, title, and tools.
         Row(
@@ -369,60 +466,38 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             }
         }
 
-        Box(Modifier.weight(1f).fillMaxWidth()) {
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    val loader = WebViewAssetLoader.Builder()
-                        .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(ctx))
-                        .build()
-                    WebView(ctx).apply {
-                        setBackgroundColor(Color.BLACK)
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = false
-                        settings.allowFileAccess = false
-                        settings.allowContentAccess = false
-                        settings.setSupportZoom(false)
-                        settings.mediaPlaybackRequiresUserGesture = true
-                        webViewClient = object : WebViewClient() {
-                            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                                loader.shouldInterceptRequest(request.url)
-
-                            // Only the bundled pages may load; nothing navigates anywhere else.
-                            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
+        if (showDiag) {
+            DiagnosticsPanel(
+                diag = diag,
+                lines = {
+                    val st = sessionRef.get()?.stats
+                    buildList {
+                        add("state $state · page ready ${bridge.pageReadyCalls.get()}× · webview ${webViewVersion(context)}")
+                        add(
+                            if (st == null) "socket: no session"
+                            else "socket: proxy ${if (st.proxyStarted) "ok" else "-"} · open ${st.socketOpen}" + (st.closeInfo?.let { " · $it" } ?: ""),
+                        )
+                        if (st != null) {
+                            add("in ${st.framesIn.get()} msgs/${st.bytesIn.get()} B · out ${st.framesOut.get()} msgs/${st.bytesOut.get()} B · dropped ${st.dropped.get()} · last ${st.lastOut}")
                         }
-                        webChromeClient = object : WebChromeClient() {
-                            override fun onConsoleMessage(message: ConsoleMessage): Boolean {
-                                if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
-                                    diag.log("js: ${message.message().take(200)} @ ${message.sourceId().substringAfterLast('/')}:${message.lineNumber()}")
-                                }
-                                return true
-                            }
-                        }
-                        addJavascriptInterface(bridge, "ProxBridge")
-                        // Keyboard input goes through the app's own field, never into the page.
-                        isFocusable = false
-                        isFocusableInTouchMode = false
-                        if (!target.isScreen) {
-                            // A tap on a terminal brings up the keyboard; drags still scroll it.
-                            val slop = android.view.ViewConfiguration.get(ctx).scaledTouchSlop
-                            var downX = 0f
-                            var downY = 0f
-                            setOnTouchListener { _, e ->
-                                when (e.actionMasked) {
-                                    android.view.MotionEvent.ACTION_DOWN -> { downX = e.x; downY = e.y }
-                                    android.view.MotionEvent.ACTION_UP ->
-                                        if (kotlin.math.abs(e.x - downX) < slop && kotlin.math.abs(e.y - downY) < slop) main.post { showKeyboard() }
-                                }
-                                false
-                            }
-                        }
-                        val page = if (target.isScreen) "vnc.html" else "terminal.html?font=$fontSize"
-                        loadUrl("$ASSET_HOST/assets/console/$page")
-                        webView = this
+                        add("page sends ${bridge.sendCalls.get()} · without session ${bridge.sendsWithoutSession.get()}")
+                        add("keyboard field focused $fieldFocused · ime $imeVisible · text ${diag.keyboardEvents} (${diag.lastKeyboard}) · keys ${diag.keyEvents}")
+                        add("page ${diag.page}")
+                        diag.errors().forEach { add("! $it") }
                     }
                 },
-                onRelease = { it.destroy() },
+                refresh = {
+                    main.post { webView?.evaluateJavascript("typeof pcDiag === 'function' ? pcDiag() : 'no pcDiag'") { diag.page = decodeJsString(it) } }
+                },
+            )
+        }
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            // Where the console goes. The WebView itself is laid over this spot in the window (see below).
+            Box(
+                Modifier.fillMaxSize().onGloballyPositioned { coords ->
+                    val pos = coords.positionInWindow()
+                    consoleBounds = listOf(pos.x.toInt(), pos.y.toInt(), coords.size.width, coords.size.height)
+                },
             )
             BasicTextField(
                 value = input,
@@ -458,32 +533,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                     }
                 }
                 ConsoleState.CONNECTED -> Unit
-            }
-            if (showDiag) {
-                DiagnosticsPanel(
-                    diag = diag,
-                    lines = {
-                        val st = sessionRef.get()?.stats
-                        buildList {
-                            add("state $state · page ready ${bridge.pageReadyCalls.get()}× · webview ${webViewVersion(context)}")
-                            add(
-                                if (st == null) "socket: no session"
-                                else "socket: proxy ${if (st.proxyStarted) "ok" else "-"} · open ${st.socketOpen}" + (st.closeInfo?.let { " · $it" } ?: ""),
-                            )
-                            if (st != null) {
-                                add("in ${st.framesIn.get()} msgs/${st.bytesIn.get()} B · out ${st.framesOut.get()} msgs/${st.bytesOut.get()} B · dropped ${st.dropped.get()} · last ${st.lastOut}")
-                            }
-                            add("page sends ${bridge.sendCalls.get()} · without session ${bridge.sendsWithoutSession.get()}")
-                            add("keyboard field focused $fieldFocused · ime $imeVisible · text ${diag.keyboardEvents} (${diag.lastKeyboard}) · keys ${diag.keyEvents}")
-                            add("page ${diag.page}")
-                            diag.errors().forEach { add("! $it") }
-                        }
-                    },
-                    refresh = {
-                        main.post { webView?.evaluateJavascript("typeof pcDiag === 'function' ? pcDiag() : 'no pcDiag'") { diag.page = decodeJsString(it) } }
-                    },
-                    modifier = Modifier.align(Alignment.TopCenter),
-                )
             }
         }
 

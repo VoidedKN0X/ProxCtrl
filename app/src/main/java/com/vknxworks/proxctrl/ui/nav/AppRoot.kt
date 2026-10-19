@@ -114,8 +114,7 @@ private fun MainScaffold() {
     val backStack by navController.currentBackStackEntryAsState()
     val dest = backStack?.destination
     val selectedIndex = topDestinations.indexOfFirst { top -> dest?.hierarchy?.any { it.hasRoute(top.route::class) } == true }
-    // Consoles get the whole screen, and stay out of the glass effect: a WebView drawn inside the
-    // blur source isn't redrawn when its page changes, so the console looked frozen.
+    // Consoles get the whole screen and stay out of the glass effect, which they don't need.
     val inConsole = dest?.hasRoute(ConsoleRoute::class) == true
     val tabs = topDestinations.map { TabItem(stringResource(it.label), it.icon, it.selectedIcon) }
 
