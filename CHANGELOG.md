@@ -4,6 +4,12 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+### Changed
+
+- **README brought up to date with 0.8.0.** The Storage tab, the Tasks tab with live logs, the Node tab (services, updates and network) and the home screen widgets and Quick Settings tile aren't in the app yet, so they moved from the feature list to a new **Planned** section. The feature list now also mentions the node shell on the Overview, the compact guest list, IP addresses and notes on guest pages, several servers with token or password sign-in, the offline view, `proxctrl://guest/<id>` links and the encrypted token secrets and passwords. The privilege tables only list what the app uses today; changing cores and memory, editing tags, growing disks, cloning, uploading ISOs, node reboot and restarting services are listed as planned. Install now has the CtrlF-Droid badge and link, and a new paragraph lists everything ProxCtrl connects to besides your servers. No change to the app itself
+
 ## v0.8.0 (2026-10-19)
 
 Snapshots and backups for every guest.
