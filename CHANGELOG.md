@@ -4,6 +4,30 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.5.0 (2026-10-19)
+
+The Overview tab now shows what needs your attention and how each node is doing.
+
+### New
+
+- **Needs attention** list at the top of the Overview, most serious first, each with an icon that shows how serious it is (red error, yellow warning, grey info). It shows the first five, with **Show all** for the rest, or "All good" when nothing needs a look. It flags:
+  - Guests whose disk is over the disk warning level (80 % by default), with how much is used
+  - Nodes whose memory is over the memory warning level (85 % by default) or whose root disk is over the disk warning level
+  - Nodes that are offline (in a cluster)
+  - Stopped guests that are set to start at boot, so were probably meant to be running
+  - Tasks that failed in the last 24 hours, with the latest one
+  - A last backup that failed or finished with warnings
+  - Guests in a backup job whose newest backup is older than the backup age limit (7 days by default), and guests that no backup job includes
+  - Storage over the disk warning level, or storage that's unavailable
+  - A subscription that has expired, is invalid or suspended (no subscription at all isn't flagged)
+  - Available package updates, when your sign-in may see them
+  - High-availability errors and quorum problems in a cluster
+- Tap an item to open the guest it's about, or the Guests, Storage, Tasks or Node tab. Storage, Tasks and Node are still placeholders until their stages are built
+- **Node card** for each node: online status, uptime, Proxmox VE version and kernel, CPU use with the number of CPUs, IO delay and load average, memory, swap and root disk with bars that turn yellow and red past the warning levels, and small graphs of CPU, memory and network in/out over the last hour with their latest values
+- A line with how many guests are running, which opens the Guests tab
+- **Memory warning** and **Backup age warning** settings under Settings › Warnings, next to the disk warning
+- The Overview refreshes every 5 seconds while it's on screen (heavier checks like backups and updates run less often) and stops in the background. Pull down to refresh everything now. The last state is kept on the phone and shown with a note when the server can't be reached
+
 ## v0.4.1 (2026-10-19)
 
 Other apps can now open a guest's page in ProxCtrl directly.

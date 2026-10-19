@@ -2,6 +2,7 @@ package com.vknxworks.proxctrl
 
 import android.content.Context
 import com.vknxworks.proxctrl.data.guests.GuestRepository
+import com.vknxworks.proxctrl.data.overview.OverviewRepository
 import com.vknxworks.proxctrl.data.server.ServerStore
 import com.vknxworks.proxctrl.data.server.Sessions
 import com.vknxworks.proxctrl.data.settings.SettingsRepository
@@ -41,6 +42,7 @@ class AppContainer(val context: Context) {
     val serverStore = ServerStore(context)
     val sessions = Sessions(serverStore, http, appScope)
     val guests = GuestRepository(context, sessions, appScope)
+    val overview = OverviewRepository(context, sessions, guests, appScope)
 }
 
 val Context.container: AppContainer

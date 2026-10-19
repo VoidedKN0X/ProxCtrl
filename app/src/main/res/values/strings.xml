@@ -323,4 +323,73 @@
     <string name="confirm_hibernate_body">The VM\'s memory is written to storage and the VM stops. Start brings it back where it was.</string>
     <string name="power_started">%1$s: %2$s started</string>
     <string name="power_failed">%1$s failed</string>
+
+    <!-- Settings: more warnings -->
+    <string name="mem_warn_title">Memory warning</string>
+    <string name="mem_warn_subtitle">Flag a node from %1$d%% memory used</string>
+    <string name="backup_age_title">Backup age warning</string>
+    <plurals name="backup_age_subtitle">
+        <item quantity="one">Flag guests without a backup in the last day</item>
+        <item quantity="other">Flag guests without a backup in the last %1$d days</item>
+    </plurals>
+
+    <!-- Overview -->
+    <string name="attention_title">Needs attention</string>
+    <string name="attention_all_good">All good</string>
+    <string name="attention_all_good_body">Nothing needs your attention on %1$s right now.</string>
+    <string name="attention_show_all">Show all %1$d</string>
+    <string name="attention_show_less">Show less</string>
+    <string name="sev_critical">Critical</string>
+    <string name="sev_warning">Warning</string>
+    <string name="sev_info">Info</string>
+    <string name="att_guest_disk">%1$s disk is %2$d%% full</string>
+    <string name="att_guest_disk_detail">%1$s of %2$s used</string>
+    <string name="att_node_mem">%1$s memory is %2$d%% used</string>
+    <string name="att_node_root">%1$s root disk is %2$d%% full</string>
+    <string name="att_node_offline">%1$s is offline</string>
+    <string name="att_node_offline_detail">The cluster can\'t reach this node.</string>
+    <string name="att_onboot">%1$s is stopped</string>
+    <string name="att_onboot_detail">It\'s set to start at boot, so it was probably meant to be running.</string>
+    <plurals name="att_failed_tasks">
+        <item quantity="one">%1$d task failed in the last 24 hours</item>
+        <item quantity="other">%1$d tasks failed in the last 24 hours</item>
+    </plurals>
+    <string name="att_failed_tasks_detail">Latest: %1$s, %2$s</string>
+    <string name="att_backup_failed">Last backup on %1$s failed</string>
+    <string name="att_backup_warnings">Last backup on %1$s had warnings</string>
+    <string name="att_backup_failed_detail">%1$s: %2$s</string>
+    <plurals name="att_backup_old">
+        <item quantity="one">%1$d guest has no backup from the last %2$d days</item>
+        <item quantity="other">%1$d guests have no backup from the last %2$d days</item>
+    </plurals>
+    <plurals name="att_not_backed_up">
+        <item quantity="one">%1$d guest isn\'t in any backup job</item>
+        <item quantity="other">%1$d guests aren\'t in any backup job</item>
+    </plurals>
+    <string name="att_storage_full">Storage %1$s is %2$d%% full</string>
+    <string name="att_storage_detail">%1$s of %2$s used on %3$s</string>
+    <string name="att_storage_down">Storage %1$s is unavailable</string>
+    <string name="att_storage_down_detail">On %1$s: %2$s</string>
+    <string name="att_subscription">Subscription on %1$s is %2$s</string>
+    <string name="att_subscription_detail">Check the subscription key under the node\'s Subscription page.</string>
+    <plurals name="att_updates">
+        <item quantity="one">%1$d update available on %2$s</item>
+        <item quantity="other">%1$d updates available on %2$s</item>
+    </plurals>
+    <string name="att_updates_detail">From the last package list refresh. Install them in the node shell.</string>
+    <string name="att_ha">HA: %1$s is in state %2$s</string>
+    <string name="att_ha_quorum">HA quorum problem</string>
+
+    <string name="node_online">Online</string>
+    <string name="node_offline">Offline</string>
+    <string name="node_load">Load %1$s</string>
+    <string name="node_io_delay">IO delay %1$s%%</string>
+    <string name="label_swap">Swap</string>
+    <string name="label_root">Root disk</string>
+    <string name="node_kernel">Kernel %1$s</string>
+    <string name="node_cpu_summary">%1$d%% of %2$d CPUs</string>
+    <string name="sparkline_cpu">CPU, last hour</string>
+    <string name="sparkline_mem">Memory, last hour</string>
+    <string name="sparkline_net">Network, last hour</string>
+    <string name="overview_guests_line">%1$d of %2$d guests running</string>
 </resources>

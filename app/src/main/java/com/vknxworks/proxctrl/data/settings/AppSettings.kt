@@ -44,6 +44,10 @@ data class AppSettings(
     val guestCompact: Boolean = false,
     /** Disk use (percent) from which a guest or storage is flagged. */
     val diskWarnPercent: Int = 80,
+    /** Node memory use (percent) from which it's flagged. */
+    val memWarnPercent: Int = 85,
+    /** A guest's newest backup older than this many days is flagged. */
+    val backupMaxAgeDays: Int = 7,
 )
 
 class SettingsRepository(private val context: Context, scope: CoroutineScope) {
@@ -54,6 +58,8 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         val guestDesc = booleanPreferencesKey("guest_sort_desc")
         val guestCompact = booleanPreferencesKey("guest_compact")
         val diskWarn = intPreferencesKey("disk_warn_percent")
+        val memWarn = intPreferencesKey("mem_warn_percent")
+        val backupAge = intPreferencesKey("backup_max_age_days")
     }
 
     val settings: StateFlow<AppSettings> = context.appDataStore.data
@@ -67,6 +73,8 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         guestSortDescending = this[K.guestDesc] ?: false,
         guestCompact = this[K.guestCompact] ?: false,
         diskWarnPercent = (this[K.diskWarn] ?: 80).coerceIn(50, 99),
+        memWarnPercent = (this[K.memWarn] ?: 85).coerceIn(50, 99),
+        backupMaxAgeDays = (this[K.backupAge] ?: 7).coerceIn(1, 90),
     )
 
     suspend fun update(transform: (AppSettings) -> AppSettings) {
@@ -78,6 +86,8 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
             p[K.guestDesc] = s.guestSortDescending
             p[K.guestCompact] = s.guestCompact
             p[K.diskWarn] = s.diskWarnPercent
+            p[K.memWarn] = s.memWarnPercent
+            p[K.backupAge] = s.backupMaxAgeDays
         }
     }
 

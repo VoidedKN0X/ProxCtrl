@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,6 +60,18 @@ fun SettingsScreen() {
                     settings.diskWarnPercent,
                     icon = Icons.Filled.Storage,
                 ) { pct -> c.appScope.launch { c.settings.update { it.copy(diskWarnPercent = pct) } } }
+                GroupChoice(
+                    stringResource(R.string.mem_warn_title),
+                    listOf(75, 80, 85, 90, 95).map { it to stringResource(R.string.mem_warn_subtitle, it) },
+                    settings.memWarnPercent,
+                    icon = Icons.Filled.Memory,
+                ) { pct -> c.appScope.launch { c.settings.update { it.copy(memWarnPercent = pct) } } }
+                GroupChoice(
+                    stringResource(R.string.backup_age_title),
+                    listOf(1, 2, 3, 7, 14, 30).map { it to pluralStringResource(R.plurals.backup_age_subtitle, it, it) },
+                    settings.backupMaxAgeDays,
+                    icon = Icons.Filled.Backup,
+                ) { d -> c.appScope.launch { c.settings.update { it.copy(backupMaxAgeDays = d) } } }
             }
         }
     }
