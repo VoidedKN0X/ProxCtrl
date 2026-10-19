@@ -56,6 +56,11 @@ class PveClient(
     val server: Server,
     base: OkHttpClient,
     secrets: ServerSecrets,
+    /**
+     * Whether the server is in read-only mode right now. Read on every request (not copied from
+     * [server] once), so switching read-only on also stops clients a screen is still holding.
+     */
+    private val isReadOnly: () -> Boolean = { server.readOnly },
     /** Called when a ticket is renewed, so it can be saved (encrypted). */
     private val onSecretsChanged: (ServerSecrets) -> Unit = {},
 ) {
@@ -83,6 +88,9 @@ class PveClient(
         PveJson.decodeFromJsonElement(strategy, get(path, query))
 
     private suspend fun call(method: String, path: String, query: Map<String, String>, params: Map<String, String>): JsonElement {
+        // Read-only mode is enforced here, for every request that could change something (power
+        // actions, notes, consoles and anything added later), not only by hiding buttons.
+        if (method != "GET" && isReadOnly()) throw PveError.ReadOnly()
         if (server.auth == AuthMethod.TICKET) ensureFreshTicket()
         return try {
             execute(method, path, query, params)

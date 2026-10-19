@@ -103,6 +103,8 @@ object Push {
         )
     }
 
+    private fun String.oneLine(max: Int) = replace(Regex("[\\p{Cntrl}\\s]+"), " ").trim().take(max)
+
     private fun b64(s: String) = Base64.encodeToString(s.toByteArray(), Base64.NO_WRAP)
 
     /** Shell commands for the Proxmox node that set up the webhook target and the matchers. */
@@ -143,8 +145,9 @@ pvesh create /cluster/notifications/targets/proxctrl/test
         val o = runCatching { PveJson.parseToJsonElement(content) as? JsonObject }.getOrNull()
         val fields = o?.get("fields") as? JsonObject
         val type = fields?.str("type").orEmpty()
-        val host = fields?.str("hostname").orEmpty()
-        val title = o?.str("title")?.takeIf { it.isNotBlank() } ?: content.lineSequence().firstOrNull().orEmpty().take(200)
+        // Anyone who learns the push address can post to it: keep what's shown short and on one line.
+        val host = fields?.str("hostname").orEmpty().oneLine(80)
+        val title = (o?.str("title")?.takeIf { it.isNotBlank() } ?: content.lineSequence().firstOrNull().orEmpty()).oneLine(200)
         val severity = when (o?.str("severity")) {
             "error" -> Severity.CRITICAL
             "warning" -> Severity.WARNING

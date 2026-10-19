@@ -103,10 +103,12 @@ import com.vknxworks.proxctrl.data.api.PveError
 import com.vknxworks.proxctrl.data.console.ConsoleSession
 import com.vknxworks.proxctrl.data.console.ConsoleTarget
 import com.vknxworks.proxctrl.data.server.AuthMethod
+import com.vknxworks.proxctrl.ui.components.SecureScreen
 import com.vknxworks.proxctrl.ui.components.errorMessage
 import com.vknxworks.proxctrl.ui.nav.LocalNavigator
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.util.concurrent.atomic.AtomicReference
 
 private const val ASSET_HOST = "https://appassets.androidplatform.net"
@@ -167,6 +169,9 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         main.post { webView?.evaluateJavascript(code, null) }
     }
 
+    // A shell shows whatever the server prints (keys, passwords, configs): never in screenshots or Recents.
+    SecureScreen()
+
     // Full screen while the console is open; restore bars and rotation when leaving.
     DisposableEffect(Unit) {
         val window = activity?.window
@@ -177,6 +182,18 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             controller?.show(WindowInsetsCompat.Type.systemBars())
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             sessionRef.getAndSet(null)?.close()
+            // Remote debugging (from the diagnostics panel) never outlives the console.
+            runCatching { WebView.setWebContentsDebuggingEnabled(false) }
+        }
+    }
+
+    // Read-only mode switched on while the console is open: close it. New consoles can't start
+    // either, because the API client refuses the proxy request in read-only mode.
+    LaunchedEffect(server?.readOnly) {
+        if (server?.readOnly == true) {
+            sessionRef.getAndSet(null)?.close()
+            state = ConsoleState.FAILED
+            error = context.getString(R.string.error_read_only)
         }
     }
 
@@ -345,11 +362,17 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                 settings.domStorageEnabled = false
                 settings.allowFileAccess = false
                 settings.allowContentAccess = false
+                settings.setGeolocationEnabled(false)
+                settings.javaScriptCanOpenWindowsAutomatically = false
+                settings.setSupportMultipleWindows(false)
                 settings.setSupportZoom(false)
                 settings.mediaPlaybackRequiresUserGesture = true
                 webViewClient = object : WebViewClient() {
+                    // Only the bundled files load. Anything else (another host, a link in terminal
+                    // output) gets an empty 403 instead of going out to the network.
                     override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                         loader.shouldInterceptRequest(request.url)
+                            ?: WebResourceResponse("text/plain", "utf-8", 403, "Forbidden", emptyMap(), ByteArrayInputStream(ByteArray(0)))
 
                     // Only the bundled pages may load; nothing navigates anywhere else.
                     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true

@@ -86,6 +86,8 @@ class Telemetry(
                     val wasOptedIn = optedIn
                     optedIn = s.usageStats
                     loaded = true
+                    // Switched off: drop anything still waiting to be sent.
+                    if (!s.usageStats) dropQueued()
                     when {
                         // The app was opened before the setting had been read.
                         firstRead && openPending && s.usageStats -> { openPending = false; trackOpened(s) }
@@ -142,6 +144,10 @@ class Telemetry(
             .put("systemProps", systemProps)
             .put("props", JSONObject(props))
         queue.trySend(event)
+    }
+
+    private fun dropQueued() {
+        while (queue.tryReceive().isSuccess) Unit
     }
 
     /** A fresh session after opting back in, so stats from before and after aren't linked. */

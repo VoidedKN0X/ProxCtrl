@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -87,6 +88,14 @@ fun SettingsScreen() {
                     settings.backupMaxAgeDays,
                     icon = Icons.Filled.Backup,
                 ) { d -> c.appScope.launch { c.settings.update { it.copy(backupMaxAgeDays = d) } } }
+            }
+            Group(stringResource(R.string.group_privacy), footer = stringResource(R.string.hide_content_footer)) {
+                GroupSwitch(
+                    stringResource(R.string.hide_content),
+                    stringResource(R.string.hide_content_subtitle),
+                    checked = settings.hideContent,
+                    icon = Icons.Filled.VisibilityOff,
+                ) { on -> c.appScope.launch { c.settings.update { it.copy(hideContent = on) } } }
             }
             if (c.telemetry.available) {
                 Group(stringResource(R.string.group_usage_stats), footer = stringResource(R.string.usage_stats_description)) {

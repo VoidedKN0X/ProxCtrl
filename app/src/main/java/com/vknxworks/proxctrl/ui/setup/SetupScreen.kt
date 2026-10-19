@@ -66,6 +66,7 @@ import com.vknxworks.proxctrl.ui.components.GroupRow
 import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import com.vknxworks.proxctrl.ui.components.PillButton
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
+import com.vknxworks.proxctrl.ui.components.SecureScreen
 import com.vknxworks.proxctrl.ui.components.errorMessage
 import com.vknxworks.proxctrl.ui.theme.Gutter
 import kotlinx.coroutines.delay
@@ -103,7 +104,9 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
     val existingSecrets = remember(editId) { editId?.let { c.serverStore.secrets(it) } }
 
     var name by remember { mutableStateOf(existing?.name.orEmpty()) }
-    var address by remember { mutableStateOf(existing?.url?.removePrefix("https://").orEmpty()) }
+    // The full saved address, with https://: without it, a reverse-proxy address on port 443 would be
+    // read back as a node on port 8006.
+    var address by remember { mutableStateOf(existing?.url.orEmpty()) }
     var method by remember { mutableStateOf(existing?.auth ?: AuthMethod.TOKEN) }
     var tokenId by remember { mutableStateOf(existing?.tokenId.orEmpty()) }
     var tokenSecret by remember { mutableStateOf("") }
@@ -134,8 +137,13 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
         else -> null
     }
     val tokenIdValid = tokenId.trim().let { it.contains('@') && it.contains('!') && !it.endsWith('!') }
+    // The saved token secret is only ever sent to the address and token it was saved for. Changing
+    // either needs the secret typed again, so an edited address can't receive the old secret.
+    val canReuseSecret = existing != null && existing.auth == AuthMethod.TOKEN &&
+        existingSecrets?.tokenSecret?.isNotBlank() == true &&
+        resolved != null && ServerAddress.base(resolved) == existing.url && tokenId.trim() == existing.tokenId
     val canConnect = !busy && resolved != null && when (method) {
-        AuthMethod.TOKEN -> tokenIdValid && (tokenSecret.isNotBlank() || (existing?.auth == AuthMethod.TOKEN && existingSecrets?.tokenSecret?.isNotBlank() == true))
+        AuthMethod.TOKEN -> tokenIdValid && (tokenSecret.isNotBlank() || canReuseSecret)
         AuthMethod.TICKET -> username.isNotBlank() && password.isNotEmpty()
     }
 
@@ -222,7 +230,12 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
             // 2. Sign in.
             when (method) {
                 AuthMethod.TOKEN -> {
-                    val secret = tokenSecret.trim().ifBlank { existingSecrets?.tokenSecret.orEmpty() }
+                    val secret = tokenSecret.trim().ifBlank { if (canReuseSecret) existingSecrets?.tokenSecret.orEmpty() else "" }
+                    if (secret.isEmpty()) {
+                        error = context.getString(R.string.token_secret_reenter)
+                        busy = false
+                        return@launch
+                    }
                     val draft = Server(
                         id = existing?.id.orEmpty(), name = name.trim(), url = base, auth = AuthMethod.TOKEN,
                         tokenId = tokenId.trim(), certPin = pinFor(url),
@@ -284,6 +297,9 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
         c.sessions.add(result.server.copy(readOnly = readOnly), result.secrets)
         onDone()
     }
+
+    // Token secrets, passwords and two-factor codes are typed here: never in screenshots or Recents.
+    SecureScreen()
 
     val result = connected
     Column(Modifier.fillMaxSize()) {
@@ -382,8 +398,13 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                                 value = tokenSecret,
                                 onValueChange = { tokenSecret = it },
                                 label = { Text(stringResource(R.string.field_token_secret)) },
-                                placeholder = if (existing?.auth == AuthMethod.TOKEN) {
+                                placeholder = if (canReuseSecret) {
                                     { Text("••••••••") }
+                                } else {
+                                    null
+                                },
+                                supportingText = if (existing?.auth == AuthMethod.TOKEN && !canReuseSecret && tokenSecret.isBlank()) {
+                                    { Text(stringResource(R.string.token_secret_reenter)) }
                                 } else {
                                     null
                                 },

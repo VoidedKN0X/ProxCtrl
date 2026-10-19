@@ -1,8 +1,6 @@
 package com.vknxworks.proxctrl.ui.settings
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -74,6 +72,7 @@ import com.vknxworks.proxctrl.ui.components.GroupChoice
 import com.vknxworks.proxctrl.ui.components.GroupRow
 import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
+import com.vknxworks.proxctrl.ui.components.copySensitive
 import com.vknxworks.proxctrl.ui.components.relativeTime
 import com.vknxworks.proxctrl.ui.theme.Gutter
 import kotlinx.coroutines.launch
@@ -116,7 +115,8 @@ fun NotificationsScreen() {
         c.appScope.launch { c.notifySettings.update(transform) }
     }
     fun copy(text: String) {
-        context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(ClipData.newPlainText("ProxCtrl", text))
+        // The push address and setup commands hold the secret ntfy topic: keep them out of clipboard previews.
+        copySensitive(context, "ProxCtrl", text)
         Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
     }
     fun startPush() {

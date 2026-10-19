@@ -34,6 +34,12 @@ sealed class PveError(val detail: String? = null, cause: Throwable? = null) : IO
     /** The password session expired and needs a new two-factor code. */
     class NeedsSignIn : PveError(null)
 
+    /**
+     * The server is in read-only mode, so ProxCtrl refused to send a request that could change
+     * something. Raised before anything is sent, whatever the screen that asked for it.
+     */
+    class ReadOnly : PveError(null)
+
     /** Any other error status from Proxmox (bad parameter, guest locked, …). */
     class Server(val code: Int, detail: String?) : PveError(detail)
 

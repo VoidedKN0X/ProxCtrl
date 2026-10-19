@@ -74,8 +74,16 @@ object Notifier {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        // On a locked phone only this redacted version shows: no server, node, guest or storage names.
+        val redacted = NotificationCompat.Builder(context, channel)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(context.getString(R.string.app_name))
+            .setContentText(context.getString(R.string.nt_public_text))
+            .build()
         val n = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_notification)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(redacted)
             .setContentTitle(alert.title)
             .setContentText(alert.text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(alert.text))
@@ -93,6 +101,14 @@ object Notifier {
         try {
             NotificationManagerCompat.from(context).notify(alert.key, idFor(alert.key), n)
         } catch (_: SecurityException) {
+        }
+    }
+
+    /** Removes every notification about a server, when that server is removed from the app. */
+    fun cancelServer(context: Context, serverId: String) {
+        val nm = context.getSystemService(NotificationManager::class.java) ?: return
+        runCatching {
+            nm.activeNotifications.filter { it.tag?.startsWith("$serverId:") == true }.forEach { nm.cancel(it.tag, it.id) }
         }
     }
 

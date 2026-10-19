@@ -1,7 +1,5 @@
 package com.vknxworks.proxctrl.ui.console
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.webkit.WebView
 import android.widget.Toast
@@ -29,6 +27,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vknxworks.proxctrl.R
+import com.vknxworks.proxctrl.ui.components.copySensitive
 import kotlinx.coroutines.delay
 import org.json.JSONTokener
 
@@ -87,8 +86,7 @@ internal fun DiagnosticsPanel(
             text.forEach { Text(it, fontFamily = FontFamily.Monospace, fontSize = 10.sp, lineHeight = 13.sp) }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = {
-                    context.getSystemService(ClipboardManager::class.java)
-                        ?.setPrimaryClip(ClipData.newPlainText("ProxCtrl console", text.joinToString("\n")))
+                    copySensitive(context, "ProxCtrl console", text.joinToString("\n"))
                     Toast.makeText(context, context.getString(R.string.console_diagnostics_copied), Toast.LENGTH_SHORT).show()
                 }) { Text(stringResource(R.string.console_diagnostics_copy)) }
             }

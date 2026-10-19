@@ -53,6 +53,8 @@ data class AppSettings(
     val usageStats: Boolean = false,
     /** Whether the one-time usage stats question has been answered. */
     val usageStatsAsked: Boolean = false,
+    /** FLAG_SECURE on the whole app: blank screenshots, screen recordings and Recents card. On by default. */
+    val hideContent: Boolean = true,
 )
 
 class SettingsRepository(private val context: Context, scope: CoroutineScope) {
@@ -67,6 +69,7 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         val backupAge = intPreferencesKey("backup_max_age_days")
         val usageStats = booleanPreferencesKey("usage_stats")
         val usageStatsAsked = booleanPreferencesKey("usage_stats_asked")
+        val hideContent = booleanPreferencesKey("hide_content")
     }
 
     val settings: StateFlow<AppSettings> = context.appDataStore.data
@@ -87,6 +90,7 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         backupMaxAgeDays = (this[K.backupAge] ?: 7).coerceIn(1, 90),
         usageStats = this[K.usageStats] ?: false,
         usageStatsAsked = this[K.usageStatsAsked] ?: false,
+        hideContent = this[K.hideContent] ?: true,
     )
 
     suspend fun update(transform: (AppSettings) -> AppSettings) {
@@ -102,6 +106,7 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
             p[K.backupAge] = s.backupMaxAgeDays
             p[K.usageStats] = s.usageStats
             p[K.usageStatsAsked] = s.usageStatsAsked
+            p[K.hideContent] = s.hideContent
         }
     }
 
