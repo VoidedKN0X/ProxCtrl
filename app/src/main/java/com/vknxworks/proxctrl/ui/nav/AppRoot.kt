@@ -58,6 +58,8 @@ import androidx.navigation.compose.rememberNavController
 import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.data.console.ConsoleTarget
 import com.vknxworks.proxctrl.ui.console.ConsoleScreen
+import com.vknxworks.proxctrl.ui.guests.BackupsScreen
+import com.vknxworks.proxctrl.ui.guests.SnapshotsScreen
 import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.DeepLinks
 import androidx.compose.runtime.LaunchedEffect
@@ -258,6 +260,15 @@ private fun AppNavHost(navController: NavHostController) {
         composable<GuestRoute> {
             val r = it.toRoute<GuestRoute>()
             GuestScreen(r.node, r.type, r.vmid)
+        }
+
+        composable<SnapshotsRoute> {
+            val r = it.toRoute<SnapshotsRoute>()
+            SnapshotsScreen(r.node, r.type, r.vmid, r.name)
+        }
+        composable<BackupsRoute> {
+            val r = it.toRoute<BackupsRoute>()
+            BackupsScreen(r.node, r.type, r.vmid, r.name)
         }
 
         composable<ConsoleRoute> {

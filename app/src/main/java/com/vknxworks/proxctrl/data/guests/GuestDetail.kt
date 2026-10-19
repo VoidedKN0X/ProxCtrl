@@ -77,6 +77,10 @@ data class GuestConfig(
     val digest: String?,
     /** VM display; "serial0".."serial3" means the console is a serial terminal, not a screen. */
     val vga: String? = null,
+    /** Containers: the root disk, e.g. "local-zfs:subvol-100-disk-0,size=8G". */
+    val rootfs: String? = null,
+    /** Protection: the guest can't be removed or restored over until it's turned off. */
+    val isProtected: Boolean = false,
 ) {
     /** The serial port a VM's console uses instead of a display, if any. */
     val serialConsole: String? get() = vga?.substringBefore(',')?.let { t -> t.substringAfter("type=", t) }?.takeIf { it.matches(Regex("serial[0-3]")) }
@@ -102,6 +106,8 @@ data class GuestConfig(
                 hostname = o.str("hostname"),
                 digest = o.str("digest"),
                 vga = o.str("vga"),
+                rootfs = o.str("rootfs"),
+                isProtected = (o.long("protection") ?: 0) != 0L,
             )
         }
     }

@@ -539,6 +539,7 @@
     <string name="key_pgdn">PgDn</string>
     <string name="key_del">Del</string>
     <string name="paste_empty">The clipboard is empty.</string>
+<<<<<<< HEAD
 
     <!-- Usage stats -->
     <string name="group_privacy">Privacy</string>
@@ -553,4 +554,104 @@
     <string name="usage_stats_prompt_text">Share anonymous usage stats so I can see which features people use and which Android versions to support.\n\n%1$s\n\nYou can change this any time in Settings.</string>
     <string name="usage_stats_share">Share stats</string>
     <string name="usage_stats_no">No thanks</string>
+=======
+    <!-- Tasks started from the app -->
+    <string name="task_running">%1$s…</string>
+    <string name="task_done">%1$s: done</string>
+    <string name="task_warnings">%1$s: done with warnings</string>
+    <string name="task_failed">%1$s: failed</string>
+    <string name="task_keeps_running">This keeps running on the server if you leave this screen.</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="delete">Delete</string>
+    <string name="loading">Loading…</string>
+    <string name="start_afterwards">Start afterwards</string>
+    <string name="confirm_type_label">Type %1$s to confirm</string>
+
+    <!-- Guest page: snapshots and backups rows -->
+    <string name="group_protection">Snapshots and backups</string>
+    <string name="snapshots">Snapshots</string>
+    <string name="snapshots_none">No snapshots</string>
+    <plurals name="snapshots_count">
+        <item quantity="one">%d snapshot</item>
+        <item quantity="other">%d snapshots</item>
+    </plurals>
+    <string name="backups">Backups</string>
+    <string name="backups_none">No backups on this node\'s storages</string>
+    <string name="backups_last">Last backup %1$s</string>
+
+    <!-- Snapshots -->
+    <string name="snapshots_title">Snapshots · %1$s</string>
+    <string name="snapshots_empty">No snapshots yet</string>
+    <string name="snapshots_empty_hint">A snapshot saves the guest as it is now, so you can go back to it later, for example before an upgrade.</string>
+    <string name="snapshots_footer">Oldest at the top. Snapshots below another one were taken after rolling back to it or after it. Now is where the guest is.</string>
+    <string name="snapshot_now">Now</string>
+    <string name="snapshot_now_hint">The guest as it is right now</string>
+    <string name="snapshot_with_ram">Includes RAM</string>
+    <string name="snapshot_take">Take snapshot</string>
+    <string name="snapshot_take_short">Take</string>
+    <string name="snapshot_name">Name</string>
+    <string name="snapshot_name_hint">Starts with a letter; letters, digits, _ and - only, up to 40 characters</string>
+    <string name="snapshot_name_taken">A snapshot with this name already exists</string>
+    <string name="snapshot_description">Description (optional)</string>
+    <string name="snapshot_include_ram">Include RAM</string>
+    <string name="snapshot_include_ram_hint">Also saves what\'s in memory, so rolling back resumes the VM exactly where it was. Takes longer and uses more space.</string>
+    <string name="snapshot_rollback">Roll back</string>
+    <string name="snapshot_rollback_title">Roll back to %1$s?</string>
+    <string name="snapshot_rollback_body">Everything that changed on this guest since the snapshot was taken is lost. This can\'t be undone.</string>
+    <string name="snapshot_rollback_running">The guest is running: it will be stopped first.</string>
+    <string name="snapshot_rollback_ram">This snapshot includes RAM, so the guest starts again where it was when the snapshot was taken.</string>
+    <string name="snapshot_delete_title">Delete snapshot %1$s?</string>
+    <string name="snapshot_delete_body">The snapshot is removed for good, and you can no longer roll back to it. The guest itself isn\'t changed.</string>
+    <string name="snapshot_task_take">Snapshot %1$s</string>
+    <string name="snapshot_task_rollback">Rollback to %1$s</string>
+    <string name="snapshot_task_delete">Deleting snapshot %1$s</string>
+
+    <!-- Backups -->
+    <string name="backups_title">Backups · %1$s</string>
+    <string name="backups_empty">No backups</string>
+    <string name="backups_empty_hint">No backups of this guest were found on the backup storages of its node. Back up now, or set up a backup job in Proxmox.</string>
+    <string name="backups_footer">Backups of this guest on every backup storage of its node, newest first.</string>
+    <string name="backups_storage_failed">Couldn\'t read %1$s: %2$s</string>
+    <string name="backup_row_detail">%1$s · %2$s · %3$s</string>
+    <string name="backup_protected">Protected</string>
+    <string name="backup_verified">Verified</string>
+    <string name="backup_verify_failed">Verification failed</string>
+    <string name="backup_now">Back up now</string>
+    <string name="backup_start">Back up</string>
+    <string name="backup_storage">Storage</string>
+    <string name="backup_no_storage">No backup storage you\'re allowed to write to</string>
+    <string name="backup_mode">Mode</string>
+    <string name="backup_mode_snapshot">Snapshot</string>
+    <string name="backup_mode_suspend">Suspend</string>
+    <string name="backup_mode_stop">Stop</string>
+    <string name="backup_mode_snapshot_hint">The guest keeps running. Recommended.</string>
+    <string name="backup_mode_suspend_hint">The guest is paused briefly while the backup is made consistent.</string>
+    <string name="backup_mode_stop_hint">The guest is shut down for the backup and started again afterwards.</string>
+    <string name="backup_compression">Compression</string>
+    <string name="compression_zstd">ZSTD</string>
+    <string name="compression_lzo">LZO</string>
+    <string name="compression_gzip">GZIP</string>
+    <string name="compression_none">None</string>
+    <string name="backup_notes">Notes</string>
+    <string name="backup_notes_hint">{{guestname}}, {{vmid}}, {{node}} and {{cluster}} are filled in</string>
+    <string name="backup_protect">Protect</string>
+    <string name="backup_protect_hint">A protected backup can\'t be deleted or pruned until the protection is removed</string>
+    <string name="backup_task">Backup to %1$s</string>
+    <string name="storage_pick">Choose a storage</string>
+    <string name="storage_choice">%1$s (%2$s free)</string>
+    <string name="storage_choice_detail">%1$s · %2$s free</string>
+    <string name="backup_delete_title">Delete backup?</string>
+    <string name="backup_delete_body">The backup from %1$s on %2$s (%3$s) is deleted for good.</string>
+    <string name="backup_delete_protected">Delete (protected)</string>
+    <string name="backup_delete_task">Deleting backup from %1$s</string>
+    <string name="restore">Restore</string>
+    <string name="restore_title">Restore this backup?</string>
+    <string name="restore_body">Guest %1$s is replaced by the backup from %2$s on %3$s.</string>
+    <string name="restore_warning">Everything on this guest now, its disks and its settings, is overwritten and lost. Its snapshots are removed. This can\'t be undone.</string>
+    <string name="restore_storage">Restore disks to</string>
+    <string name="restore_storage_from_backup">Same storages as in the backup</string>
+    <string name="restore_needs_stopped">The guest is running. Shut it down first, then restore.</string>
+    <string name="restore_protected">The guest is protected. Turn off protection in its options in Proxmox first, then restore.</string>
+    <string name="restore_task">Restore from %1$s</string>
+>>>>>>> c31fb88 (ProxCtrl 0.8.0: snapshots and backups)
 </resources>
