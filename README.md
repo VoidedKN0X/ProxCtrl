@@ -8,21 +8,25 @@ ProxCtrl is an Android app for [Proxmox VE](https://www.proxmox.com/en/proxmox-v
 
 Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 
-<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a>
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a> <a href="https://voidedkn0x.github.io/CtrlF-Droid/"><img src=".github/assets/badge_ctrlf-droid.png" alt="Get it from our F-Droid repo" height="80"></a>
 
 > ProxCtrl is in early development. Features arrive release by release; see the [changelog](CHANGELOG.md) for what's in each version.
 
 ## Features
 
-- **Overview** of your node, with an attention list for full disks, high memory, failed backups and more
-- **Guests**: all your containers and VMs with CPU, memory and disk use, tags, search, sorting and bulk start/stop
-- **Guest pages** with graphs, power controls, console, snapshots, backups and restore
-- **Storage**: storages, backups, ISOs and templates, disks with SMART health, ZFS and LVM
-- **Tasks** with live logs
-- **Node**: services, updates, network and a shell
+- **Overview** of your node, with live CPU, memory and network graphs and an attention list for full disks, high memory, failed backups and more
+- **Guests**: all your containers and VMs with CPU, memory and disk use, tags, search, sorting, a compact view and bulk start/stop
+- **Guest pages** with live status, graphs, power controls, IP addresses, notes, console, snapshots, backups and restore
+- **Node shell** from the node's card on the Overview
 - **Notifications** without Google services: polling, or UnifiedPush through your own ntfy
-- **Widgets** and a Quick Settings tile
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot and before restoring a backup, certificate pinning, and screenshot protection
+- **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
+- **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
+- **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot and before restoring a backup, certificate pinning, screenshot protection, and token secrets and passwords encrypted with the Android Keystore
+
+## Planned
+
+Not in the app yet: the **Storage** tab (storages, backups, ISOs and templates, disks with SMART health, ZFS and LVM), the **Tasks** tab with live logs, the **Node** tab (services, updates and network), and home screen widgets and a Quick Settings tile. The tabs are already there and say what they'll show.
 
 ## Requirements
 
@@ -35,9 +39,12 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 2. Open it on your phone. Android may ask you to allow installing apps from your browser or file manager.
 3. Updates install over the old version. Your settings and login are kept.
 
-**Automatic updates:** install [Obtainium](https://github.com/ImranR98/Obtainium) first, then tap the button below. It adds ProxCtrl and installs every new release for you.
+**Automatic updates:** on your phone, tap one of the buttons below.
 
-<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a>
+- **Obtainium:** install [Obtainium](https://github.com/ImranR98/Obtainium) first. The button adds ProxCtrl and installs every new release for you.
+- **F-Droid:** adds the [CtrlF-Droid repo](https://voidedkn0x.github.io/CtrlF-Droid/) to F-Droid, Droid-ify or Neo Store, with every Ctrl app and automatic updates.
+
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a> <a href="https://voidedkn0x.github.io/CtrlF-Droid/"><img src=".github/assets/badge_ctrlf-droid.png" alt="Get it from our F-Droid repo" height="80"></a>
 
 If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X/ProxCtrl` in Obtainium by hand.
 
@@ -94,11 +101,11 @@ Even with this the token can't install updates (you run the upgrade in the node 
 
 | Privilege | Used for |
 | --- | --- |
-| `VM.Audit` | Seeing guests, their config, graphs, snapshots and firewall |
+| `VM.Audit` | Seeing guests, their config, graphs and snapshots |
 | `VM.GuestAgent.Audit` (PVE 9) / `VM.Monitor` (PVE 8) | VM IP addresses and disk use from the QEMU guest agent |
-| `Sys.Audit` | Node status and graphs, services, disks, SMART, ZFS, LVM, other users' tasks, backup jobs |
-| `Datastore.Audit` | Storages and their content |
-| `SDN.Audit` | SDN zones and VNets |
+| `Sys.Audit` | Node status and graphs, ZFS and SMART checks, other users' tasks, guests no backup job includes (and services, disks and LVM once the Storage and Node tabs arrive) |
+| `Datastore.Audit` | Storages and their content, such as backups |
+| `SDN.Audit` | SDN zones and VNets (planned; not shown in the app yet) |
 | `VM.PowerMgmt` | Start, shutdown, reboot, stop, suspend and resume |
 | `VM.Console` | Console for containers and VMs |
 | `VM.Snapshot`, `VM.Snapshot.Rollback` | Take, roll back and delete snapshots |
@@ -109,13 +116,10 @@ Even with this the token can't install updates (you run the upgrade in the node 
 
 | Privilege | Adds |
 | --- | --- |
-| `VM.Config.CPU`, `VM.Config.Memory` | Changing cores, memory and swap |
-| `VM.Config.Options` | Editing notes and tags |
-| `VM.Config.Disk` | Growing a disk |
-| `VM.Clone`, `VM.Allocate` | Cloning guests and templates |
-| `Datastore.AllocateTemplate` | Uploading ISOs and downloading container templates |
-| `Sys.PowerMgmt` | Rebooting and shutting down the node |
-| `Sys.Modify` on `/nodes/<node>` | Seeing available updates and restarting services; see step 3 |
+| `VM.Config.Options` | Editing a guest's notes |
+| `Sys.Modify` on `/nodes/<node>` | Seeing available updates; see step 3 |
+
+Planned, not in the app yet: changing cores, memory and swap (`VM.Config.CPU`, `VM.Config.Memory`), editing tags (`VM.Config.Options`), growing a disk (`VM.Config.Disk`), cloning guests and templates (`VM.Clone`, `VM.Allocate`), uploading ISOs and downloading container templates (`Datastore.AllocateTemplate`), rebooting and shutting down the node (`Sys.PowerMgmt`) and restarting services (`Sys.Modify`). You don't need these privileges until then.
 
 ProxCtrl checks what your token can do when it connects and greys out anything it isn't allowed to.
 
@@ -199,6 +203,8 @@ ProxCtrl can share anonymous usage stats, **only if you say yes**. It asks once 
 - **Where:** VKNXWorks' own self-hosted [Aptabase](https://aptabase.com) server. Nothing goes to Google or analytics companies. Like any website, the server sees your IP address; Aptabase uses it only to work out the country and doesn't store it. The stats use their own connection with your phone's normal certificate checks; your Proxmox login and pinned certificate are never used for it.
 
 Builds from source don't include the stats key, so they can't send anything and the setting is hidden. The code is in [`Telemetry.kt`](app/src/main/java/com/vknxworks/proxctrl/data/telemetry/Telemetry.kt).
+
+Apart from these opt-in stats, ProxCtrl only talks to your own Proxmox servers. Push notifications come through your own ntfy server (or another UnifiedPush app). The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
 
 ## Build from source
 
