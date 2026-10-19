@@ -4,20 +4,53 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
-## v0.8.1 (2026-10-19)
+## v1.0.0 (2026-10-19)
 
-ProxCtrl is now completely Google-free. Nothing changes in how you use it.
+ProxCtrl is complete: the Storage, Tasks and Node tabs, guest resources and clones, widgets, a Quick Settings tile and an app lock.
 
-### Privacy
+### New
 
-- **Emoji no longer make ProxCtrl ask Google for a font.** A standard Android library inside the app asked Google Play services for a downloadable emoji font every time ProxCtrl started, which could make Google Play services fetch that font from Google. This lookup is now switched off: emoji are drawn with your phone's own emoji font. On phones without Google Play services nothing changes; on other phones, emoji can look slightly different if the phone's built-in emoji font is older.
-- **The built-in web view no longer reports to Google.** The VM and container consoles and the node shell run in Android's built-in web view, which by default checks pages with Google Safe Browsing and may send usage reports to Google. Both are now turned off for ProxCtrl. It works exactly as before.
-- **Checked: ProxCtrl is Google-free.** It contains no Google Play services, Firebase, ML Kit, Google Cast or Play Core, and it doesn't load fonts or anything else from Google's servers. It also never switches server addresses by itself: it always uses the address you set up, and only you can change it.
+- **Resources on a guest's page**: cores (with sockets and CPU type for VMs), memory with ballooning or swap, every disk with its storage and size, and every network device with its model, MAC address, bridge, VLAN, IP settings and firewall flag
+- **Edit cores and memory** (and swap for containers), with quick memory presets. Only what you changed is sent, and a running VM shows a note that some changes may only apply after its next restart
+- **Edit tags**: add and remove tags in the server's tag colours; invalid tag names are caught before saving
+- **Grow a disk** by a number of GiB, with the new size shown before you confirm. Disks can only grow, never shrink, and the guest ID has to be typed in first. EFI and TPM state disks and bind mounts can't be grown and have no button
+- **Options and firewall** screen: the guest's options (boot order, BIOS, machine, guest agent, protection, start at boot and order, unprivileged, features, DNS…), its firewall settings and policies, and every firewall rule with action, ports, source, destination and comment. Read-only
+- **Task history** for each guest, from its page
+- **Clone** a guest or template from the menu on its page: the next free ID is filled in and checked, with a name or hostname, a full or (for templates) linked clone, and the storage for a full copy's disks
+- **Convert to template** from the same menu, for stopped guests, only after typing the guest ID
+- **Storage tab**: every storage of your node with its type, a usage bar with used, total and percentage, the content it holds (backups, ISO images, container templates, disk images…), and whether it's enabled, shared and available right now. Pull down to refresh; it also refreshes every 30 seconds while open
+- **Storage content**: tap a storage to see everything on it, grouped by type with filter chips, newest first, with date, size, format, guest ID, notes, and marks for protected and verified backups
+- **Delete backups** from a storage's page after a confirmation. Protected backups can't be deleted, and the button is greyed out without the privileges for it
+- **Upload ISO images** from a storage's page with the system file picker, or from any app with **Share → ProxCtrl**: pick the storage (only ISO storages you may upload to are offered), check the file name, and follow the upload with a progress bar until Proxmox has moved the file into place
+- **Download container templates** from Proxmox's template list, grouped by section with search; templates already on the storage are marked so they aren't downloaded twice. The download runs as a Proxmox task with its progress and result shown
+- **Disks**: every physical disk with model, size, type, S.M.A.R.T. health (passed or failing at a glance) and SSD wearout, as Proxmox shows them; tap a disk for its full S.M.A.R.T. values (the attribute table, or the text report for NVMe and SAS disks)
+- **ZFS pools** on the Storage tab with their health, and a pool page with its state, what's wrong and what to do when it isn't healthy, the last scrub, errors, and every vdev and disk with its read, write and checksum error counts
+- **LVM volume groups and LVM-thin pools** with their usage, physical volumes, and thin-pool metadata usage
+- **Backup jobs**: every scheduled backup job with which guests it covers (all, all except, a list, or a pool), its storage, mode, schedule, next run, and the result of its last run; **Run now** starts it straight away with its own settings, like "Run now" in the web UI
+- **Tasks tab**: tasks running now on every node, each with its latest log line, a progress bar when the log shows how far it is (backups, restores, disk moves), how long it has been running and who started it, and a **Stop** button (with a confirmation) for tasks you're allowed to stop. Updates every few seconds while it's on screen
+- **Task history** below, newest first, with the task named as in the Proxmox web interface ("VM 106 (haos15.2) – Start", "Backup job", "Update package database"), when it ran, how long it took and who started it; failed tasks and warnings show Proxmox's message. Filter by status (OK, warnings, failed), type, user and guest, and load more to go further back
+- **Task details**: tap a task to see its node, who started it, when it started and ended, how long it took and how it ended, and its full log. While a task runs the log follows new lines; scroll up to read without being pulled down, and tap the arrow to jump back to the end. Copy the log or switch off line wrapping for wide output
+- **Task history for a guest**, from its page: the same list, only for that guest, including its running tasks
+- If your token can only see its own tasks, the Tasks tab says so (Sys.Audit on the node shows everyone's)
+- **Node tab**: the node's health at a glance (CPU with the number of CPUs, IO delay, load average, RAM, swap and root disk with the same warning colours as the Overview), uptime, and the details: CPU model, sockets and CPUs, total RAM, kernel, Proxmox VE version, and whether it booted with EFI (and Secure Boot) or legacy BIOS. Pull down to refresh. With more than one node, chips at the top switch between them
+- **Node graphs**: CPU and IO delay, load average, memory and network traffic, for the last hour, day, week, month or year, with the same touch-to-read charts as the guest page
+- **Services**: every Proxmox service on the node with its state (running, stopped, failed, disabled, masked), and Start, Stop and Restart, each confirmed and followed as a task. Restarting or stopping a service ProxCtrl connects through (pveproxy, pvedaemon, pve-cluster, sshd) comes with a clear warning, and Stop isn't offered for the services Proxmox refuses to stop
+- **Updates**: the number of available updates on the Node tab, and a list with each package's installed and new version, title and origin. Tap a package to read its changelog. **Refresh** runs apt update on the node as a task. A note appears when a newer kernel is installed than the one running, so you know a reboot is due. Upgrading stays in your hands: **Shell** opens the node shell right there
+- **Network**: the node's interfaces, bridges, bonds and VLANs with IPv4 and IPv6 addresses and gateways, bridge ports, VLAN awareness, MTU and comments, plus the cluster's SDN zones and VNets (type, bridge, tag, and whether changes are still pending). Read-only
+- **Reboot and shut down the node**, only after typing the node's name. The dialog spells out that all guests are shut down first, and before a shutdown whether Wake-on-LAN is set up to turn the node back on
+- **Wake-on-LAN** for the node: save its MAC address (plus broadcast address and port if your network needs them) per server, and wake it from the Node tab's menu. When the node can't be reached, a card offers to wake it straight away. The packet is sent from your phone on the local network; ProxCtrl never uses your Wi-Fi name or location
+- **Shell** on the Node tab opens the node shell, like the button on the Overview
+- **Node status widget** for the home screen: the node's health (all good, how many things need a look, or can't be reached), CPU, RAM and root disk with bars, uptime, and when it was last updated. Tap it to open the Overview
+- **Pinned guests widget**: choose which guests it shows when you add it, and change them later by tapping the widget's title. Each guest has a status dot (running, stopped, paused) and a **Start** or **Shut down** button. The buttons don't act from the home screen: they open ProxCtrl and ask you to confirm, and nothing happens if you cancel. A guest that's no longer on the server is marked as such
+- The widgets show the active server and refresh about every 15 minutes while there's a network connection, and when you open the app. While the server can't be reached they keep showing the last known state, marked "Not updated"
+- **Quick Settings tile**: shows the node's name and health with CPU and RAM underneath, lit when everything is fine. Tap it to open the Overview (on a locked phone, after unlocking)
+- **App lock** in Settings: **Lock when opening the app** covers ProxCtrl until you unlock it with your fingerprint, face or screen lock, on start and whenever it comes back after more than 30 seconds in the background. **Confirm changes** asks for the same before anything that changes a server (power actions, snapshots, backups, restores, edits, opening a console), and one confirmation covers the next minute, so bulk actions ask once. Cancelling stops the change before anything is sent. ProxCtrl never sees or stores your fingerprint or PIN
+- The pinned guests picker also follows the app lock and the "Hide content in screenshots & recents" setting
 
 ### Changed
 
-- **README: new Google-free line** under Requirements: works without Google Play services, contains no Google libraries that contact Google, and draws emoji with your phone's own emoji font, and the web view used for the consoles and node shell has Google Safe Browsing and usage reports turned off.
-- **README brought up to date with 0.8.0.** The Storage tab, the Tasks tab with live logs, the Node tab (services, updates and network) and the home screen widgets and Quick Settings tile aren't in the app yet, so they moved from the feature list to a new **Planned** section. The feature list now also mentions the node shell on the Overview, the compact guest list, IP addresses and notes on guest pages, several servers with token or password sign-in, the offline view, `proxctrl://guest/<id>` links and the encrypted token secrets and passwords. The privilege tables only list what the app uses today; changing cores and memory, editing tags, growing disks, cloning, uploading ISOs, node reboot and restarting services are listed as planned. Install now has the CtrlF-Droid badge and link, and a new paragraph lists everything ProxCtrl connects to besides your servers. No change to the app itself
+- The README describes every part of the app, and no longer calls ProxCtrl early development
+- "Safe by design" in the README now also lists the typed confirmations for growing a disk, making a template and rebooting or shutting down the node, and the app lock
 
 ## v0.8.0 (2026-10-19)
 

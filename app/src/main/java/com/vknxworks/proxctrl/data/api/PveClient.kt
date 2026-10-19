@@ -84,6 +84,29 @@ class PveClient(
     suspend fun put(path: String, params: Map<String, String> = emptyMap()): JsonElement = call("PUT", path, emptyMap(), params)
     suspend fun delete(path: String, query: Map<String, String> = emptyMap()): JsonElement = call("DELETE", path, query, emptyMap())
 
+    /**
+     * POSTs a multipart [body] (file uploads such as ISO images). Same checks as every other change:
+     * read-only mode, the app lock, and a fresh ticket. Uploads can take long, so there's no read timeout.
+     */
+    suspend fun postMultipart(path: String, body: okhttp3.RequestBody): JsonElement {
+        if (isReadOnly()) throw PveError.ReadOnly()
+        if (!WriteGuard.check()) throw PveError.Cancelled()
+        if (server.auth == AuthMethod.TICKET) ensureFreshTicket()
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder().url(url(path)).post(body).also { authorize(it, "POST") }.build()
+            val uploadHttp = http.newBuilder()
+                .readTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .writeTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .build()
+            val response = try {
+                uploadHttp.newCall(request).execute()
+            } catch (e: IOException) {
+                throw PveError.fromIo(e)
+            }
+            response.use { parse(it) }
+        }
+    }
+
     suspend fun <T> get(path: String, strategy: DeserializationStrategy<T>, query: Map<String, String> = emptyMap()): T =
         PveJson.decodeFromJsonElement(strategy, get(path, query))
 
@@ -91,6 +114,7 @@ class PveClient(
         // Read-only mode is enforced here, for every request that could change something (power
         // actions, notes, consoles and anything added later), not only by hiding buttons.
         if (method != "GET" && isReadOnly()) throw PveError.ReadOnly()
+        if (method != "GET" && !WriteGuard.check()) throw PveError.Cancelled()
         if (server.auth == AuthMethod.TICKET) ensureFreshTicket()
         return try {
             execute(method, path, query, params)

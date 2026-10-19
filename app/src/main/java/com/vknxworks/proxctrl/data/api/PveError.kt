@@ -40,6 +40,9 @@ sealed class PveError(val detail: String? = null, cause: Throwable? = null) : IO
      */
     class ReadOnly : PveError(null)
 
+    /** The user cancelled the fingerprint or screen-lock check before a change; nothing was sent. */
+    class Cancelled : PveError(null)
+
     /** Any other error status from Proxmox (bad parameter, guest locked, …). */
     class Server(val code: Int, detail: String?) : PveError(detail)
 

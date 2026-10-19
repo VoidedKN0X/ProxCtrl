@@ -8,31 +8,25 @@ ProxCtrl is an Android app for [Proxmox VE](https://www.proxmox.com/en/proxmox-v
 
 Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 
-<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a> <a href="https://voidedkn0x.github.io/CtrlF-Droid/"><img src=".github/assets/badge_ctrlf-droid.png" alt="Get it from our F-Droid repo" height="80"></a>
-
-> ProxCtrl is in early development. Features arrive release by release; see the [changelog](CHANGELOG.md) for what's in each version.
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a>
 
 ## Features
 
-- **Overview** of your node, with live CPU, memory and network graphs and an attention list for full disks, high memory, failed backups and more
-- **Guests**: all your containers and VMs with CPU, memory and disk use, tags, search, sorting, a compact view and bulk start/stop
-- **Guest pages** with live status, graphs, power controls, IP addresses, notes, console, snapshots, backups and restore
-- **Node shell** from the node's card on the Overview
+- **Overview** of your node, with an attention list for full disks, high memory, failed backups and more
+- **Guests**: all your containers and VMs with CPU, memory and disk use, tags, search, sorting and bulk start/stop
+- **Guest pages** with graphs, power controls, console, snapshots, backups and restore
+- **Storage**: storages, backups, ISOs and templates, disks with SMART health, ZFS and LVM
+- **Tasks** with live logs
+- **Node**: services, updates, network and a shell
 - **Notifications** without Google services: polling, or UnifiedPush through your own ntfy
-- **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
-- **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
-- **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot and before restoring a backup, certificate pinning, screenshot protection, and token secrets and passwords encrypted with the Android Keystore
-
-## Planned
-
-Not in the app yet: the **Storage** tab (storages, backups, ISOs and templates, disks with SMART health, ZFS and LVM), the **Tasks** tab with live logs, the **Node** tab (services, updates and network), and home screen widgets and a Quick Settings tile. The tabs are already there and say what they'll show.
+- **Widgets** and a Quick Settings tile
+- **App lock** with your fingerprint, face or screen lock, on opening and before changes
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock, certificate pinning, and screenshot protection
 
 ## Requirements
 
 - Android 13 or newer
 - Proxmox VE 8 or 9
-- **Google-free:** works without Google Play services, contains no Google libraries that contact Google, and draws emoji with your phone's own emoji font. The built-in web view used for the consoles and node shell has Google Safe Browsing and WebView usage reports turned off
 
 ## Install
 
@@ -40,12 +34,9 @@ Not in the app yet: the **Storage** tab (storages, backups, ISOs and templates, 
 2. Open it on your phone. Android may ask you to allow installing apps from your browser or file manager.
 3. Updates install over the old version. Your settings and login are kept.
 
-**Automatic updates:** on your phone, tap one of the buttons below.
+**Automatic updates:** install [Obtainium](https://github.com/ImranR98/Obtainium) first, then tap the button below. It adds ProxCtrl and installs every new release for you.
 
-- **Obtainium:** install [Obtainium](https://github.com/ImranR98/Obtainium) first. The button adds ProxCtrl and installs every new release for you.
-- **F-Droid:** adds the [CtrlF-Droid repo](https://voidedkn0x.github.io/CtrlF-Droid/) to F-Droid, Droid-ify or Neo Store, with every Ctrl app and automatic updates.
-
-<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a> <a href="https://voidedkn0x.github.io/CtrlF-Droid/"><img src=".github/assets/badge_ctrlf-droid.png" alt="Get it from our F-Droid repo" height="80"></a>
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a>
 
 If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X/ProxCtrl` in Obtainium by hand.
 
@@ -102,11 +93,11 @@ Even with this the token can't install updates (you run the upgrade in the node 
 
 | Privilege | Used for |
 | --- | --- |
-| `VM.Audit` | Seeing guests, their config, graphs and snapshots |
+| `VM.Audit` | Seeing guests, their config, graphs, snapshots and firewall |
 | `VM.GuestAgent.Audit` (PVE 9) / `VM.Monitor` (PVE 8) | VM IP addresses and disk use from the QEMU guest agent |
-| `Sys.Audit` | Node status and graphs, ZFS and SMART checks, other users' tasks, guests no backup job includes (and services, disks and LVM once the Storage and Node tabs arrive) |
-| `Datastore.Audit` | Storages and their content, such as backups |
-| `SDN.Audit` | SDN zones and VNets (planned; not shown in the app yet) |
+| `Sys.Audit` | Node status and graphs, services, disks, SMART, ZFS, LVM, other users' tasks, backup jobs |
+| `Datastore.Audit` | Storages and their content |
+| `SDN.Audit` | SDN zones and VNets |
 | `VM.PowerMgmt` | Start, shutdown, reboot, stop, suspend and resume |
 | `VM.Console` | Console for containers and VMs |
 | `VM.Snapshot`, `VM.Snapshot.Rollback` | Take, roll back and delete snapshots |
@@ -117,10 +108,13 @@ Even with this the token can't install updates (you run the upgrade in the node 
 
 | Privilege | Adds |
 | --- | --- |
-| `VM.Config.Options` | Editing a guest's notes |
-| `Sys.Modify` on `/nodes/<node>` | Seeing available updates; see step 3 |
-
-Planned, not in the app yet: changing cores, memory and swap (`VM.Config.CPU`, `VM.Config.Memory`), editing tags (`VM.Config.Options`), growing a disk (`VM.Config.Disk`), cloning guests and templates (`VM.Clone`, `VM.Allocate`), uploading ISOs and downloading container templates (`Datastore.AllocateTemplate`), rebooting and shutting down the node (`Sys.PowerMgmt`) and restarting services (`Sys.Modify`). You don't need these privileges until then.
+| `VM.Config.CPU`, `VM.Config.Memory` | Changing cores, memory and swap |
+| `VM.Config.Options` | Editing notes and tags |
+| `VM.Config.Disk` | Growing a disk |
+| `VM.Clone`, `VM.Allocate` | Cloning guests and templates |
+| `Datastore.AllocateTemplate` | Uploading ISOs and downloading container templates |
+| `Sys.PowerMgmt` | Rebooting and shutting down the node |
+| `Sys.Modify` on `/nodes/<node>` | Seeing available updates and restarting services; see step 3 |
 
 ProxCtrl checks what your token can do when it connects and greys out anything it isn't allowed to.
 
@@ -187,6 +181,52 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - Every action runs as a Proxmox task: the screen shows its progress and result, with the end of the task log if it fails.
 - You need `VM.Snapshot` (or `VM.Snapshot.Rollback` for rolling back only) for snapshots, and `VM.Backup` plus `Datastore.AllocateSpace` on the storage for backups, restores and deleting backups.
 
+## Guest resources, options and clones
+
+- A guest's page shows its **resources**: cores (and sockets and CPU type for VMs), memory with ballooning or swap, every disk with its storage and size, and every network device with its bridge, VLAN, MAC, addresses and firewall flag.
+- **Edit cores and memory** (and swap for containers). A running VM may only take some changes after its next restart; Proxmox keeps those as pending.
+- **Edit tags**, with the same colours as in the web interface.
+- **Grow a disk**: only ever bigger, never smaller, and only after typing the guest ID. The partition and file system inside the guest may need growing too.
+- **Options and firewall**: the guest's options, firewall settings and firewall rules, read-only.
+- **Task history** for the guest.
+- **Clone** a guest or template: the next free ID is suggested, with a name, a full or (for templates) linked clone, and where the copy's disks go. **Convert to template** asks for the guest ID first; the guest must be stopped.
+
+## Storage
+
+- The **Storage** tab lists every storage of your node with its type, usage bar, content types, and whether it's enabled, shared and available. Tap one to see what's on it.
+- A storage's page shows its backups, ISO images, container templates and disk images, filterable by type, with date, size, guest, notes, protection and verification state. **Backups can be deleted** after a confirmation (protected ones can't).
+- **Upload an ISO** from the storage's page with the file picker, or from any app with **Share → ProxCtrl** (for example straight from your browser's downloads). Pick the storage, check the file name (it must end in .iso or .img) and follow the progress. The file goes straight from the phone to Proxmox.
+- **Download container templates** from Proxmox's own template list (Debian, Ubuntu, Alpine, TurnKey…), with search; templates already on the storage are marked.
+- **Disks**: every physical disk with model, size, type, S.M.A.R.T. health and SSD wearout, and the full S.M.A.R.T. values on tap. Also **ZFS pools** (health, usage, fragmentation, last scrub, errors and every device with its error counters) and **LVM / LVM-thin** usage.
+- **Backup jobs**: each scheduled job with its guests, storage, mode, schedule, next run and last run result, and **Run now**. Proxmox doesn't record which job made a backup, so the last run is the newest backup task for the same guests and storage.
+- Privileges: `Datastore.Audit` to see storages and their content, `Sys.Audit` for disks, ZFS, LVM and backup jobs, `Datastore.AllocateTemplate` to upload ISOs and download templates, `Datastore.Allocate` (or `Datastore.AllocateSpace` plus `VM.Backup` on the guest) to delete backups, and `VM.Backup` plus `Datastore.AllocateSpace` for Run now.
+
+## Tasks
+
+- The **Tasks** tab shows what's running on your nodes right now, with the latest log line, a progress bar when the log reports a percentage (backups, restores, disk moves), and **Stop**.
+- Below it is the **history**, newest first, filterable by status (OK, warnings, failed), type (backup, start, shutdown, snapshot…), user and guest. Load more goes further back.
+- Tap a task for its details (node, who started it, when, how long it took, how it ended) and its **full log**, which follows new lines while the task runs. Copy the log, or turn line wrapping off to read wide output.
+- Each guest's page has its own task history.
+- You always see your own tasks. `Sys.Audit` on the node shows everyone's; stopping someone else's task needs `Sys.Modify` on the node.
+
+## Node
+
+- The **Node** tab shows the node's health (CPU, IO delay, load, RAM, swap, root disk), its hardware and versions (CPU model, sockets and CPUs, RAM, kernel, Proxmox VE version, EFI or BIOS boot and Secure Boot), and CPU, load, memory and network graphs for the last hour, day, week, month or year. With more than one node, chips at the top pick which one.
+- **Services** lists the Proxmox services (pveproxy, pvedaemon, corosync, pve-cluster and the others) with their state. Start, stop and restart are each confirmed; ProxCtrl warns when a service it connects through could cut it off. Proxmox doesn't allow stopping pveproxy, pvedaemon or pve-cluster, so only restarting is offered for them.
+- **Updates** lists the available package updates with the installed and new version; tap one for its changelog. **Refresh** updates the package database. ProxCtrl also tells you when a newer kernel is installed than the one running, so a reboot is due. Installing updates is up to you in the node shell (`apt dist-upgrade`).
+- **Network** shows the node's interfaces, bridges, bonds and VLANs with their addresses, and the cluster's SDN zones and VNets. Read-only.
+- **Reboot** and **Shut down** the node after typing its name (for example `VKLab`).
+- **Wake-on-LAN**: enter the node's MAC address (and, if needed, your network's broadcast address and port) from the menu on the Node tab, and ProxCtrl can turn the node back on. When the node can't be reached, the Node tab offers to wake it. The packet is sent from your phone, so your phone has to be on the same network as the node, and Wake-on-LAN must be turned on in the node's firmware and network card. ProxCtrl never looks at your Wi-Fi name or location.
+- Services, updates and changelogs need `Sys.Modify` on the node (see step 3 of the API token setup), and reboot and shutdown need `Sys.PowerMgmt`.
+
+## Widgets, Quick Settings tile and app lock
+
+- **Node status widget**: the node's health (all good, things to look at, or offline), CPU, RAM, root disk and uptime, and when it was last updated. Tap it to open the Overview.
+- **Pinned guests widget**: pick the guests it shows when you add it (tap its title to change them). Each shows a status dot and a **Start** or **Shut down** button. The buttons never act from the home screen: they open ProxCtrl and ask you to confirm first.
+- Widgets show the active server. They refresh about every 15 minutes (Android's minimum, with a network connection) and whenever you open ProxCtrl. When the server can't be reached they keep the last known state, marked as not updated.
+- **Quick Settings tile**: the node's name, health and CPU / RAM. It's lit when all is good. Tap it to open the Overview. Add it from the Quick Settings editor.
+- **App lock** (Settings > App lock): *Lock when opening the app* asks for your fingerprint, face or screen lock on start and when ProxCtrl comes back after 30 seconds; *Confirm changes* asks before anything that changes a server (one confirmation covers the next minute). It uses Android's own prompt; ProxCtrl never sees your fingerprint or PIN. Needs a screen lock on the phone.
+
 ## Consoles and the node shell
 
 - **Containers** open a terminal (xterm.js), **VMs** open their screen (noVNC), or a terminal when their display is set to a serial port, and the **node shell** opens from the Shell button on the node's card on the Overview.
@@ -204,8 +244,6 @@ ProxCtrl can share anonymous usage stats, **only if you say yes**. It asks once 
 - **Where:** VKNXWorks' own self-hosted [Aptabase](https://aptabase.com) server. Nothing goes to Google or analytics companies. Like any website, the server sees your IP address; Aptabase uses it only to work out the country and doesn't store it. The stats use their own connection with your phone's normal certificate checks; your Proxmox login and pinned certificate are never used for it.
 
 Builds from source don't include the stats key, so they can't send anything and the setting is hidden. The code is in [`Telemetry.kt`](app/src/main/java/com/vknxworks/proxctrl/data/telemetry/Telemetry.kt).
-
-Apart from these opt-in stats, ProxCtrl only talks to your own Proxmox servers. Push notifications come through your own ntfy server (or another UnifiedPush app). The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
 
 ## Build from source
 

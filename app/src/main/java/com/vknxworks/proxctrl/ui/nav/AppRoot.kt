@@ -59,6 +59,11 @@ import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.data.console.ConsoleTarget
 import com.vknxworks.proxctrl.ui.console.ConsoleScreen
 import com.vknxworks.proxctrl.ui.guests.BackupsScreen
+import com.vknxworks.proxctrl.ui.tasks.tasksDestinations
+import com.vknxworks.proxctrl.ui.node.nodeDestinations
+import com.vknxworks.proxctrl.ui.storage.storageDestinations
+import com.vknxworks.proxctrl.ui.guests.GuestOptionsRoute
+import com.vknxworks.proxctrl.ui.guests.GuestOptionsScreen
 import com.vknxworks.proxctrl.ui.guests.SnapshotsScreen
 import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.DeepLinks
@@ -126,6 +131,14 @@ private fun MainScaffold() {
             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
             launchSingleTop = true
             restoreState = true
+        }
+    }
+
+    val openOverview by com.vknxworks.proxctrl.ui.widgets.WidgetActions.openOverview.collectAsStateWithLifecycle()
+    LaunchedEffect(openOverview) {
+        if (openOverview) {
+            selectTab(topDestinations.indexOfFirst { it.route == OverviewRoute })
+            com.vknxworks.proxctrl.ui.widgets.WidgetActions.overviewShown()
         }
     }
 
@@ -251,6 +264,9 @@ private fun PhoneLayout(
 @Composable
 private fun AppNavHost(navController: NavHostController) {
     NavHost(navController, startDestination = OverviewRoute) {
+        tasksDestinations()
+        nodeDestinations()
+        storageDestinations()
         composable<OverviewRoute> { OverviewScreen() }
         composable<GuestsRoute> { GuestsScreen() }
         composable<StorageRoute> { StorageScreen() }
@@ -265,6 +281,10 @@ private fun AppNavHost(navController: NavHostController) {
         composable<SnapshotsRoute> {
             val r = it.toRoute<SnapshotsRoute>()
             SnapshotsScreen(r.node, r.type, r.vmid, r.name)
+        }
+        composable<GuestOptionsRoute> {
+            val r = it.toRoute<GuestOptionsRoute>()
+            GuestOptionsScreen(r.node, r.type, r.vmid, r.name)
         }
         composable<BackupsRoute> {
             val r = it.toRoute<BackupsRoute>()
