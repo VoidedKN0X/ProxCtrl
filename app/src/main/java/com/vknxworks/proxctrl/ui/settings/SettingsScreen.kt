@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.runtime.Composable
@@ -25,6 +26,9 @@ import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.settings.ThemeChoice
 import com.vknxworks.proxctrl.ui.components.Group
 import com.vknxworks.proxctrl.ui.components.GroupChoice
+import com.vknxworks.proxctrl.ui.components.GroupRow
+import com.vknxworks.proxctrl.ui.nav.LocalNavigator
+import com.vknxworks.proxctrl.ui.nav.NotificationsRoute
 import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import kotlinx.coroutines.launch
@@ -33,12 +37,22 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen() {
     val c = LocalContext.current.container
+    val nav = LocalNavigator.current
     val settings by c.settings.settings.collectAsStateWithLifecycle()
     val themeOptions = ThemeChoice.entries.map { it to stringResource(it.label) }
 
     Column(Modifier.fillMaxSize()) {
         ScreenTopBar(stringResource(R.string.settings))
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
+            Group {
+                GroupRow(
+                    stringResource(R.string.notifications),
+                    stringResource(R.string.notifications_subtitle),
+                    icon = Icons.Filled.Notifications,
+                    showChevron = true,
+                    onClick = { nav.navigate(NotificationsRoute) },
+                )
+            }
             Group(stringResource(R.string.group_appearance)) {
                 GroupChoice(
                     stringResource(R.string.theme),

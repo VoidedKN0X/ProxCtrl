@@ -28,7 +28,7 @@
     <string name="you_not_connected">Not connected</string>
     <string name="you_not_connected_body">Add your Proxmox VE server to get started.</string>
     <string name="settings">Settings</string>
-    <string name="settings_subtitle">Appearance</string>
+    <string name="settings_subtitle">Notifications, warnings and appearance</string>
     <string name="support_title">Support ProxCtrl</string>
     <string name="support_subtitle">ProxCtrl is free and open source. Sponsor development on GitHub</string>
     <string name="source_title">Source code and issues</string>
@@ -392,4 +392,115 @@
     <string name="sparkline_mem">Memory, last hour</string>
     <string name="sparkline_net">Network, last hour</string>
     <string name="overview_guests_line">%1$d of %2$d guests running</string>
+
+    <!-- Notifications: events -->
+    <string name="ev_guest_disk">Guest disk almost full</string>
+    <string name="ev_guest_disk_sub">From the disk warning level in Warnings</string>
+    <string name="ev_node_memory">Node memory high</string>
+    <string name="ev_node_memory_sub">Above the memory warning level for the whole period below</string>
+    <string name="ev_node_cpu">Node CPU high</string>
+    <string name="ev_node_cpu_sub">Above the CPU level below for the whole period below</string>
+    <string name="ev_guest_stopped">Guest stopped unexpectedly</string>
+    <string name="ev_guest_stopped_sub">A running guest stopped without a stop, shutdown, migration or backup task</string>
+    <string name="ev_task_failed">Task failed</string>
+    <string name="ev_task_failed_sub">Any task that ended with an error (backups have their own switch)</string>
+    <string name="ev_backup_failed">Backup failed</string>
+    <string name="ev_backup_failed_sub">A backup that failed or finished with warnings</string>
+    <string name="ev_storage_full">Storage almost full</string>
+    <string name="ev_storage_full_sub">From the disk warning level in Warnings</string>
+    <string name="ev_zfs">ZFS pool degraded</string>
+    <string name="ev_zfs_sub">A pool that isn\'t ONLINE (needs Sys.Audit on /)</string>
+    <string name="ev_smart">Disk SMART failure</string>
+    <string name="ev_smart_sub">A disk whose SMART health is FAILED (needs Sys.Audit on /)</string>
+    <string name="ev_unreachable">Server unreachable</string>
+    <string name="ev_unreachable_sub">Two checks in a row couldn\'t reach the server, a node is offline, or the sign-in stopped working</string>
+    <string name="ev_updates">Updates available</string>
+    <string name="ev_updates_sub">At most once a day (needs Sys.Modify on the node)</string>
+    <string name="ev_sent_by_proxmox">Sent by Proxmox while push is on</string>
+
+    <!-- Notification channels -->
+    <string name="ch_critical">Critical problems</string>
+    <string name="ch_critical_desc">Full disks, failed backups, degraded pools, unreachable servers</string>
+    <string name="ch_warning">Warnings</string>
+    <string name="ch_warning_desc">High usage, failed tasks, guests that stopped</string>
+    <string name="ch_info">Updates and info</string>
+    <string name="ch_info_desc">Available updates</string>
+    <string name="ch_proxmox">From Proxmox</string>
+    <string name="ch_proxmox_desc">Notifications your Proxmox server pushes through UnifiedPush</string>
+
+    <!-- Notification texts -->
+    <string name="nt_cpu_title">%1$s CPU is at %2$d%%</string>
+    <string name="nt_sustained">Above %2$d%% for the last %1$d minutes.</string>
+    <string name="nt_zfs_title">ZFS pool %1$s is %2$s</string>
+    <string name="nt_zfs_text">On %1$s. Check the pool under the node\'s Disks › ZFS.</string>
+    <string name="nt_smart_title">Disk %1$s is failing</string>
+    <string name="nt_smart_text">%1$s on %2$s reports SMART health FAILED. Back up and replace it.</string>
+    <string name="nt_task_title">Task failed: %1$s</string>
+    <plurals name="nt_tasks_title">
+        <item quantity="one">%1$d task failed</item>
+        <item quantity="other">%1$d tasks failed</item>
+    </plurals>
+    <string name="nt_stopped_title">%1$s stopped</string>
+    <string name="nt_stopped_text">It was running on %1$s and stopped without a stop or shutdown from Proxmox. It may have crashed or shut itself down.</string>
+    <plurals name="nt_updates_title">
+        <item quantity="one">%1$d update available</item>
+        <item quantity="other">%1$d updates available</item>
+    </plurals>
+    <string name="nt_unreachable_title">Can\'t reach %1$s</string>
+    <string name="nt_unreachable_text">The last two checks couldn\'t connect to %1$s. The node may be down or your phone may be off its network.</string>
+    <string name="nt_signin_title">Can\'t sign in to %1$s</string>
+    <string name="nt_signin_text">%1$s rejected the sign-in or its certificate changed. Open ProxCtrl to fix it.</string>
+    <string name="nt_push_from">From %1$s</string>
+    <string name="nt_push_fallback">Notification from Proxmox</string>
+
+    <!-- Notification settings -->
+    <string name="notifications">Notifications</string>
+    <string name="notifications_subtitle">Background checks, push from Proxmox, what to notify about</string>
+    <string name="notif_intro">ProxCtrl can check your servers in the background and tell you when something needs attention. Push from Proxmox adds instant notifications for backups, updates and cluster events. Neither uses Google services.</string>
+    <string name="notif_permission_off">Notifications are turned off for ProxCtrl.</string>
+    <string name="notif_permission_allow">Allow notifications</string>
+    <string name="group_polling">Background checks</string>
+    <string name="polling_title">Check in the background</string>
+    <string name="polling_subtitle">Looks at every saved server and notifies about new problems</string>
+    <string name="polling_interval">Check every</string>
+    <plurals name="polling_interval_value">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+    <string name="polling_footer">Android runs background checks at most every 15 minutes, and can delay them to save battery. CPU and memory are judged from the node\'s own per-minute graphs, so a longer interval doesn\'t miss a high period, it only reports it later.</string>
+    <string name="check_now">Check now</string>
+    <string name="check_started">Checking your servers…</string>
+    <string name="last_check">Last check %1$s</string>
+    <string name="last_check_never">Not checked yet</string>
+    <string name="last_check_failed">Last check %1$s couldn\'t reach the server</string>
+    <string name="group_push">Push from Proxmox</string>
+    <string name="push_title">Receive Proxmox notifications</string>
+    <string name="push_subtitle">Through UnifiedPush, for example your own ntfy</string>
+    <string name="push_no_distributor">No UnifiedPush app found. Install ntfy (from F-Droid or your F-Droid repo), connect it to your ntfy server, then come back here.</string>
+    <string name="push_pick_distributor">Choose a push app</string>
+    <string name="push_registering">Waiting for the push app…</string>
+    <string name="push_failed">The push app couldn\'t register ProxCtrl (%1$s).</string>
+    <string name="push_endpoint">Push address</string>
+    <string name="push_endpoint_footer">Treat this address like a password: anyone who has it can send you notifications.</string>
+    <string name="copy">Copy</string>
+    <string name="copied">Copied</string>
+    <string name="push_setup_title">Set up Proxmox</string>
+    <string name="push_setup_body">Run these commands in your node\'s shell (as root) to send backup failures, updates, fencing, replication and system mail (ZFS and SMART) to ProxCtrl. The last command sends a test notification. The README explains each step.</string>
+    <string name="push_setup_copy">Copy commands</string>
+    <string name="push_dedupe_note">While push is on, backup failures and updates come from Proxmox, so the background check doesn\'t notify about them twice.</string>
+    <string name="group_events">What to notify about</string>
+    <string name="group_thresholds">Thresholds</string>
+    <string name="cpu_threshold">High CPU level</string>
+    <string name="cpu_threshold_value">%1$d%% CPU</string>
+    <string name="sustain_title">How long before notifying</string>
+    <plurals name="sustain_value">
+        <item quantity="one">High for %1$d minute</item>
+        <item quantity="other">High for %1$d minutes</item>
+    </plurals>
+    <string name="thresholds_footer">Disk and memory levels are set under Settings › Warnings and are the same as on the Overview.</string>
+    <string name="group_battery">Battery</string>
+    <string name="battery_unrestricted">ProxCtrl may run in the background</string>
+    <string name="battery_restricted">Battery optimisation can delay or skip checks</string>
+    <string name="battery_open">Open battery settings</string>
+    <string name="battery_footer">On ColorOS and other phones that close background apps aggressively: open ProxCtrl\'s app info, then under Battery choose Allow background activity (or Don\'t optimise), and allow Auto launch if your phone has it. Push from Proxmox keeps working as long as your push app (ntfy) is allowed to run in the background.</string>
 </resources>

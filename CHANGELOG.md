@@ -4,6 +4,31 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.6.0 (2026-10-19)
+
+ProxCtrl can now notify you about problems, without Google services. Turn it on under **Settings › Notifications**.
+
+### New
+
+- **Background checks**: every 15, 30 or 60 minutes (only with a network connection), ProxCtrl checks every saved server and notifies you when something starts going wrong. You get one notification per problem rather than one per check. It's updated if the problem gets worse (for example a disk going from warning to critical) and removed by itself once the problem is gone. Tapping a notification about a guest opens that guest. The page shows when each server was last checked, and **Check now** runs a check straight away
+- **What it notifies about**, each with its own switch:
+  - A guest disk or storage over the disk warning level
+  - Node memory over the memory warning level, or node CPU over a chosen level (default 90 %), for the whole of a chosen period (5 to 30 minutes, default 10). This is read from the node's per-minute graphs, so a short spike doesn't notify and a long interval doesn't miss a high period
+  - A guest that stopped without a stop, shutdown, migration, backup or other task that explains it, so it probably crashed or shut itself down
+  - Failed tasks (several at once are grouped) and failed backups or backups with warnings
+  - A ZFS pool that isn't ONLINE, and a disk whose SMART health is FAILED
+  - A server that two checks in a row couldn't reach, a cluster node that's offline, or a sign-in that stopped working
+  - Available updates, at most once a day
+- **Push from Proxmox** through UnifiedPush and your own ntfy (or another UnifiedPush app). ProxCtrl shows its push address and ready-made commands to run on your node. They create a Proxmox webhook target and matchers for failed backups, updates, fencing, replication and system mail (ZFS and SMART), and send a test notification. A push also triggers a background check. While push is on, backups and updates aren't notified twice. The README has the full setup, including how to do it in the Proxmox web UI
+- **Four notification channels** (Critical problems, Warnings, Updates and info, From Proxmox), so you can choose sound and importance for each in Android's settings
+- **Battery help**: the Notifications page shows whether battery optimisation can delay checks and opens ProxCtrl's app info, with instructions for ColorOS and similar phones
+- **Settings** now opens with a Notifications entry; the Settings row on the Account page mentions notifications and warnings
+
+### Security
+
+- The push address's topic is put into a Proxmox webhook secret, which only root can read, instead of the webhook URL that shows in the Proxmox UI
+- Pushes carry only the notification's title, severity, time and type, not the full report
+
 ## v0.5.0 (2026-10-19)
 
 The Overview tab now shows what needs your attention and how each node is doing.

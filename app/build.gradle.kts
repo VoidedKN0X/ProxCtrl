@@ -22,8 +22,8 @@ android {
         minSdk = 33
         targetSdk = 36
         // Bump both to publish a new release (see CHANGELOG.md).
-        versionCode = 6
-        versionName = "0.5.0"
+        versionCode = 7
+        versionName = "0.6.0"
     }
 
     signingConfigs {
@@ -120,4 +120,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.okhttp)
     implementation(libs.haze)
+    // UnifiedPush (ntfy and other distributors) for push notifications without Google services.
+    implementation(libs.unifiedpush.connector)
 }
