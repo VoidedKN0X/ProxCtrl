@@ -4,13 +4,29 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
-## Unreleased
+## v0.7.5 (2026-10-19)
 
-Not in a release yet; this goes out with the next version.
+Security and privacy hardening.
+
+### Security
+
+- **Read-only mode now blocks every change, not just the buttons.** While a server is in read-only mode, ProxCtrl refuses to send anything that could change something on it (power actions, notes, opening a console or the node shell), whichever screen asks. Switching read-only on also stops screens that were already open, and closes a console that's open at the time
+- **A saved token secret is only sent to the server it was saved for.** When you edit a server and change its address or token ID, ProxCtrl now asks for the token secret again instead of sending the saved one to the new address. Editing a server behind a reverse proxy (port 443) also no longer turns its address into port 8006
+- **Notifications on the lock screen hide the details.** While your phone is locked, ProxCtrl's notifications only say there's a new alert from your Proxmox server; server, node, guest and storage names show after you unlock
+- **Notifications go away with their server.** Removing a server from ProxCtrl also removes its notifications
+- **Sign-in and consoles are never in screenshots.** The screen where you enter a token secret, password or two-factor code, and every console and node shell, are always hidden from screenshots, screen recordings and the recent apps view
+- **New setting: Settings > Privacy > Hide content in screenshots & recents**, on by default, does the same for the whole app. The recent apps view always shows a blank card for ProxCtrl
+- **Consoles are locked down further.** The console page can only load the files bundled with the app and can't reach the network on its own; anything else it tries to load is refused. Remote debugging, which the diagnostics panel turns on, now always switches off again when you leave the console
+- **Copied secrets stay out of clipboard previews.** The push address and the Proxmox setup commands (which contain your private ntfy topic), and console diagnostics, are copied as sensitive, so Android doesn't show them in the clipboard preview and keyboards don't keep them
+- **Two-factor recovery keys** are typed with a password keyboard, so the keyboard doesn't suggest or remember them
+- **Push notifications are kept short.** A push message's title and host name are shown on one line and cut to a sensible length, so a message sent to your push address can't fill the screen
 
 ### Changed
 
-- **All Ctrl apps in the README.** The README's Ctrl series table now lists all 14 apps. New in the table: [ArrCtrl](https://github.com/VoidedKN0X/ArrCtrl) (Radarr, Sonarr, Prowlarr, Bazarr, qBittorrent, autobrr and Cleanuparr in one app), [PaperCtrl](https://github.com/VoidedKN0X/PaperCtrl) (scan and browse documents on Paperless-ngx), [PrintCtrl](https://github.com/VoidedKN0X/PrintCtrl) (Bambu Lab printers through Bambuddy, and Spoolman spools) and [TrueCtrl](https://github.com/VoidedKN0X/TrueCtrl) (monitor and manage your TrueNAS server). Every app in the table is also in the [CtrlF-Droid repo](https://voidedkn0x.github.io/CtrlF-Droid/) for automatic updates. No change to the app itself.
+- **Usage stats send exactly what's promised.** Power action stats no longer say whether the action was run on several guests at once, which the description didn't list. Turning usage stats off now also drops anything that was still waiting to be sent. The description in the app now lists everything the README does (phone or tablet, theme and compact list)
+- **All Ctrl apps in the README.** The README's Ctrl series table now lists all 14 apps. New in the table: [ArrCtrl](https://github.com/VoidedKN0X/ArrCtrl) (Radarr, Sonarr, Prowlarr, Bazarr, qBittorrent, autobrr and Cleanuparr in one app), [PaperCtrl](https://github.com/VoidedKN0X/PaperCtrl) (scan and browse documents on Paperless-ngx), [PrintCtrl](https://github.com/VoidedKN0X/PrintCtrl) (Bambu Lab printers through Bambuddy, and Spoolman spools) and [TrueCtrl](https://github.com/VoidedKN0X/TrueCtrl) (monitor and manage your TrueNAS server). Every app in the table is also in the [CtrlF-Droid repo](https://voidedkn0x.github.io/CtrlF-Droid/) for automatic updates.
+
+- **README describes only what's in the app's security.** The README's "Safe by design" line no longer mentions typed confirmations and a fingerprint lock, which aren't in ProxCtrl yet. It now lists read-only mode, the confirmation before bulk actions, certificate pinning and screenshot protection.
 
 ## v0.7.4 (2026-10-19)
 

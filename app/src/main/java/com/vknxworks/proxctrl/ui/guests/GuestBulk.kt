@@ -155,7 +155,7 @@ fun BulkPowerDialog(
 suspend fun runBulk(context: Context, client: PveClient, action: PowerAction, targets: List<Guest>): String {
     val results = targets.map { client.power(it, action) }
     // One event per guest type in the batch, never which guests or how many of each.
-    targets.map { it.type }.distinct().forEach { trackPower(context.container.telemetry, action, it, bulk = true) }
+    targets.map { it.type }.distinct().forEach { trackPower(context.container.telemetry, action, it) }
     val ok = results.count { it.error == null }
     val label = context.getString(action.label())
     val failed = results.filter { it.error != null }
@@ -166,10 +166,13 @@ suspend fun runBulk(context: Context, client: PveClient, action: PowerAction, ta
     }
 }
 
-/** Usage stats: which power action on which kind of guest, never the guest itself. */
-fun trackPower(telemetry: Telemetry, action: PowerAction, type: GuestType, bulk: Boolean) {
+/**
+ * Usage stats: which power action on which kind of guest, never the guest itself. Exactly what the
+ * README and the in-app description promise, nothing more.
+ */
+fun trackPower(telemetry: Telemetry, action: PowerAction, type: GuestType) {
     telemetry.track(
         "guest_power_action",
-        mapOf("action" to action.name.lowercase(), "guest_type" to type.api, "bulk" to bulk.toString()),
+        mapOf("action" to action.name.lowercase(), "guest_type" to type.api),
     )
 }

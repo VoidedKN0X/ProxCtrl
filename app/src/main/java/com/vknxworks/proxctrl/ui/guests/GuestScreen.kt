@@ -261,7 +261,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 val cl = client ?: return@PowerConfirmDialog
                 scope.launch {
                     val result = cl.power(g, action)
-                    trackPower(c.telemetry, action, g.type, bulk = false)
+                    trackPower(c.telemetry, action, g.type)
                     val label = context.getString(action.label())
                     val e = result.error
                     snackbar.showSnackbar(

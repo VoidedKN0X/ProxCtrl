@@ -105,7 +105,8 @@ fun TfaDialog(error: String?, busy: Boolean, onSubmit: (String) -> Unit, onCance
                     } else {
                         null
                     },
-                    keyboardOptions = KeyboardOptions(keyboardType = if (recovery) KeyboardType.Ascii else KeyboardType.NumberPassword),
+                    // Password keyboards: the code or recovery key is never suggested, corrected or learned.
+                    keyboardOptions = KeyboardOptions(keyboardType = if (recovery) KeyboardType.Password else KeyboardType.NumberPassword, autoCorrectEnabled = false),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 TextButton(onClick = { recovery = !recovery; value = "" }) {

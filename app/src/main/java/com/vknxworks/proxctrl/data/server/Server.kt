@@ -50,7 +50,10 @@ data class ServerSecrets(
     val csrf: String = "",
     /** When [ticket] was issued (ms since epoch). Proxmox tickets are valid for 2 hours. */
     val ticketIssuedAt: Long = 0,
-)
+) {
+    /** Never prints the secrets themselves, should this object end up in a log or error message. */
+    override fun toString(): String = "ServerSecrets(redacted)"
+}
 
 object ServerAddress {
     const val DEFAULT_PORT = 8006

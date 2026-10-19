@@ -59,7 +59,15 @@ class Sessions(
     }
 
     fun clientFor(server: Server): PveClient =
-        PveClient(server, baseHttp, store.secrets(server.id)) { updated -> store.saveSecrets(server.id, updated) }
+        PveClient(
+            server,
+            baseHttp,
+            store.secrets(server.id),
+            // The saved setting, not this copy of the server: a client made before read-only was
+            // switched on must not keep writing.
+            isReadOnly = { store.servers.value.firstOrNull { it.id == server.id }?.readOnly ?: server.readOnly },
+            onSecretsChanged = { updated -> store.saveSecrets(server.id, updated) },
+        )
 
     /** Reloads permissions and version of the active server. */
     fun refreshAccess() {

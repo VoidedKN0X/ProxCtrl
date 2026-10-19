@@ -22,7 +22,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Node**: services, updates, network and a shell
 - **Notifications** without Google services: polling, or UnifiedPush through your own ntfy
 - **Widgets** and a Quick Settings tile
-- **Safe by design**: read-only mode, typed confirmations for dangerous actions, certificate pinning, optional fingerprint lock
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, certificate pinning, and screenshot protection
 
 ## Requirements
 

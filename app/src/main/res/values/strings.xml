@@ -67,6 +67,7 @@
     <string name="field_token_id">Token ID</string>
     <string name="field_token_id_hint">proxctrl@pve!phone</string>
     <string name="field_token_secret">Token secret</string>
+    <string name="token_secret_reenter">Enter the token secret again. A saved secret is only sent to the address and token ID it was saved for.</string>
     <string name="token_id_invalid">A token ID looks like user@realm!name, for example proxctrl@pve!phone</string>
     <string name="field_username">Username</string>
     <string name="field_password">Password</string>
@@ -117,6 +118,7 @@
     <string name="error_server">Proxmox returned an error (%1$d).</string>
     <string name="error_with_detail">%1$s\n\n%2$s</string>
     <string name="error_generic">Something went wrong.</string>
+    <string name="error_read_only">This server is in read-only mode, so nothing was changed. Turn read-only mode off to make changes.</string>
 
     <!-- Connection result and access -->
     <string name="connected_to">Connected to %1$s</string>
@@ -452,6 +454,7 @@
     <string name="nt_signin_text">%1$s rejected the sign-in or its certificate changed. Open ProxCtrl to fix it.</string>
     <string name="nt_push_from">From %1$s</string>
     <string name="nt_push_fallback">Notification from Proxmox</string>
+    <string name="nt_public_text">New alert from your Proxmox server. Unlock to see it.</string>
 
     <!-- Notification settings -->
     <string name="notifications">Notifications</string>
@@ -538,10 +541,14 @@
     <string name="paste_empty">The clipboard is empty.</string>
 
     <!-- Usage stats -->
+    <string name="group_privacy">Privacy</string>
+    <string name="hide_content">Hide content in screenshots &amp; recents</string>
+    <string name="hide_content_subtitle">Screenshots, screen recordings and the recent apps view show a blank screen</string>
+    <string name="hide_content_footer">Signing in to a server and consoles are always hidden, even with this off.</string>
     <string name="group_usage_stats">Usage stats</string>
     <string name="usage_stats_switch">Share anonymous usage stats</string>
     <string name="usage_stats_switch_subtitle">Helps decide what to improve next</string>
-    <string name="usage_stats_description">Which screens you open, which power actions you use (like start or shut down) on containers or VMs, which kind of console you open, the app version, Android version, phone model and language. Never your server address, node names, guest names or IDs, IP addresses, username or tokens. Sent to VKNXWorks\' own server, not to any analytics company.</string>
+    <string name="usage_stats_description">Which screens you open, which power actions you use (like start or shut down) on containers or VMs, which kind of console you open, the app version, Android version, phone model, language, phone or tablet, your theme and whether you use the compact guest list. Never your server address, node names, guest names or IDs, IP addresses, username or tokens. Sent to VKNXWorks\' own server, not to any analytics company.</string>
     <string name="usage_stats_prompt_title">Help improve ProxCtrl?</string>
     <string name="usage_stats_prompt_text">Share anonymous usage stats so I can see which features people use and which Android versions to support.\n\n%1$s\n\nYou can change this any time in Settings.</string>
     <string name="usage_stats_share">Share stats</string>

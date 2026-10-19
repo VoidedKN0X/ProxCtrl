@@ -117,6 +117,7 @@ fun ServersScreen() {
                     c.guests.forget(server.id)
                     c.overview.forget(server.id)
                     com.vknxworks.proxctrl.data.notify.CheckStore.forget(context, server.id)
+                    com.vknxworks.proxctrl.data.notify.Notifier.cancelServer(context, server.id)
                 }) { Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = { TextButton(onClick = { removing = null }) { Text(stringResource(R.string.cancel)) } },
