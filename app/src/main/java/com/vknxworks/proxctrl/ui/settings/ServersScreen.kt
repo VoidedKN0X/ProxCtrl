@@ -114,6 +114,7 @@ fun ServersScreen() {
                     removing = null
                     c.sessions.remove(server.id)
                     c.guests.forget(server.id)
+                    c.overview.forget(server.id)
                 }) { Text(stringResource(R.string.remove), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = { TextButton(onClick = { removing = null }) { Text(stringResource(R.string.cancel)) } },

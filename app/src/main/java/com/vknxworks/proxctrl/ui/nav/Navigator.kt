@@ -3,6 +3,7 @@ package com.vknxworks.proxctrl.ui.nav
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import kotlin.reflect.KClass
 
@@ -29,6 +30,16 @@ class Navigator(val nav: NavHostController) {
         if (nav.previousBackStackEntry == null) return
         if (!current.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
         nav.popBackStack()
+    }
+
+    /** Switches to one of the main tabs, as tapping it in the tab bar would. */
+    fun tab(route: Any) {
+        if (!settled()) return
+        nav.navigate(route) {
+            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
     }
 
     /** Closes [route] if it's still on top, for screens that finish on their own (not from a tap). */
