@@ -27,6 +27,10 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
 - **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock, certificate pinning, screenshot protection, and token secrets and passwords encrypted with the Android Keystore
 
+## Screenshots
+
+Coming soon.
+
 ## Requirements
 
 - Android 13 or newer
