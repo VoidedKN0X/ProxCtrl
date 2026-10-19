@@ -26,6 +26,13 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- proxctrl://guest/<vmid> opens that guest's page (used by TrueCtrl). Not BROWSABLE:
+                 only apps can open it, not web pages. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="proxctrl" android:host="guest" />
+            </intent-filter>
         </activity>
     </application>
 </manifest>

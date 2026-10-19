@@ -57,6 +57,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.container
+import com.vknxworks.proxctrl.data.DeepLinks
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import com.vknxworks.proxctrl.ui.settings.ServersScreen
 import com.vknxworks.proxctrl.ui.setup.SetupScreen
 import androidx.compose.ui.platform.LocalContext
@@ -114,6 +118,27 @@ private fun MainScaffold() {
             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
             launchSingleTop = true
             restoreState = true
+        }
+    }
+
+    // proxctrl://guest/<vmid>: open that guest's page, or the Guests tab when it isn't on this server.
+    val c = LocalContext.current.container
+    val pendingGuest by DeepLinks.pendingGuest.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingGuest) {
+        val vmid = pendingGuest ?: return@LaunchedEffect
+        val serverId = c.sessions.active.value?.server?.id
+        var guest = c.guests.state.value.guests.firstOrNull { it.vmid == vmid && c.guests.state.value.serverId == serverId }
+        if (guest == null) {
+            // The list may still be loading from the cache after a cold start.
+            withTimeoutOrNull(5_000) { c.guests.state.first { it.serverId == serverId } }
+            c.guests.refresh()
+            guest = c.guests.state.value.guests.firstOrNull { it.vmid == vmid }
+        }
+        DeepLinks.consumed()
+        if (guest != null) {
+            navController.navigate(GuestRoute(guest.node, guest.type.api, guest.vmid)) { launchSingleTop = true }
+        } else {
+            selectTab(topDestinations.indexOfFirst { it.route == GuestsRoute })
         }
     }
 
