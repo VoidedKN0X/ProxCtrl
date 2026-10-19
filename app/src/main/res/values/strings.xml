@@ -539,7 +539,6 @@
     <string name="key_pgdn">PgDn</string>
     <string name="key_del">Del</string>
     <string name="paste_empty">The clipboard is empty.</string>
-<<<<<<< HEAD
 
     <!-- Usage stats -->
     <string name="group_privacy">Privacy</string>
@@ -554,7 +553,6 @@
     <string name="usage_stats_prompt_text">Share anonymous usage stats so I can see which features people use and which Android versions to support.\n\n%1$s\n\nYou can change this any time in Settings.</string>
     <string name="usage_stats_share">Share stats</string>
     <string name="usage_stats_no">No thanks</string>
-=======
     <!-- Tasks started from the app -->
     <string name="task_running">%1$s…</string>
     <string name="task_done">%1$s: done</string>
@@ -653,5 +651,4 @@
     <string name="restore_needs_stopped">The guest is running. Shut it down first, then restore.</string>
     <string name="restore_protected">The guest is protected. Turn off protection in its options in Proxmox first, then restore.</string>
     <string name="restore_task">Restore from %1$s</string>
->>>>>>> c31fb88 (ProxCtrl 0.8.0: snapshots and backups)
 </resources>
