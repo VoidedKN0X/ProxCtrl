@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +30,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -49,6 +54,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,7 +63,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -81,6 +104,16 @@ import org.json.JSONObject
 private const val ASSET_HOST = "https://appassets.androidplatform.net"
 
 private enum class ConsoleState { CONNECTING, CONNECTED, CLOSED, FAILED }
+
+/** What the hidden keyboard field always holds, so Backspace always has something to delete. */
+private const val KEYBOARD_SENTINEL = "                                "
+
+/** Escape sequences a terminal expects for keys without a character. */
+private val TERMINAL_KEYS = mapOf(
+    "Escape" to "\u001b", "Tab" to "\t",
+    "Up" to "\u001b[A", "Down" to "\u001b[B", "Right" to "\u001b[C", "Left" to "\u001b[D",
+    "Home" to "\u001b[H", "End" to "\u001b[F", "PageUp" to "\u001b[5~", "PageDown" to "\u001b[6~", "Delete" to "\u001b[3~",
+)
 
 /**
  * Full-screen console: a container's or node's terminal (xterm.js), or a VM's screen (noVNC).
@@ -106,11 +139,14 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     var superKey by remember { mutableStateOf(false) }
     var fontSize by remember { mutableIntStateOf(13) }
     var landscape by remember { mutableStateOf(false) }
-    var keyboardShown by remember { mutableStateOf(false) }
     var showLoginNote by remember {
         mutableStateOf(target is ConsoleTarget.NodeShell && !(server?.auth == AuthMethod.TICKET && server.username == "root@pam"))
     }
     var webView by remember { mutableStateOf<WebView?>(null) }
+    var input by remember { mutableStateOf(TextFieldValue(KEYBOARD_SENTINEL, TextRange(KEYBOARD_SENTINEL.length))) }
+    val focus = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val imeVisible = WindowInsets.isImeVisible
     var session by remember { mutableStateOf<ConsoleSession?>(null) }
 
     fun js(code: String) {
@@ -199,6 +235,73 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         if (target.isScreen) js("pcSetMods($ctrl, $alt, $superKey)") else js("pcSetMods($ctrl, $alt)")
     }
 
+    fun showKeyboard() {
+        runCatching { focus.requestFocus() }
+        keyboard?.show()
+    }
+
+    fun hideKeyboard() {
+        keyboard?.hide()
+    }
+
+    // Terminals are for typing: bring the keyboard up as soon as one is connected.
+    LaunchedEffect(state) {
+        if (state == ConsoleState.CONNECTED && !target.isScreen) showKeyboard()
+    }
+
+    /**
+     * The phone keyboard types into this hidden field instead of the console page (inside the app the
+     * page doesn't reliably get keyboard input). The field always holds a fixed filler text; whatever
+     * the keyboard adds to it is sent as typing, and whatever it removes is sent as Backspace.
+     */
+    fun onInput(value: TextFieldValue) {
+        val old = KEYBOARD_SENTINEL
+        val new = value.text
+        if (value.composition != null && new.startsWith(old)) {
+            // Still composing (some keyboards do even for password fields): wait for the committed text.
+            input = value
+            return
+        }
+        val common = old.commonPrefixWith(new).length
+        val removed = old.length - common
+        val added = new.substring(common)
+        if (removed > 0) js("pcBackspace($removed)")
+        if (added.isNotEmpty()) js("pcInput(${JSONObject.quote(added)})")
+        input = TextFieldValue(KEYBOARD_SENTINEL, TextRange(KEYBOARD_SENTINEL.length))
+    }
+
+    /** Keys from a hardware keyboard, or ones the phone keyboard sends as key presses. */
+    fun onHardwareKey(event: KeyEvent): Boolean {
+        if (event.type != KeyEventType.KeyDown) return false
+        val name = when (event.key) {
+            Key.Enter, Key.NumPadEnter -> "Enter"
+            Key.Backspace -> "Backspace"
+            Key.Escape -> "Escape"
+            Key.Tab -> "Tab"
+            Key.DirectionUp -> "Up"
+            Key.DirectionDown -> "Down"
+            Key.DirectionLeft -> "Left"
+            Key.DirectionRight -> "Right"
+            Key.MoveHome -> "Home"
+            Key.MoveEnd -> "End"
+            Key.PageUp -> "PageUp"
+            Key.PageDown -> "PageDown"
+            Key.Delete -> "Delete"
+            else -> null
+        } ?: return false
+        if (target.isScreen) {
+            js("pcKey('$name')")
+        } else {
+            val seq = when (name) {
+                "Enter" -> "\r"
+                "Backspace" -> "\u007f"
+                else -> TERMINAL_KEYS[name] ?: return false
+            }
+            js("pcKey(${JSONObject.quote(seq)})")
+        }
+        return true
+    }
+
     Column(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF0D0F12)).imePadding()) {
         // Compact bar: back, title, and tools.
         Row(
@@ -260,12 +363,48 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
                         }
                         addJavascriptInterface(bridge, "ProxBridge")
+                        // Keyboard input goes through the app's own field, never into the page.
+                        isFocusable = false
+                        isFocusableInTouchMode = false
+                        if (!target.isScreen) {
+                            // A tap on a terminal brings up the keyboard; drags still scroll it.
+                            val slop = android.view.ViewConfiguration.get(ctx).scaledTouchSlop
+                            var downX = 0f
+                            var downY = 0f
+                            setOnTouchListener { _, e ->
+                                when (e.actionMasked) {
+                                    android.view.MotionEvent.ACTION_DOWN -> { downX = e.x; downY = e.y }
+                                    android.view.MotionEvent.ACTION_UP ->
+                                        if (kotlin.math.abs(e.x - downX) < slop && kotlin.math.abs(e.y - downY) < slop) main.post { showKeyboard() }
+                                }
+                                false
+                            }
+                        }
                         val page = if (target.isScreen) "vnc.html" else "terminal.html?font=$fontSize"
                         loadUrl("$ASSET_HOST/assets/console/$page")
                         webView = this
                     }
                 },
                 onRelease = { it.destroy() },
+            )
+            BasicTextField(
+                value = input,
+                onValueChange = ::onInput,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    autoCorrectEnabled = false,
+                    capitalization = KeyboardCapitalization.None,
+                    imeAction = ImeAction.None,
+                ),
+                singleLine = false,
+                textStyle = TextStyle(color = androidx.compose.ui.graphics.Color.Transparent),
+                cursorBrush = SolidColor(androidx.compose.ui.graphics.Color.Transparent),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .size(1.dp)
+                    .alpha(0f)
+                    .focusRequester(focus)
+                    .onPreviewKeyEvent(::onHardwareKey),
             )
             when (state) {
                 ConsoleState.CONNECTING -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -289,16 +428,13 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             ctrl = ctrl,
             alt = alt,
             superKey = superKey,
-            keyboardShown = keyboardShown,
+            keyboardShown = imeVisible,
             onCtrl = { ctrl = !ctrl; sendMods() },
             onAlt = { alt = !alt; sendMods() },
             onSuper = { superKey = !superKey; sendMods() },
             onKey = { name, seq -> if (target.isScreen) js("pcKey('$name')") else js("pcKey(${JSONObject.quote(seq)})") },
             onCtrlAltDel = { js("pcCtrlAltDel()") },
-            onKeyboard = {
-                keyboardShown = !keyboardShown
-                if (target.isScreen) js("pcKeyboard($keyboardShown)") else js("pcFocus()")
-            },
+            onKeyboard = { if (imeVisible) hideKeyboard() else showKeyboard() },
             onPaste = {
                 val text = context.getSystemService(ClipboardManager::class.java)?.primaryClip?.takeIf { it.itemCount > 0 }
                     ?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()

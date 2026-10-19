@@ -70,9 +70,26 @@
 
   // Called by the app's extra-keys bar.
   window.pcSetMods = function (ctrl, alt) { mods.ctrl = ctrl; mods.alt = alt; };
-  window.pcKey = function (seq) { send(applyMods(seq)); term.focus(); };
-  window.pcPaste = function (text) { term.paste(text); term.focus(); };
-  window.pcFocus = function () { term.focus(); };
+  window.pcKey = function (seq) { send(applyMods(seq)); };
+  // Typing from the app's own keyboard field (the phone keyboard doesn't type into the page reliably).
+  // Enter becomes a carriage return, as a real terminal sends it; Ctrl/Alt apply to the first key.
+  window.pcInput = function (text) {
+    text = text.replace(/\r?\n/g, '\r');
+    if (!text) return;
+    if (mods.ctrl || mods.alt) {
+      const first = String.fromCodePoint(text.codePointAt(0));
+      send(applyMods(first));
+      text = text.slice(first.length);
+    }
+    if (text) send(text);
+  };
+  window.pcBackspace = function (n) { send('\x7f'.repeat(n)); };
+  window.pcPaste = function (text) {
+    text = text.replace(/\r?\n/g, '\r');
+    // Bracketed paste lets shells and editors tell a paste from typing.
+    send(term.modes.bracketedPasteMode ? '\x1b[200~' + text + '\x1b[201~' : text);
+  };
+  window.pcFocus = function () {};
   window.pcFontSize = function (size) { term.options.fontSize = size; fit.fit(); };
 
   ProxBridge.pageReady();

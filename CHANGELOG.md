@@ -4,6 +4,23 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.7.1 (2026-10-19)
+
+A fix for typing in consoles.
+
+### Fixed
+
+- **Typing in a console did nothing**: in the node shell, container consoles and VM screens, what you typed on the phone keyboard never reached the console, so commands like `uname -a` didn't appear or run. The phone keyboard now types into ProxCtrl itself, which sends every key to the console: letters, Backspace, Enter and keyboard symbols, in terminals and on VM screens alike
+- Tapping a terminal brings up the keyboard, and it comes up by itself when a terminal connects. Dragging still scrolls back through the output
+- The keyboard button shows whether the keyboard is open and opens or closes it
+- Ctrl and Alt from the extra-keys bar now also work with letters typed on the phone keyboard (for example Ctrl then C stops a running command)
+- Keys from a Bluetooth or USB keyboard (Enter, Backspace, Esc, Tab, arrows, Home, End, Page Up/Down, Delete) also reach the console
+- Paste in terminals uses bracketed paste when the shell supports it, so pasted text isn't run line by line by accident
+
+### Security
+
+- The phone keyboard is told the console is a password field, so it doesn't suggest, autocorrect or learn what you type into consoles, such as passwords at a login prompt
+
 ## v0.7.0 (2026-10-19)
 
 Consoles for containers and VMs, and a shell on the node.
