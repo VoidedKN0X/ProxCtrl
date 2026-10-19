@@ -75,7 +75,12 @@ data class GuestConfig(
     val hostname: String?,
     /** Config digest, sent back when editing so a concurrent change isn't overwritten. */
     val digest: String?,
+    /** VM display; "serial0".."serial3" means the console is a serial terminal, not a screen. */
+    val vga: String? = null,
 ) {
+    /** The serial port a VM's console uses instead of a display, if any. */
+    val serialConsole: String? get() = vga?.substringBefore(',')?.let { t -> t.substringAfter("type=", t) }?.takeIf { it.matches(Regex("serial[0-3]")) }
+
     companion object {
         fun parse(data: JsonElement?): GuestConfig {
             val o = data as? JsonObject ?: JsonObject(emptyMap())
@@ -96,6 +101,7 @@ data class GuestConfig(
                 agentEnabled = agentOn,
                 hostname = o.str("hostname"),
                 digest = o.str("digest"),
+                vga = o.str("vga"),
             )
         }
     }

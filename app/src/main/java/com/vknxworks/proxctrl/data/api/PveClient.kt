@@ -118,6 +118,19 @@ class PveClient(
         }
     }
 
+    /**
+     * Headers that sign a WebSocket upgrade (consoles). WebSockets are always opened with GET, so no
+     * CSRF token is needed; a ticket is renewed first if it's getting old.
+     */
+    suspend fun webSocketHeaders(): Map<String, String> {
+        if (server.auth == AuthMethod.TICKET) ensureFreshTicket()
+        val s = secrets
+        return when (server.auth) {
+            AuthMethod.TOKEN -> mapOf("Authorization" to "PVEAPIToken=${server.tokenId}=${s.tokenSecret}")
+            AuthMethod.TICKET -> mapOf("Cookie" to "PVEAuthCookie=${s.ticket}")
+        }
+    }
+
     // --- Tickets ---
 
     private suspend fun ensureFreshTicket() {

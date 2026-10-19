@@ -173,6 +173,13 @@ Proxmox has no notification for failed tasks in general, so ProxCtrl can't get t
 
 Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus, realme) closes background apps aggressively. Under **Settings › Notifications › Battery**, ProxCtrl shows whether it's restricted and opens its app info. There, set **Battery** to **Allow background activity** (or **Don't optimise**), and allow **Auto launch** if your phone offers it. Do the same for ntfy if you use push.
 
+## Consoles and the node shell
+
+- **Containers** open a terminal (xterm.js), **VMs** open their screen (noVNC), or a terminal when their display is set to a serial port, and the **node shell** opens from the Shell button on the node's card on the Overview.
+- ProxCtrl opens the console connection itself, signed with your token or session and pinned to your server's certificate, and shows it full screen with an extra-keys bar: Esc, Tab, Ctrl and Alt (and Super for VMs) that stay pressed for the next key, arrows, Home, End, Page Up/Down, Delete, Ctrl+Alt+Del for VMs, and Paste. Rotate to landscape with the rotate button.
+- Consoles need `VM.Console` on the guest, and the node shell needs `Sys.Console` on the node. They're hidden in read-only mode.
+- With an API token, the node shell asks for a Linux login, because Proxmox only skips the login for `root@pam`. Sign in with `root@pam` and its password if you want a root shell straight away.
+
 ## Build from source
 
 You need [Android Studio](https://developer.android.com/studio), or JDK 17 and the Android SDK.
@@ -217,3 +224,5 @@ Native Android apps for self-hosted services and everyday tools, all with the sa
 ProxCtrl is licensed under the [GNU General Public License v3.0](LICENSE). © VKNXWorks
 
 The Manrope font is licensed under the SIL Open Font License; see `FONT-LICENSE-Manrope.txt`.
+
+The consoles use [noVNC](https://github.com/novnc/noVNC) (MPL-2.0, with [pako](https://github.com/nodeca/pako) under MIT) and [xterm.js](https://github.com/xtermjs/xterm.js) (MIT), bundled unchanged in `app/src/main/assets` with their licence files.

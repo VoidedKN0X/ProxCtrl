@@ -20,3 +20,9 @@
 -dontwarn org.joda.time.**
 -dontwarn com.google.crypto.tink.**
 -keep class com.vknxworks.proxctrl.data.notify.ProxPushService { *; }
+
+# The console pages call the app through @JavascriptInterface methods; keep them by name.
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+-keepattributes JavascriptInterface
