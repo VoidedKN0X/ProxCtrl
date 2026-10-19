@@ -31,11 +31,13 @@
     <string name="settings_subtitle">Notifications, warnings and appearance</string>
     <string name="support_title">Support ProxCtrl</string>
     <string name="support_subtitle">ProxCtrl is free and open source. Sponsor development on GitHub</string>
-    <string name="source_title">Source code and issues</string>
+    <string name="bugs_title">Report a bug</string>
+    <string name="bugs_subtitle">Found a problem or have an idea? Open an issue on GitHub</string>
+    <string name="source_title">Source code</string>
     <string name="source_subtitle">github.com/VoidedKN0X/ProxCtrl</string>
     <string name="licence_title">Licence</string>
     <string name="licence_subtitle">GNU General Public License v3.0</string>
-    <string name="about_footer">%1$s %2$s  ·  %3$s</string>
+    <string name="about_footer">%1$s %2$s · %3$s</string>
     <string name="group_about">About</string>
 
     <!-- Settings -->

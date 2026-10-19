@@ -284,6 +284,8 @@ Or open the folder in Android Studio and press **Run** with your phone connected
 
 ProxCtrl is free and open source. If it's useful to you, you can support development on [GitHub Sponsors](https://github.com/sponsors/VoidedKN0X). Starring the repo and [reporting bugs](https://github.com/VoidedKN0X/ProxCtrl/issues) helps too.
 
+In the app, the **About** section at the bottom of the Account page has **Support ProxCtrl** and **Report a bug** rows that open these pages.
+
 ## The Ctrl series
 
 Native Android apps for self-hosted services and everyday tools, all with the same Material You design.
