@@ -4,6 +4,14 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.0.1 (2026-10-19)
+
+### Changed
+
+- **One About section in every Ctrl app**: Support, Report a bug, Source code and Licence (GPL-3.0), with the version underneath, at the bottom of the Account page (tap the profile picture on any tab)
+- New **Report a bug** row in About opens ProxCtrl's GitHub issues, where you can report a problem or suggest an idea
+- The "Source code and issues" row is now just **Source code**, since bugs have their own row
+
 ## v1.0.0 (2026-10-19)
 
 ProxCtrl is complete: the Storage, Tasks and Node tabs, guest resources and clones, widgets, a Quick Settings tile and an app lock.

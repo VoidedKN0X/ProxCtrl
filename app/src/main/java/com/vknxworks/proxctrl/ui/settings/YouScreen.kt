@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Favorite
@@ -52,6 +53,7 @@ import com.vknxworks.proxctrl.ui.theme.Gutter
 
 private const val SPONSOR_URL = "https://github.com/sponsors/VoidedKN0X"
 private const val REPO_URL = "https://github.com/VoidedKN0X/ProxCtrl"
+private const val ISSUES_URL = "https://github.com/VoidedKN0X/ProxCtrl/issues"
 private const val LICENCE_URL = "https://www.gnu.org/licenses/gpl-3.0.html"
 
 /**
@@ -145,6 +147,13 @@ fun YouScreen() {
                     icon = Icons.Filled.Favorite,
                     showChevron = true,
                     onClick = { open(SPONSOR_URL) },
+                )
+                GroupRow(
+                    stringResource(R.string.bugs_title),
+                    stringResource(R.string.bugs_subtitle),
+                    icon = Icons.Filled.BugReport,
+                    showChevron = true,
+                    onClick = { open(ISSUES_URL) },
                 )
                 GroupRow(
                     stringResource(R.string.source_title),
