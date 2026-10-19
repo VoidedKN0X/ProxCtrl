@@ -119,6 +119,60 @@ Even with this the token can't install updates (you run the upgrade in the node 
 
 ProxCtrl checks what your token can do when it connects and greys out anything it isn't allowed to.
 
+## Notifications
+
+ProxCtrl doesn't use Google services for notifications. Turn them on under **Settings › Notifications**. There are two kinds, and you can use either or both:
+
+**Background checks** look at every saved server every 15, 30 or 60 minutes and notify you when something starts going wrong. You get one notification per problem, not one every check. The notification goes away when the problem does.
+
+| Event | When |
+| --- | --- |
+| Guest disk almost full | Over the disk warning level (VM disks need the QEMU guest agent) |
+| Node memory high | Over the memory warning level for the whole chosen period (default 10 minutes) |
+| Node CPU high | Over the CPU level (default 90 %) for the whole chosen period |
+| Guest stopped unexpectedly | A running guest stopped without a stop, shutdown, migration or backup task |
+| Task failed | Any task that ended with an error |
+| Backup failed | A backup that failed or had warnings |
+| Storage almost full | Over the disk warning level |
+| ZFS pool degraded | A pool that isn't ONLINE |
+| Disk SMART failure | A disk whose SMART health is FAILED |
+| Server unreachable | Two checks in a row couldn't connect, a cluster node is offline, or the sign-in stopped working |
+| Updates available | At most once a day |
+
+CPU and memory are judged from the node's per-minute graphs, so a long interval reports a high period later but doesn't miss it. Each event can be switched off. ZFS and SMART need `Sys.Audit` on `/`, and updates need the optional `ProxCtrl.Node` role from step 3 above.
+
+**Push from Proxmox** delivers Proxmox's own notifications instantly through [UnifiedPush](https://unifiedpush.org/), using your self-hosted [ntfy](https://ntfy.sh/) (or another UnifiedPush app). Proxmox only sends notifications for backups, available updates, fencing, replication and system mail (which is how ZFS and SMART problems arrive). Everything else on the list above still comes from the background checks.
+
+### Set up push with ntfy
+
+1. Install the ntfy app (from F-Droid) and set its default server to your ntfy server under its Settings.
+2. In ProxCtrl, turn on **Settings › Notifications › Receive Proxmox notifications**. If you have more than one UnifiedPush app, pick ntfy. ProxCtrl then shows its **push address**, like `https://ntfy.example.com/upAbC123?up=1`. Treat it like a password: anyone who has it can send you notifications.
+3. Tap **Copy commands** under **Set up Proxmox** and run them in your node's shell as root. They create:
+   - A **webhook target** called `proxctrl` that posts a small JSON message to your push address. The topic part of the address is stored as a webhook secret, which only root can read, so it doesn't show in the Proxmox UI. Only the title and type are sent, not the full report, so long backup logs never go over ntfy's size limit.
+   - Four **matchers** that send notifications to it:
+
+     | Matcher | Rules | For |
+     | --- | --- | --- |
+     | `proxctrl-backups` | `match-field exact:type=vzdump`, `match-severity error` | Failed backups |
+     | `proxctrl-cluster` | `match-field exact:type=fencing,replication` | Fenced nodes, failed replication |
+     | `proxctrl-updates` | `match-field exact:type=package-updates` | Available updates |
+     | `proxctrl-system-mail` | `match-field exact:type=system-mail` | ZFS (zed) and SMART (smartd) mails |
+
+   - A **test notification**, which should appear on your phone within seconds.
+4. To set it up in the web UI instead, go to **Datacenter › Notifications**:
+   1. Add a **Webhook** target: method POST, URL `https://ntfy.example.com/{{ secrets.path }}?up=1`, header `Content-Type: application/json`, and a secret `path` holding the topic (the `upAbC123` part).
+   2. Use this body:
+      ```
+      {"title":{{ json title }},"severity":{{ json severity }},"timestamp":{{ json timestamp }},"fields":{{ json fields }}}
+      ```
+   3. Add the four matchers from the table, each targeting it.
+
+Proxmox has no notification for failed tasks in general, so ProxCtrl can't get those by push; the background check covers them. While push is on, the background check doesn't notify about backups and updates a second time.
+
+### Keep checks running on your phone
+
+Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus, realme) closes background apps aggressively. Under **Settings › Notifications › Battery**, ProxCtrl shows whether it's restricted and opens its app info. There, set **Battery** to **Allow background activity** (or **Don't optimise**), and allow **Auto launch** if your phone offers it. Do the same for ntfy if you use push.
+
 ## Build from source
 
 You need [Android Studio](https://developer.android.com/studio), or JDK 17 and the Android SDK.

@@ -2,6 +2,7 @@ package com.vknxworks.proxctrl
 
 import android.content.Context
 import com.vknxworks.proxctrl.data.guests.GuestRepository
+import com.vknxworks.proxctrl.data.notify.NotifySettingsRepository
 import com.vknxworks.proxctrl.data.overview.OverviewRepository
 import com.vknxworks.proxctrl.data.server.ServerStore
 import com.vknxworks.proxctrl.data.server.Sessions
@@ -43,6 +44,7 @@ class AppContainer(val context: Context) {
     val sessions = Sessions(serverStore, http, appScope)
     val guests = GuestRepository(context, sessions, appScope)
     val overview = OverviewRepository(context, sessions, guests, appScope)
+    val notifySettings = NotifySettingsRepository(context, appScope)
 }
 
 val Context.container: AppContainer

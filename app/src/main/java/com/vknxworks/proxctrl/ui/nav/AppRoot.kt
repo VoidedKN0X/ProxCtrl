@@ -61,6 +61,7 @@ import com.vknxworks.proxctrl.data.DeepLinks
 import androidx.compose.runtime.LaunchedEffect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
+import com.vknxworks.proxctrl.ui.settings.NotificationsScreen
 import com.vknxworks.proxctrl.ui.settings.ServersScreen
 import com.vknxworks.proxctrl.ui.setup.SetupScreen
 import androidx.compose.ui.platform.LocalContext
@@ -239,6 +240,7 @@ private fun AppNavHost(navController: NavHostController) {
 
         composable<YouRoute> { YouScreen() }
         composable<SettingsRoute> { SettingsScreen() }
+        composable<NotificationsRoute> { NotificationsScreen() }
         composable<ServersRoute> { ServersScreen() }
         composable<AddServerRoute> {
             val navigator = LocalNavigator.current
