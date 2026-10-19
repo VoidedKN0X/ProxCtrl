@@ -179,6 +179,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - ProxCtrl opens the console connection itself, signed with your token or session and pinned to your server's certificate, and shows it full screen with an extra-keys bar: Esc, Tab, Ctrl and Alt (and Super for VMs) that stay pressed for the next key, arrows, Home, End, Page Up/Down, Delete, Ctrl+Alt+Del for VMs, and Paste. Rotate to landscape with the rotate button.
 - Consoles need `VM.Console` on the guest, and the node shell needs `Sys.Console` on the node. They're hidden in read-only mode.
 - With an API token, the node shell asks for a Linux login, because Proxmox only skips the login for `root@pam`. Sign in with `root@pam` and its password if you want a root shell straight away.
+- If a console doesn't behave, tap the bug icon at the top for a live diagnostics readout (connection, data sent and received, keyboard, page errors) and copy it into an issue. It never includes what you typed.
 
 ## Build from source
 

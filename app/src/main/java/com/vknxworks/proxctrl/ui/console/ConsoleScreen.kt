@@ -8,7 +8,8 @@ import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
-import android.webkit.JavascriptInterface
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -37,6 +38,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.ScreenRotation
@@ -66,6 +68,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -100,6 +103,7 @@ import com.vknxworks.proxctrl.ui.components.errorMessage
 import com.vknxworks.proxctrl.ui.nav.LocalNavigator
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.concurrent.atomic.AtomicReference
 
 private const val ASSET_HOST = "https://appassets.androidplatform.net"
 
@@ -133,6 +137,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
 
     var state by remember { mutableStateOf(ConsoleState.CONNECTING) }
     var error by remember { mutableStateOf<String?>(null) }
+    fun setError(message: String?) { error = message }
     var attempt by remember { mutableIntStateOf(0) }
     var ctrl by remember { mutableStateOf(false) }
     var alt by remember { mutableStateOf(false) }
@@ -147,7 +152,11 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     val focus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     val imeVisible = WindowInsets.isImeVisible
-    var session by remember { mutableStateOf<ConsoleSession?>(null) }
+    // Read from WebView's bridge thread as well as the main thread.
+    val sessionRef = remember { AtomicReference<ConsoleSession?>(null) }
+    var showDiag by remember { mutableStateOf(false) }
+    var fieldFocused by remember { mutableStateOf(false) }
+    val diag = remember { ConsoleDiag() }
 
     fun js(code: String) {
         main.post { webView?.evaluateJavascript(code, null) }
@@ -162,42 +171,49 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         onDispose {
             controller?.show(WindowInsetsCompat.Type.systemBars())
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            session?.close()
+            sessionRef.getAndSet(null)?.close()
         }
     }
 
-    val listener = remember {
-        object : ConsoleSession.Listener {
-            override fun onOpen() = js("pcOpen()")
-            override fun onBytes(bytes: ByteArray) = js("pcRecv('${Base64.encodeToString(bytes, Base64.NO_WRAP)}')")
-            override fun onClosed(code: Int, reason: String) {
-                js("pcClosed($code, ${JSONObject.quote(reason)})")
-                main.post { if (state != ConsoleState.FAILED) state = ConsoleState.CLOSED }
-            }
-            override fun onFailure(error: Throwable) {
-                js("pcError('socket')")
-                main.post {
-                    state = ConsoleState.FAILED
-                    errorMessageFor(error)
-                }
-            }
-            private fun errorMessageFor(e: Throwable) {
-                error = errorMessage(context, e, server?.host.orEmpty(), server?.auth)
+    /**
+     * Events from one session's socket. A session replaced by a reconnect may still report closing;
+     * that must not reach the new page, or it would mark the new connection closed and drop all typing.
+     */
+    fun listenerFor(owner: ConsoleSession) = object : ConsoleSession.Listener {
+        private fun current() = sessionRef.get() === owner
+        override fun onOpen() { if (current()) js("pcOpen()") }
+        override fun onBytes(bytes: ByteArray) {
+            if (current()) js("pcRecv('${Base64.encodeToString(bytes, Base64.NO_WRAP)}')")
+        }
+        override fun onClosed(code: Int, reason: String) {
+            if (!current()) return
+            js("pcClosed($code, ${JSONObject.quote(reason)})")
+            main.post { if (state != ConsoleState.FAILED) state = ConsoleState.CLOSED }
+        }
+        override fun onFailure(error: Throwable) {
+            if (!current()) return
+            val t = error
+            diag.log("socket: ${t.javaClass.simpleName}: ${t.message.orEmpty().take(120)}")
+            js("pcError('socket')")
+            main.post {
+                state = ConsoleState.FAILED
+                setError(errorMessage(context, t, server?.host.orEmpty(), server?.auth))
             }
         }
     }
 
     fun connect() {
         val client = active?.client ?: return
-        session?.close()
         val s = ConsoleSession(client, target)
-        session = s
+        sessionRef.getAndSet(s)?.close()
         state = ConsoleState.CONNECTING
         error = null
         scope.launch {
             try {
-                s.connect(listener)
+                s.connect(listenerFor(s))
             } catch (e: Exception) {
+                if (sessionRef.get() !== s) return@launch
+                diag.log("proxy: ${e.javaClass.simpleName}: ${e.message.orEmpty().take(120)}")
                 state = ConsoleState.FAILED
                 error = errorMessage(context, e, server?.host.orEmpty(), server?.auth).let { m ->
                     if (e is PveError.Server && (e.detail?.contains("not running", true) == true)) context.getString(R.string.console_not_running) else m
@@ -208,21 +224,20 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
 
     /** What the console pages can call. Every method only acts on this console's own session. */
     val bridge = remember {
-        object {
-            @JavascriptInterface fun pageReady() = main.post { connect() }.let { }
-            @JavascriptInterface fun sendText(text: String) = session?.sendText(text).let { }
-            @JavascriptInterface fun sendBinary(b64: String) = session?.sendBinary(Base64.decode(b64, Base64.NO_WRAP)).let { }
-            @JavascriptInterface fun close() = session?.close().let { }
-            @JavascriptInterface fun connected() = main.post { state = ConsoleState.CONNECTED }.let { }
-            @JavascriptInterface fun disconnected(how: String) = main.post { if (state != ConsoleState.FAILED) state = ConsoleState.CLOSED }.let { }
-            @JavascriptInterface fun failed(message: String) = main.post {
+        ConsoleBridge(
+            main = main,
+            session = { sessionRef.get() },
+            onPageReady = { connect() },
+            onConnected = { state = ConsoleState.CONNECTED },
+            onDisconnected = { if (state != ConsoleState.FAILED) state = ConsoleState.CLOSED },
+            onFailed = { message ->
+                diag.log("page: ${message.take(120)}")
                 state = ConsoleState.FAILED
                 error = context.getString(R.string.console_failed, message)
-            }.let { }
-            @JavascriptInterface fun modsReleased() = main.post { ctrl = false; alt = false; superKey = false }.let { }
-            @JavascriptInterface fun title(name: String) = Unit
-            @JavascriptInterface fun vncPassword(): String = session?.vncPassword.orEmpty()
-        }
+            },
+            onModsReleased = { ctrl = false; alt = false; superKey = false },
+            onLog = diag::log,
+        )
     }
 
     fun reconnect() {
@@ -265,6 +280,8 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         val common = old.commonPrefixWith(new).length
         val removed = old.length - common
         val added = new.substring(common)
+        diag.keyboardEvents++
+        diag.lastKeyboard = "+${added.length} -$removed"
         if (removed > 0) js("pcBackspace($removed)")
         if (added.isNotEmpty()) js("pcInput(${JSONObject.quote(added)})")
         input = TextFieldValue(KEYBOARD_SENTINEL, TextRange(KEYBOARD_SENTINEL.length))
@@ -273,6 +290,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     /** Keys from a hardware keyboard, or ones the phone keyboard sends as key presses. */
     fun onHardwareKey(event: KeyEvent): Boolean {
         if (event.type != KeyEventType.KeyDown) return false
+        diag.keyEvents++
         val name = when (event.key) {
             Key.Enter, Key.NumPadEnter -> "Enter"
             Key.Backspace -> "Backspace"
@@ -326,6 +344,17 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                 }
             }
             IconButton(onClick = {
+                showDiag = !showDiag
+                // Lets the console page be inspected from a computer (chrome://inspect) while the panel is open.
+                runCatching { WebView.setWebContentsDebuggingEnabled(showDiag) }
+            }) {
+                Icon(
+                    Icons.Filled.BugReport,
+                    stringResource(R.string.console_diagnostics),
+                    tint = if (showDiag) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.White,
+                )
+            }
+            IconButton(onClick = {
                 landscape = !landscape
                 activity?.requestedOrientation = if (landscape) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }) { Icon(Icons.Filled.ScreenRotation, stringResource(R.string.console_rotate), tint = androidx.compose.ui.graphics.Color.White) }
@@ -361,6 +390,14 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
 
                             // Only the bundled pages may load; nothing navigates anywhere else.
                             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
+                        }
+                        webChromeClient = object : WebChromeClient() {
+                            override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+                                if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
+                                    diag.log("js: ${message.message().take(200)} @ ${message.sourceId().substringAfterLast('/')}:${message.lineNumber()}")
+                                }
+                                return true
+                            }
                         }
                         addJavascriptInterface(bridge, "ProxBridge")
                         // Keyboard input goes through the app's own field, never into the page.
@@ -404,6 +441,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                     .size(1.dp)
                     .alpha(0f)
                     .focusRequester(focus)
+                    .onFocusChanged { fieldFocused = it.isFocused }
                     .onPreviewKeyEvent(::onHardwareKey),
             )
             when (state) {
@@ -420,6 +458,32 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                     }
                 }
                 ConsoleState.CONNECTED -> Unit
+            }
+            if (showDiag) {
+                DiagnosticsPanel(
+                    diag = diag,
+                    lines = {
+                        val st = sessionRef.get()?.stats
+                        buildList {
+                            add("state $state · page ready ${bridge.pageReadyCalls.get()}× · webview ${webViewVersion(context)}")
+                            add(
+                                if (st == null) "socket: no session"
+                                else "socket: proxy ${if (st.proxyStarted) "ok" else "-"} · open ${st.socketOpen}" + (st.closeInfo?.let { " · $it" } ?: ""),
+                            )
+                            if (st != null) {
+                                add("in ${st.framesIn.get()} msgs/${st.bytesIn.get()} B · out ${st.framesOut.get()} msgs/${st.bytesOut.get()} B · dropped ${st.dropped.get()} · last ${st.lastOut}")
+                            }
+                            add("page sends ${bridge.sendCalls.get()} · without session ${bridge.sendsWithoutSession.get()}")
+                            add("keyboard field focused $fieldFocused · ime $imeVisible · text ${diag.keyboardEvents} (${diag.lastKeyboard}) · keys ${diag.keyEvents}")
+                            add("page ${diag.page}")
+                            diag.errors().forEach { add("! $it") }
+                        }
+                    },
+                    refresh = {
+                        main.post { webView?.evaluateJavascript("typeof pcDiag === 'function' ? pcDiag() : 'no pcDiag'") { diag.page = decodeJsString(it) } }
+                    },
+                    modifier = Modifier.align(Alignment.TopCenter),
+                )
             }
         }
 

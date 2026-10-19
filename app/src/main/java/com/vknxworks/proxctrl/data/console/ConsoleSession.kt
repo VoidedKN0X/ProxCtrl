@@ -13,6 +13,7 @@ import okhttp3.WebSocketListener
 import okio.ByteString
 import okio.ByteString.Companion.toByteString
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.TimeUnit
 
 /** What a console connects to. */
@@ -79,6 +80,21 @@ class ConsoleSession(private val client: PveClient, val target: ConsoleTarget) {
     @Volatile
     private var socket: WebSocket? = null
 
+    /** Counters for the console's diagnostics panel: what actually went over the socket. */
+    class Stats {
+        val framesIn = AtomicLong()
+        val bytesIn = AtomicLong()
+        val framesOut = AtomicLong()
+        val bytesOut = AtomicLong()
+        val dropped = AtomicLong()
+        @Volatile var proxyStarted = false
+        @Volatile var socketOpen = false
+        @Volatile var closeInfo: String? = null
+        @Volatile var lastOut: String = ""
+    }
+
+    val stats = Stats()
+
     private val wsClient = client.http.newBuilder()
         .readTimeout(0, TimeUnit.MILLISECONDS)
         .pingInterval(25, TimeUnit.SECONDS)
@@ -91,6 +107,7 @@ class ConsoleSession(private val client: PveClient, val target: ConsoleTarget) {
         val ticket = data.str("ticket") ?: throw PveError.NotProxmox(null)
         val user = data.str("user") ?: client.server.authId
         vncPassword = data.str("password").orEmpty()
+        stats.proxyStarted = true
 
         val url = client.url(target.socketPath, mapOf("port" to port, "vncticket" to ticket))
         val request = Request.Builder().url(url).apply {
@@ -102,18 +119,29 @@ class ConsoleSession(private val client: PveClient, val target: ConsoleTarget) {
             request,
             object : WebSocketListener() {
                 override fun onOpen(webSocket: WebSocket, response: Response) {
+                    stats.socketOpen = true
                     if (!target.isScreen) webSocket.send("$user:$ticket\n")
                     listener.onOpen()
                 }
 
-                override fun onMessage(webSocket: WebSocket, bytes: ByteString) = listener.onBytes(bytes.toByteArray())
-                override fun onMessage(webSocket: WebSocket, text: String) = listener.onBytes(text.toByteArray())
+                override fun onMessage(webSocket: WebSocket, bytes: ByteString) = received(bytes.toByteArray())
+                override fun onMessage(webSocket: WebSocket, text: String) = received(text.toByteArray())
+
+                private fun received(data: ByteArray) {
+                    stats.framesIn.incrementAndGet()
+                    stats.bytesIn.addAndGet(data.size.toLong())
+                    listener.onBytes(data)
+                }
 
                 override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                     webSocket.close(1000, null)
                 }
 
-                override fun onClosed(webSocket: WebSocket, code: Int, reason: String) = listener.onClosed(code, reason)
+                override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                    stats.socketOpen = false
+                    stats.closeInfo = "closed $code ${reason.take(80)}"
+                    listener.onClosed(code, reason)
+                }
 
                 override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                     val error = when {
@@ -122,6 +150,8 @@ class ConsoleSession(private val client: PveClient, val target: ConsoleTarget) {
                         t is IOException -> PveError.fromIo(t)
                         else -> t
                     }
+                    stats.socketOpen = false
+                    stats.closeInfo = "failed ${response?.code ?: "-"} ${t.javaClass.simpleName}: ${t.message.orEmpty().take(80)}"
                     listener.onFailure(error)
                 }
             },
@@ -129,11 +159,22 @@ class ConsoleSession(private val client: PveClient, val target: ConsoleTarget) {
     }
 
     fun sendText(text: String) {
-        socket?.send(text)
+        count(socket?.send(text), text.toByteArray().size)
+        // Only the message type and length, never the typed text itself.
+        stats.lastOut = Regex("^\\d(:\\d+)?").find(text)?.value ?: "?"
     }
 
     fun sendBinary(bytes: ByteArray) {
-        socket?.send(bytes.toByteString())
+        count(socket?.send(bytes.toByteString()), bytes.size)
+    }
+
+    private fun count(sent: Boolean?, size: Int) {
+        if (sent == true) {
+            stats.framesOut.incrementAndGet()
+            stats.bytesOut.addAndGet(size.toLong())
+        } else {
+            stats.dropped.incrementAndGet()
+        }
     }
 
     fun close() {

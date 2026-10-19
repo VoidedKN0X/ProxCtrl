@@ -4,6 +4,21 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.7.2 (2026-10-19)
+
+Another fix for consoles that didn't react to typing, plus a diagnostics panel in case they still don't.
+
+### Fixed
+
+- **Consoles looked frozen**: the node shell, container consoles and VM screens could keep showing the first screen they drew, so typed text, command output and screen changes never appeared even though they were sent. Consoles are no longer drawn under the glass effect behind the tab bar, which kept the console from being redrawn
+- In landscape on a wide screen, the console now fills the whole screen instead of sitting next to the side navigation
+- Pressing **Reconnect** could leave the new connection marked as closed by the old one, so nothing typed after reconnecting was sent. Events from an old connection are now ignored
+
+### New
+
+- **Diagnostics** button (bug icon) at the top of every console. It shows a live readout: whether the console proxy started and the connection is open, messages and bytes received and sent, whether the page sent anything, whether the keyboard field has focus and how many key presses it got, and the last errors from the console page. **Copy** puts it on the clipboard so you can paste it into a bug report. It never shows what you typed, passwords or tickets
+- While the diagnostics panel is open, the console page can be inspected from a computer over USB debugging (`chrome://inspect`). Closing the panel turns this off again
+
 ## v0.7.1 (2026-10-19)
 
 A fix for typing in consoles.

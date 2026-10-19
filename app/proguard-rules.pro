@@ -26,3 +26,7 @@
     @android.webkit.JavascriptInterface <methods>;
 }
 -keepattributes JavascriptInterface
+
+# The console pages call ConsoleBridge by method name; keep it whole, with its annotations.
+-keep class com.vknxworks.proxctrl.ui.console.ConsoleBridge { public *; }
+-keepattributes RuntimeVisibleAnnotations
