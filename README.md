@@ -22,7 +22,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Node**: services, updates, network and a shell
 - **Notifications** without Google services: polling, or UnifiedPush through your own ntfy
 - **Widgets** and a Quick Settings tile
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, certificate pinning, and screenshot protection
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot and before restoring a backup, certificate pinning, and screenshot protection
 
 ## Requirements
 
@@ -172,6 +172,15 @@ Proxmox has no notification for failed tasks in general, so ProxCtrl can't get t
 ### Keep checks running on your phone
 
 Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus, realme) closes background apps aggressively. Under **Settings › Notifications › Battery**, ProxCtrl shows whether it's restricted and opens its app info. There, set **Battery** to **Allow background activity** (or **Don't optimise**), and allow **Auto launch** if your phone offers it. Do the same for ntfy if you use push.
+
+## Snapshots and backups
+
+- **Snapshots** open from a guest's page. They're shown as a tree, oldest first, with **Now** where the guest currently is. Take a snapshot with a name, a description and, for running VMs, the RAM. Rolling back and deleting ask you to type the guest ID.
+- **Backups** lists this guest's backups on every backup storage of its node (including Proxmox Backup Server), newest first, with size, notes, protection and verification state.
+- **Back up now** picks a storage, the mode (snapshot, suspend or stop), the compression (not for Proxmox Backup Server), notes and protection. It never prunes older backups.
+- **Restore** replaces the guest with the backup. It only works while the guest is stopped and not protected, shows a clear warning and asks you to type the guest ID. Containers are restored to the storage their root disk is on now, unless you pick another; VMs keep the storages from the backup unless you pick one.
+- Every action runs as a Proxmox task: the screen shows its progress and result, with the end of the task log if it fails.
+- You need `VM.Snapshot` (or `VM.Snapshot.Rollback` for rolling back only) for snapshots, and `VM.Backup` plus `Datastore.AllocateSpace` on the storage for backups, restores and deleting backups.
 
 ## Consoles and the node shell
 

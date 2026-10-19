@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,6 +64,13 @@ import com.vknxworks.proxctrl.data.guests.GuestType
 import com.vknxworks.proxctrl.data.guests.PowerAction
 import com.vknxworks.proxctrl.data.guests.RrdPoint
 import com.vknxworks.proxctrl.data.guests.Timeframe
+import com.vknxworks.proxctrl.data.guests.BackupApi
+import com.vknxworks.proxctrl.data.guests.SnapshotApi
+import com.vknxworks.proxctrl.ui.nav.BackupsRoute
+import com.vknxworks.proxctrl.ui.nav.SnapshotsRoute
+import com.vknxworks.proxctrl.ui.components.relativeTime
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.PhotoCamera
 import com.vknxworks.proxctrl.data.guests.power
 import com.vknxworks.proxctrl.ui.components.ChartSeries
 import com.vknxworks.proxctrl.ui.components.ConnectionBanner
@@ -91,6 +99,7 @@ import kotlinx.coroutines.launch
 private const val STATUS_POLL_MS = 3_000L
 private const val SLOW_POLL_MS = 30_000L
 private const val RRD_POLL_MS = 60_000L
+private const val PROTECTION_POLL_MS = 120_000L
 private const val NOTES_PRIV = "VM.Config.Options"
 
 /**
@@ -124,6 +133,9 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
     var rrd by remember { mutableStateOf<List<RrdPoint>>(emptyList()) }
     var pending by remember { mutableStateOf<PowerAction?>(null) }
     var editingNotes by remember { mutableStateOf(false) }
+    var snapshotCount by remember { mutableStateOf<Int?>(null) }
+    /** Newest backup time in seconds; 0 when there's none, null while unknown. */
+    var lastBackup by remember { mutableStateOf<Long?>(null) }
     val snackbar = remember { SnackbarHostState() }
 
     PollWhileVisible(ref to server?.id, STATUS_POLL_MS) {
@@ -157,6 +169,14 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
             addressesFailed = true
         }
         if (ref.type == GuestType.QEMU && osName == null) osName = runCatching { GuestApi.osName(cl, ref) }.getOrNull()
+        true
+    }
+    // Snapshot count and the newest backup, for the rows that open those screens. Read each time the
+    // page is shown, so they're current after coming back from them.
+    PollWhileVisible(ref to server?.id, PROTECTION_POLL_MS) {
+        val cl = client ?: return@PollWhileVisible false
+        runCatching { SnapshotApi.list(cl, ref) }.onSuccess { list -> snapshotCount = list.count { !it.isCurrent } }
+        runCatching { BackupApi.list(cl, ref) }.onSuccess { b -> lastBackup = b.backups.maxOfOrNull { it.time } ?: 0L }
         true
     }
     PollWhileVisible(Triple(ref, server?.id, timeframe), RRD_POLL_MS) {
@@ -234,6 +254,14 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 }
 
                 UsageGroup(guest, status, settings.diskWarnPercent)
+
+                ProtectionGroup(
+                    snapshots = snapshotCount,
+                    lastBackup = lastBackup,
+                    isTemplate = guest?.isTemplate == true,
+                    onSnapshots = { nav.navigate(SnapshotsRoute(ref.node, ref.type.api, ref.vmid, guest?.name.orEmpty())) },
+                    onBackups = { nav.navigate(BackupsRoute(ref.node, ref.type.api, ref.vmid, guest?.name.orEmpty())) },
+                )
 
                 DetailsGroup(ref, status, config, addresses, addressesFailed, osName)
 
@@ -472,6 +500,42 @@ private fun DetailsGroup(
             GroupRow(stringResource(R.string.row_start_order), order)
         }
         status?.lock?.takeIf { it.isNotBlank() }?.let { GroupRow(stringResource(R.string.row_lock), it) }
+    }
+}
+
+@Composable
+private fun ProtectionGroup(
+    snapshots: Int?,
+    lastBackup: Long?,
+    isTemplate: Boolean,
+    onSnapshots: () -> Unit,
+    onBackups: () -> Unit,
+) {
+    Group(stringResource(R.string.group_protection)) {
+        if (!isTemplate) {
+            GroupRow(
+                title = stringResource(R.string.snapshots),
+                subtitle = when (snapshots) {
+                    null -> "…"
+                    0 -> stringResource(R.string.snapshots_none)
+                    else -> pluralStringResource(R.plurals.snapshots_count, snapshots, snapshots)
+                },
+                icon = Icons.Filled.PhotoCamera,
+                showChevron = true,
+                onClick = onSnapshots,
+            )
+        }
+        GroupRow(
+            title = stringResource(R.string.backups),
+            subtitle = when (lastBackup) {
+                null -> "…"
+                0L -> stringResource(R.string.backups_none)
+                else -> stringResource(R.string.backups_last, relativeTime(lastBackup * 1000))
+            },
+            icon = Icons.Filled.Inventory2,
+            showChevron = true,
+            onClick = onBackups,
+        )
     }
 }
 

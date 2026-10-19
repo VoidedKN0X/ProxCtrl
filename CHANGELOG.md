@@ -4,6 +4,28 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.8.0 (2026-10-19)
+
+Snapshots and backups for every guest.
+
+### New
+
+- **Snapshots and backups** on a guest's page: how many snapshots it has and when its last backup was made, each opening its own screen
+- **Snapshots screen**: all snapshots of the guest as a tree, oldest at the top, with child snapshots indented under the one they were taken after, and **Now** marking where the guest is. Each shows when it was taken, its description, and whether it includes RAM
+- **Take snapshot**: name (a suggested one with the date and time is filled in, and invalid or duplicate names are caught before sending), optional description, and for running VMs an **Include RAM** switch so a rollback resumes the VM where it was
+- **Roll back** to a snapshot: warns that everything since the snapshot is lost and that a running guest is stopped first, offers **Start afterwards** (snapshots with RAM start by themselves), and only goes ahead once you type the guest ID
+- **Delete snapshot**, also confirmed by typing the guest ID
+- **Backups screen**: every backup of the guest on all backup storages of its node, including Proxmox Backup Server, newest first, with date, age, storage, size and notes, a lock for protected backups and a mark for verified or failed-verification backups. A storage that can't be read is named, without hiding the others
+- **Back up now**: choose the storage (only ones you may write to, Proxmox Backup Server preferred), the mode (snapshot, suspend or stop, each explained), the compression (ZSTD, LZO, GZIP or none; not shown for Proxmox Backup Server), notes (`{{guestname}}` and friends are filled in by Proxmox), and whether to protect the backup. Older backups are never pruned from the app
+- **Restore**: replaces the guest with the chosen backup after a big warning that its current disks, settings and snapshots are lost, and only once you type the guest ID. Choose where the disks go (containers default to the storage their root disk is on now; VMs default to the storages in the backup) and whether to start it afterwards. A running or protected guest can't be restored over, and the app tells you why
+- **Delete backup** with a confirmation. Protected backups can't be deleted
+- Every snapshot, backup, restore and delete runs as a Proxmox task: a card shows it running, then the result, with the end of the task log when it fails or has warnings. The task keeps running on the server if you leave the screen
+- Pull down to refresh the snapshot and backup lists
+- Actions you don't have the privileges for are greyed out, and all of them are hidden in read-only mode (where the app also refuses to send them)
+
+### Changed
+
+- The README's "Safe by design" line now also mentions the typed guest ID before rolling back or deleting a snapshot and before restoring a backup
 ## v0.7.5 (2026-10-19)
 
 Security and privacy hardening.
