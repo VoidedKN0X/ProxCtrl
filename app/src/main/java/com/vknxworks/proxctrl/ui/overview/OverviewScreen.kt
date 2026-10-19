@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Terminal
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -54,6 +56,7 @@ import com.vknxworks.proxctrl.ui.components.formatBytes
 import com.vknxworks.proxctrl.ui.components.formatUptime
 import com.vknxworks.proxctrl.ui.components.percent
 import com.vknxworks.proxctrl.ui.components.usageColor
+import com.vknxworks.proxctrl.ui.nav.ConsoleRoute
 import com.vknxworks.proxctrl.ui.nav.GuestRoute
 import com.vknxworks.proxctrl.ui.nav.GuestsRoute
 import com.vknxworks.proxctrl.ui.nav.LocalNavigator
@@ -87,6 +90,8 @@ fun OverviewScreen() {
 
     val thresholds = Thresholds(settings.diskWarnPercent, settings.memWarnPercent, settings.backupMaxAgeDays)
     val attention = remember(state, guests.guests, thresholds) { Attention.compute(c.overview.attentionInput(), thresholds) }
+
+    val shellTitle = stringResource(R.string.node_shell_title, "%s")
 
     val open: (AttentionTarget) -> Unit = { target ->
         when (target) {
@@ -135,6 +140,11 @@ fun OverviewScreen() {
                         diskWarn = settings.diskWarnPercent,
                         memWarn = settings.memWarnPercent,
                         onClick = { nav.tab(NodeRoute) },
+                        onShell = if (node.isOnline && c.sessions.canWrite("/nodes/${node.node}", "Sys.Console")) {
+                            { nav.navigate(ConsoleRoute(kind = "node", node = node.node, title = shellTitle.replace("%s", node.node))) }
+                        } else {
+                            null
+                        },
                     )
                 }
             }
@@ -161,6 +171,7 @@ private fun NodeCard(
     diskWarn: Int,
     memWarn: Int,
     onClick: () -> Unit,
+    onShell: (() -> Unit)?,
 ) {
     Surface(
         shape = MaterialTheme.shapes.large,
@@ -178,6 +189,9 @@ private fun NodeCard(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (onShell != null) {
+                    IconButton(onClick = onShell) { Icon(Icons.Filled.Terminal, stringResource(R.string.node_shell)) }
+                }
             }
             if (status != null) NodeDetails(node, status, rrd, diskWarn, memWarn)
         }

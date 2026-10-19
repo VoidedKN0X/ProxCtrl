@@ -56,6 +56,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vknxworks.proxctrl.R
+import com.vknxworks.proxctrl.data.console.ConsoleTarget
+import com.vknxworks.proxctrl.ui.console.ConsoleScreen
 import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.DeepLinks
 import androidx.compose.runtime.LaunchedEffect
@@ -236,6 +238,16 @@ private fun AppNavHost(navController: NavHostController) {
         composable<GuestRoute> {
             val r = it.toRoute<GuestRoute>()
             GuestScreen(r.node, r.type, r.vmid)
+        }
+
+        composable<ConsoleRoute> {
+            val r = it.toRoute<ConsoleRoute>()
+            val target = when (r.kind) {
+                "node" -> ConsoleTarget.NodeShell(r.node)
+                "lxc" -> ConsoleTarget.Container(r.node, r.vmid)
+                else -> ConsoleTarget.Vm(r.node, r.vmid, r.serial)
+            }
+            ConsoleScreen(target, r.title)
         }
 
         composable<YouRoute> { YouScreen() }

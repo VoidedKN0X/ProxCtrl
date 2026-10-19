@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -81,6 +82,8 @@ import com.vknxworks.proxctrl.ui.components.formatCores
 import com.vknxworks.proxctrl.ui.components.formatUptime
 import com.vknxworks.proxctrl.ui.components.percent
 import com.vknxworks.proxctrl.ui.components.usageColor
+import com.vknxworks.proxctrl.ui.nav.ConsoleRoute
+import com.vknxworks.proxctrl.ui.nav.LocalNavigator
 import com.vknxworks.proxctrl.ui.theme.Gutter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -98,6 +101,7 @@ private const val NOTES_PRIV = "VM.Config.Options"
 fun GuestScreen(node: String, type: String, vmid: Int) {
     val context = LocalContext.current
     val c = context.container
+    val nav = LocalNavigator.current
     val scope = rememberCoroutineScope()
     val ref = remember(node, type, vmid) { GuestRef(node, GuestType.of(type) ?: GuestType.QEMU, vmid) }
     val active by c.sessions.active.collectAsStateWithLifecycle()
@@ -201,6 +205,26 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                         allowed = c.sessions.canWrite(ref.aclPath, PowerAction.PRIV),
                         onAction = { pending = it },
                     )
+                    if (status?.status == "running" && c.sessions.canWrite(ref.aclPath, "VM.Console")) {
+                        FilledTonalButton(
+                            onClick = {
+                                nav.navigate(
+                                    ConsoleRoute(
+                                        kind = ref.type.api,
+                                        node = ref.node,
+                                        vmid = ref.vmid,
+                                        serial = if (ref.type == GuestType.QEMU) config?.serialConsole else null,
+                                        title = "${guest.vmid} ${guest.name}".trim(),
+                                    ),
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter),
+                        ) {
+                            Icon(Icons.Filled.Terminal, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.open_console))
+                        }
+                    }
                 }
 
                 UsageGroup(guest, status, settings.diskWarnPercent)

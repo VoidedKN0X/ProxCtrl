@@ -11,6 +11,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class GuestRoute(val node: String, val type: String, val vmid: Int)
 
+/** A console: kind is "node", "lxc" or "qemu"; serial is set for VMs with a serial-terminal display. */
+@Serializable data class ConsoleRoute(val kind: String, val node: String, val vmid: Int = 0, val serial: String? = null, val title: String = "")
+
 // Account and settings, opened from the profile picture
 @Serializable data object YouRoute
 @Serializable data object SettingsRoute

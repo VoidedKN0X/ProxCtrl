@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  #screen { position: absolute; inset: 0; }
+  /* Receives the soft keyboard; kept on screen but invisible so Android shows the keyboard for it. */
+  #kbd { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0;
+         font-size: 16px; color: transparent; background: transparent; caret-color: transparent; resize: none; }
+</style>
+</head>
+<body>
+<div id="screen"></div>
+<textarea id="kbd" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+<script src="bridge.js"></script>
+<script type="module" src="vnc.js"></script>
+</body>
+</html>

@@ -503,4 +503,34 @@
     <string name="battery_restricted">Battery optimisation can delay or skip checks</string>
     <string name="battery_open">Open battery settings</string>
     <string name="battery_footer">On ColorOS and other phones that close background apps aggressively: open ProxCtrl\'s app info, then under Battery choose Allow background activity (or Don\'t optimise), and allow Auto launch if your phone has it. Push from Proxmox keeps working as long as your push app (ntfy) is allowed to run in the background.</string>
+
+    <!-- Console and shell -->
+    <string name="console">Console</string>
+    <string name="open_console">Open console</string>
+    <string name="node_shell">Shell</string>
+    <string name="node_shell_title">%1$s shell</string>
+    <string name="console_connecting">Connecting…</string>
+    <string name="console_closed">The console closed.</string>
+    <string name="console_failed">Couldn\'t open the console: %1$s</string>
+    <string name="console_reconnect">Reconnect</string>
+    <string name="console_not_running">The guest isn\'t running.</string>
+    <string name="console_token_login">You\'re signed in with an API token, so the node asks for a Linux login. Only root@pam with a password gets a shell straight away.</string>
+    <string name="console_rotate">Rotate</string>
+    <string name="console_keyboard">Keyboard</string>
+    <string name="console_paste">Paste</string>
+    <string name="console_font_bigger">Bigger text</string>
+    <string name="console_font_smaller">Smaller text</string>
+    <string name="console_dismiss">Dismiss</string>
+    <string name="key_esc">Esc</string>
+    <string name="key_tab">Tab</string>
+    <string name="key_ctrl">Ctrl</string>
+    <string name="key_alt">Alt</string>
+    <string name="key_super">Super</string>
+    <string name="key_cad">Ctrl+Alt+Del</string>
+    <string name="key_home">Home</string>
+    <string name="key_end">End</string>
+    <string name="key_pgup">PgUp</string>
+    <string name="key_pgdn">PgDn</string>
+    <string name="key_del">Del</string>
+    <string name="paste_empty">The clipboard is empty.</string>
 </resources>

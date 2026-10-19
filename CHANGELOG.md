@@ -4,6 +4,25 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.7.0 (2026-10-19)
+
+Consoles for containers and VMs, and a shell on the node.
+
+### New
+
+- **Open console** on a running guest's page. Containers open a terminal, VMs open their screen, and VMs whose display is set to a serial port open a terminal instead. The console fills the screen with the system bars hidden, and closes when you go back
+- **Node shell** from the new Shell button on each node's card on the Overview. When you're signed in with an API token, a note explains that the node asks for a Linux login, because Proxmox only opens a root shell straight away for `root@pam`
+- **Extra-keys bar** under every console: Esc, Tab, Ctrl and Alt (and Super on VMs) that stay pressed for the next key you type and then let go, the arrow keys, Home, End, Page Up, Page Down and Delete, Ctrl+Alt+Del on VMs, and Paste. Paste sends the clipboard into terminals as a normal paste and types it into a VM's screen. In terminals there are also `/`, `-`, `|` and `~` keys
+- **Keyboard button** to bring up the phone's keyboard; on VM screens what you type is sent to the VM key by key, including Backspace and Enter
+- **Rotate button** to switch the console to landscape and back, and text size buttons for terminals
+- If a console can't connect or the connection ends, ProxCtrl says why and offers **Reconnect**
+- The Console button and the Shell button only appear when your sign-in has `VM.Console` or `Sys.Console`, and both are hidden in read-only mode
+
+### Security
+
+- The console connection is made by ProxCtrl itself, signed with your token or session and accepted only from your server's pinned certificate, the same as every other request; the console page never sees your token
+- The console pages are bundled in the app and can't navigate to or load anything else
+
 ## v0.6.0 (2026-10-19)
 
 ProxCtrl can now notify you about problems, without Google services. Turn it on under **Settings › Notifications**.
