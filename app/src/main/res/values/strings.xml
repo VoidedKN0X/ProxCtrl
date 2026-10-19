@@ -119,7 +119,7 @@
     <string name="error_with_detail">%1$s\n\n%2$s</string>
     <string name="error_generic">Something went wrong.</string>
     <string name="error_read_only">This server is in read-only mode, so nothing was changed. Turn read-only mode off to make changes.</string>
-    <string name="error_cancelled">Cancelled: the change wasn't confirmed with your fingerprint or screen lock.</string>
+    <string name="error_cancelled">Cancelled: the change wasn\'t confirmed with your fingerprint or screen lock.</string>
 
     <!-- Connection result and access -->
     <string name="connected_to">Connected to %1$s</string>
