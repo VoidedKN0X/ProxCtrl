@@ -40,7 +40,7 @@ function tap(keysym, code) {
 }
 function typeChar(ch) {
   const cp = ch.codePointAt(0);
-  if (ch === '\n') return tap(KeyTable.XK_Return, 'Enter');
+  if (ch === '\n' || ch === '\r') return tap(KeyTable.XK_Return, 'Enter');
   if (ch === '\t') return tap(KeyTable.XK_Tab, 'Tab');
   tap(keysyms.lookup(cp));
 }
@@ -71,6 +71,7 @@ const KEYS = {
   Home: [KeyTable.XK_Home, 'Home'], End: [KeyTable.XK_End, 'End'],
   PageUp: [KeyTable.XK_Page_Up, 'PageUp'], PageDown: [KeyTable.XK_Page_Down, 'PageDown'],
   Delete: [KeyTable.XK_Delete, 'Delete'],
+  Backspace: [KeyTable.XK_BackSpace, 'Backspace'], Enter: [KeyTable.XK_Return, 'Enter'],
 };
 for (let i = 1; i <= 12; i++) KEYS['F' + i] = [KeyTable.XK_F1 + i - 1, 'F' + i];
 
@@ -79,6 +80,9 @@ window.pcSetMods = (ctrl, alt, meta) => setHeld(ctrl, alt, !!meta);
 window.pcKey = (name) => { const k = KEYS[name]; if (k) tap(k[0], k[1]); };
 window.pcCtrlAltDel = () => { rfb.sendCtrlAltDel(); releaseHeld(); };
 window.pcPaste = (text) => { for (const ch of text.slice(0, 4000)) typeChar(ch); };
+// Typing from the app's own keyboard field.
+window.pcInput = (text) => { for (const ch of text) typeChar(ch); };
+window.pcBackspace = (n) => { for (let i = 0; i < n; i++) tap(KeyTable.XK_BackSpace, 'Backspace'); };
 window.pcKeyboard = (show) => { if (show) { kbd.focus(); } else { kbd.blur(); } };
 window.pcFocus = () => rfb.focus();
 
