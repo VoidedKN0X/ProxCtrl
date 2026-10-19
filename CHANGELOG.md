@@ -4,6 +4,20 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.7.3 (2026-10-19)
+
+The real fix for consoles that stayed frozen.
+
+### Fixed
+
+- **Consoles never showed what you typed or the command output**: in the node shell, container consoles and VM screens, typing and output did reach the server and the console (the diagnostics from 0.7.2 confirmed it), but the console page was never redrawn after its first frame, so the screen looked stuck. The console is now shown in its own layer on top of the app instead of inside the app's layout, where it wasn't being redrawn
+- Terminals could open only one line tall and stay that way. They now resize to fill the console area as soon as it's known, and again whenever it changes (keyboard, banners, rotation)
+
+### Changed
+
+- The diagnostics panel now sits above the console instead of over it, so it doesn't hide the top lines
+- The console appears once it's connected; until then you see the progress indicator, or the error card with **Reconnect**
+
 ## v0.7.2 (2026-10-19)
 
 Another fix for consoles that didn't react to typing, plus a diagnostics panel in case they still don't.

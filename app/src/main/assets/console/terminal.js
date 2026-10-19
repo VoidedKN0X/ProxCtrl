@@ -64,10 +64,13 @@
   term.onResize(sendSize);
   setInterval(function () { if (connected) sock.send('2'); }, 30000);
   let resizeTimer;
-  window.addEventListener('resize', function () {
+  function refit() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function () { fit.fit(); }, 150);
-  });
+    resizeTimer = setTimeout(function () { fit.fit(); }, 100);
+  }
+  window.addEventListener('resize', refit);
+  // The page can start out with no size while the app places it; fit again whenever it changes.
+  if (window.ResizeObserver) new ResizeObserver(refit).observe(document.getElementById('term'));
 
   // Called by the app's extra-keys bar.
   window.pcSetMods = function (ctrl, alt) { mods.ctrl = ctrl; mods.alt = alt; };
