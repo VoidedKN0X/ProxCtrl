@@ -4,6 +4,18 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.4.1 (2026-10-19)
+
+Other apps can now open a guest's page in ProxCtrl directly.
+
+### New
+
+- **Open a guest from another app**: a link like `proxctrl://guest/103` opens that guest's page on the server you're using. TrueCtrl uses it so that after shutting down a TrueNAS VM you can jump straight to the VM in ProxCtrl to start it again. If the guest isn't on that server, the Guests tab opens instead. A link only opens the page; it never starts, stops or changes anything
+
+### Security
+
+- Only apps can open these links, not web pages in a browser
+
 ## v0.4.0 (2026-10-19)
 
 Tapping a guest now opens its full page with live status, power controls, details, notes and graphs.
