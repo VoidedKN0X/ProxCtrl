@@ -35,7 +35,7 @@ android {
         targetSdk = 36
         // Bump both to publish a new release (see CHANGELOG.md).
         versionCode = 15
-        versionName = "0.8.1"
+        versionName = "1.0.0"
 
         buildConfigField("String", "APTABASE_KEY", "\"${aptabaseKey.replace("\"", "")}\"")
         buildConfigField("String", "APTABASE_HOST", "\"$aptabaseHost\"")
@@ -139,4 +139,10 @@ dependencies {
     implementation(libs.haze)
     // UnifiedPush (ntfy and other distributors) for push notifications without Google services.
     implementation(libs.unifiedpush.connector)
+    // Home-screen widgets (Jetpack Glance, no Google services).
+    implementation(libs.androidx.glance.appwidget)
+    // App lock: fingerprint, face or screen lock (AOSP BiometricPrompt).
+    implementation(libs.androidx.biometric)
+    // MainActivity is a FragmentActivity, which BiometricPrompt needs.
+    implementation(libs.androidx.fragment)
 }

@@ -9,6 +9,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Notifications
@@ -17,6 +20,8 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import com.vknxworks.proxctrl.data.lock.AppLock
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -35,10 +40,11 @@ import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import kotlinx.coroutines.launch
 
-/** App settings. Server, notification, lock and threshold settings are added in later stages. */
+/** App settings: notifications, appearance, warning thresholds, privacy, app lock, widgets and usage stats. */
 @Composable
 fun SettingsScreen() {
-    val c = LocalContext.current.container
+    val context = LocalContext.current
+    val c = context.container
     val nav = LocalNavigator.current
     val settings by c.settings.settings.collectAsStateWithLifecycle()
     val themeOptions = ThemeChoice.entries.map { it to stringResource(it.label) }
@@ -96,6 +102,28 @@ fun SettingsScreen() {
                     checked = settings.hideContent,
                     icon = Icons.Filled.VisibilityOff,
                 ) { on -> c.appScope.launch { c.settings.update { it.copy(hideContent = on) } } }
+            }
+            val lockAvailable = remember { AppLock.isAvailable(context) }
+            Group(stringResource(R.string.lock_group), footer = stringResource(if (lockAvailable) R.string.lock_footer else R.string.lock_unavailable)) {
+                GroupSwitch(
+                    stringResource(R.string.lock_on_open),
+                    stringResource(R.string.lock_on_open_subtitle),
+                    checked = settings.lockOnOpen && lockAvailable,
+                    icon = Icons.Filled.Fingerprint,
+                ) { on -> if (lockAvailable) c.appScope.launch { c.settings.update { it.copy(lockOnOpen = on) } } }
+                GroupSwitch(
+                    stringResource(R.string.lock_changes),
+                    stringResource(R.string.lock_changes_subtitle),
+                    checked = settings.lockChanges && lockAvailable,
+                    icon = Icons.Filled.Lock,
+                ) { on -> if (lockAvailable) c.appScope.launch { c.settings.update { it.copy(lockChanges = on) } } }
+            }
+            Group(stringResource(R.string.widget_settings_group)) {
+                GroupRow(
+                    stringResource(R.string.widget_settings_title),
+                    stringResource(R.string.widget_settings_subtitle),
+                    icon = Icons.Filled.Widgets,
+                )
             }
             if (c.telemetry.available) {
                 Group(stringResource(R.string.group_usage_stats), footer = stringResource(R.string.usage_stats_description)) {

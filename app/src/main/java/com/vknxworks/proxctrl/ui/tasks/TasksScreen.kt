@@ -1,13 +1,17 @@
 package com.vknxworks.proxctrl.ui.tasks
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Task
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import com.vknxworks.proxctrl.R
-import com.vknxworks.proxctrl.ui.components.TabPlaceholder
+import com.vknxworks.proxctrl.ui.components.LocalBottomClearance
+import com.vknxworks.proxctrl.ui.components.TabTitle
 
-/** Running and recent tasks with logs. Filled in once server setup lands. */
+/** The Tasks tab: tasks running now, with live progress and Stop, then the filterable history. */
 @Composable
 fun TasksScreen() {
-    TabPlaceholder(R.string.tab_tasks, R.string.tasks_empty_hint, Icons.Outlined.Task)
+    TaskListContent(fixedVmid = null, bottomPadding = LocalBottomClearance.current) {
+        TabTitle(stringResource(R.string.tab_tasks), Modifier.statusBarsPadding())
+    }
 }

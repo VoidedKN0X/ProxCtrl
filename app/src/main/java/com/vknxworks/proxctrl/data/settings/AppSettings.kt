@@ -55,6 +55,10 @@ data class AppSettings(
     val usageStatsAsked: Boolean = false,
     /** FLAG_SECURE on the whole app: blank screenshots, screen recordings and Recents card. On by default. */
     val hideContent: Boolean = true,
+    /** App lock: ask for the fingerprint or screen lock when opening the app. */
+    val lockOnOpen: Boolean = false,
+    /** App lock: ask before anything that changes something on a server. */
+    val lockChanges: Boolean = false,
 )
 
 class SettingsRepository(private val context: Context, scope: CoroutineScope) {
@@ -70,6 +74,8 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         val usageStats = booleanPreferencesKey("usage_stats")
         val usageStatsAsked = booleanPreferencesKey("usage_stats_asked")
         val hideContent = booleanPreferencesKey("hide_content")
+        val lockOnOpen = booleanPreferencesKey("lock_on_open")
+        val lockChanges = booleanPreferencesKey("lock_changes")
     }
 
     val settings: StateFlow<AppSettings> = context.appDataStore.data
@@ -91,6 +97,8 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         usageStats = this[K.usageStats] ?: false,
         usageStatsAsked = this[K.usageStatsAsked] ?: false,
         hideContent = this[K.hideContent] ?: true,
+        lockOnOpen = this[K.lockOnOpen] ?: false,
+        lockChanges = this[K.lockChanges] ?: false,
     )
 
     suspend fun update(transform: (AppSettings) -> AppSettings) {
@@ -107,6 +115,8 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
             p[K.usageStats] = s.usageStats
             p[K.usageStatsAsked] = s.usageStatsAsked
             p[K.hideContent] = s.hideContent
+            p[K.lockOnOpen] = s.lockOnOpen
+            p[K.lockChanges] = s.lockChanges
         }
     }
 

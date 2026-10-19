@@ -4,11 +4,21 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
+import com.vknxworks.proxctrl.data.lock.AppLock
+import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
+import com.vknxworks.proxctrl.ui.lock.LockScreen
+import com.vknxworks.proxctrl.ui.widgets.WidgetActionConfirm
+import com.vknxworks.proxctrl.ui.widgets.WidgetActions
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,7 +29,8 @@ import com.vknxworks.proxctrl.ui.components.ScreenPrivacy
 import com.vknxworks.proxctrl.ui.nav.AppRoot
 import com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme
 
-class MainActivity : ComponentActivity() {
+/** A FragmentActivity (not just a ComponentActivity) because the fingerprint prompt needs one. */
+class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,8 +40,17 @@ class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
         // A link like proxctrl://guest/103; not again when the activity is recreated (rotation).
-        if (savedInstanceState == null) DeepLinks.handle(intent?.data)
+        if (savedInstanceState == null) {
+            DeepLinks.handle(intent?.data)
+            WidgetActions.handle(intent)
+        }
         val c = container
+        AppLock.attach(this, c)
+        // Widgets show fresh data after the app was opened, and their refresh keeps running.
+        lifecycleScope.launch {
+            WidgetRefresher.schedule(applicationContext)
+            if (WidgetRefresher.anyWidgets(applicationContext)) WidgetRefresher.refreshSoon(applicationContext)
+        }
         if (savedInstanceState == null) c.telemetry.appOpened()
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
@@ -56,8 +76,18 @@ class MainActivity : ComponentActivity() {
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
                 onDispose { }
             }
+            val lock by AppLock.state.collectAsStateWithLifecycle()
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
-                AppRoot()
+                Box(Modifier.fillMaxSize()) {
+                    AppRoot()
+                    if (lock == AppLock.State.UNLOCKED) {
+                        // A widget's Start / Shut down button, waiting for confirmation.
+                        WidgetActionConfirm()
+                    } else {
+                        // Covers everything until unlocked (and while the lock setting is read at start-up).
+                        LockScreen(this@MainActivity)
+                    }
+                }
             }
         }
     }
@@ -66,5 +96,6 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         DeepLinks.handle(intent.data)
+        WidgetActions.handle(intent)
     }
 }

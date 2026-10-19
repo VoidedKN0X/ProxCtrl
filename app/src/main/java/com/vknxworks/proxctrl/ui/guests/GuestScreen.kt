@@ -64,6 +64,17 @@ import com.vknxworks.proxctrl.data.guests.GuestType
 import com.vknxworks.proxctrl.data.guests.PowerAction
 import com.vknxworks.proxctrl.data.guests.RrdPoint
 import com.vknxworks.proxctrl.data.guests.Timeframe
+import com.vknxworks.proxctrl.data.guests.GuestDisk
+import com.vknxworks.proxctrl.data.guests.GuestResources
+import com.vknxworks.proxctrl.data.guests.ResourcesApi
+import com.vknxworks.proxctrl.ui.components.TaskCard
+import com.vknxworks.proxctrl.ui.components.TypedConfirmDialog
+import com.vknxworks.proxctrl.ui.components.rememberTaskTracker
+import com.vknxworks.proxctrl.ui.tasks.GuestTasksRoute
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Tune
 import com.vknxworks.proxctrl.data.guests.BackupApi
 import com.vknxworks.proxctrl.data.guests.SnapshotApi
 import com.vknxworks.proxctrl.ui.nav.BackupsRoute
@@ -137,6 +148,14 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
     /** Newest backup time in seconds; 0 when there's none, null while unknown. */
     var lastBackup by remember { mutableStateOf<Long?>(null) }
     val snackbar = remember { SnackbarHostState() }
+    val tracker = rememberTaskTracker()
+    var resources by remember { mutableStateOf<GuestResources?>(null) }
+    var editingResources by remember { mutableStateOf(false) }
+    var editingTags by remember { mutableStateOf(false) }
+    var growing by remember { mutableStateOf<GuestDisk?>(null) }
+    var cloning by remember { mutableStateOf(false) }
+    var templating by remember { mutableStateOf(false) }
+    var menu by remember { mutableStateOf(false) }
 
     PollWhileVisible(ref to server?.id, STATUS_POLL_MS) {
         val cl = client ?: return@PollWhileVisible false
@@ -153,6 +172,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
     LaunchedEffect(ref, server?.id, configVersion) {
         val cl = client ?: return@LaunchedEffect
         runCatching { GuestApi.config(cl, ref) }.onSuccess { config = it }
+        runCatching { ResourcesApi.resources(cl, ref).first }.onSuccess { resources = it }
     }
     val running = status?.status == "running"
     // Addresses and OS change rarely: read them while running, every 30 s.
@@ -193,7 +213,31 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            ScreenTopBar(title)
+            ScreenTopBar(title) {
+                val g = guest
+                if (g != null && server?.readOnly == false) {
+                    Box {
+                        IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_actions)) }
+                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.clone)) },
+                                leadingIcon = { Icon(Icons.Filled.ContentCopy, null) },
+                                enabled = !tracker.busy && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_CLONE),
+                                onClick = { menu = false; cloning = true },
+                            )
+                            if (!g.isTemplate) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.template_convert)) },
+                                    leadingIcon = { Icon(Icons.Filled.Description, null) },
+                                    enabled = !tracker.busy && g.isStopped && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_ALLOCATE),
+                                    onClick = { menu = false; templating = true },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            TaskCard(tracker)
             Column(
                 Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp),
             ) {
@@ -265,6 +309,37 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
 
                 DetailsGroup(ref, status, config, addresses, addressesFailed, osName)
 
+                resources?.let { res ->
+                    val writable = server?.readOnly == false && guest?.isTemplate != true
+                    val canCpu = writable && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_CPU)
+                    val canMem = writable && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_MEMORY)
+                    ResourcesGroup(
+                        type = ref.type,
+                        res = res,
+                        canEditHardware = (canCpu || canMem) && !tracker.busy,
+                        canEditTags = server?.readOnly == false && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_OPTIONS),
+                        canResize = writable && !tracker.busy && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_DISK),
+                        onEdit = { editingResources = true },
+                        onTags = { editingTags = true },
+                        onResize = { growing = it },
+                    )
+                }
+
+                Group {
+                    GroupRow(
+                        title = stringResource(R.string.options_title_short),
+                        icon = Icons.Filled.Tune,
+                        showChevron = true,
+                        onClick = { nav.navigate(GuestOptionsRoute(ref.node, ref.type.api, ref.vmid, guest?.name.orEmpty())) },
+                    )
+                    GroupRow(
+                        title = stringResource(R.string.guest_task_history),
+                        icon = Icons.Filled.History,
+                        showChevron = true,
+                        onClick = { nav.navigate(GuestTasksRoute(ref.node, ref.vmid, guest?.name.orEmpty())) },
+                    )
+                }
+
                 NotesGroup(
                     notes = config?.description.orEmpty(),
                     canEdit = config != null && c.sessions.canWrite(ref.aclPath, NOTES_PRIV),
@@ -302,6 +377,96 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                         runCatching { status = GuestApi.status(cl, ref) }
                     }
                     c.guests.refresh()
+                }
+            },
+        )
+    }
+
+    fun afterChange(ok: Boolean) {
+        configVersion++
+        scope.launch { c.guests.refresh() }
+    }
+
+    resources?.let { res ->
+        if (editingResources) {
+            EditResourcesDialog(
+                type = ref.type,
+                res = res,
+                running = guest?.isRunning == true,
+                canCpu = c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_CPU),
+                canMemory = c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_MEMORY),
+                onDismiss = { editingResources = false },
+                onSave = { cores, mem, swap ->
+                    editingResources = false
+                    val cl = client ?: return@EditResourcesDialog
+                    tracker.run(context.getString(R.string.res_task_edit), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
+                        ResourcesApi.setCpuMemory(cl, ref, res, cores, mem, swap)
+                        null
+                    }
+                },
+            )
+        }
+        if (editingTags) {
+            TagsDialog(
+                initial = res.tags,
+                colors = list.tagColors,
+                onDismiss = { editingTags = false },
+                onSave = { tags ->
+                    editingTags = false
+                    val cl = client ?: return@TagsDialog
+                    tracker.run(context.getString(R.string.res_task_tags), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
+                        ResourcesApi.setTags(cl, ref, tags, res.digest)
+                        null
+                    }
+                },
+            )
+        }
+        growing?.let { disk ->
+            GrowDiskDialog(
+                vmid = vmid,
+                disk = disk,
+                onDismiss = { growing = null },
+                onGrow = { gib ->
+                    growing = null
+                    val cl = client ?: return@GrowDiskDialog
+                    tracker.run(context.getString(R.string.res_task_grow, disk.key, gib), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
+                        ResourcesApi.growDisk(cl, ref, disk, gib, res.digest)
+                    }
+                },
+            )
+        }
+    }
+
+    if (cloning) {
+        val g = guest
+        CloneDialog(
+            ref = ref,
+            sourceName = g?.name.orEmpty(),
+            isTemplate = g?.isTemplate == true,
+            onDismiss = { cloning = false },
+            onClone = { newId, cloneName, full, storage ->
+                cloning = false
+                val cl = client ?: return@CloneDialog
+                tracker.run(context.getString(R.string.clone_task, ref.vmid, newId), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
+                    ResourcesApi.clone(cl, ref, newId, cloneName, full, storage)
+                }
+            },
+        )
+    }
+
+    if (templating) {
+        TypedConfirmDialog(
+            title = stringResource(R.string.template_convert_title, guest?.name?.ifBlank { null } ?: vmid.toString()),
+            body = stringResource(R.string.template_convert_body),
+            expected = vmid.toString(),
+            confirmLabel = stringResource(R.string.template_convert),
+            icon = Icons.Filled.Description,
+            onDismiss = { templating = false },
+            onConfirm = {
+                templating = false
+                val cl = client ?: return@TypedConfirmDialog
+                tracker.run(context.getString(R.string.template_task, vmid), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
+                    ResourcesApi.convertToTemplate(cl, ref)
                 }
             },
         )
