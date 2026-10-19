@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
         // A link like proxctrl://guest/103; not again when the activity is recreated (rotation).
         if (savedInstanceState == null) DeepLinks.handle(intent?.data)
         val c = container
+        if (savedInstanceState == null) c.telemetry.appOpened()
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
             val dark = when (settings.theme) {

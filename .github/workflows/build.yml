@@ -76,8 +76,25 @@ jobs:
             exit 1
           fi
 
+      # The opt-in usage stats need the Aptabase app key. A release without it would quietly ship with
+      # stats switched off for everyone, so releases stop here instead; other builds only warn.
+      - name: Check usage stats key
+        env:
+          APTABASE_KEY: ${{ secrets.APTABASE_KEY }}
+          RELEASE: ${{ needs.version.outputs.release }}
+        run: |
+          if [ -n "$APTABASE_KEY" ]; then
+            echo "Usage stats key is set."
+          elif [ "$RELEASE" = "true" ]; then
+            echo "::error title=Usage stats key missing::Add the APTABASE_KEY secret (Settings > Secrets and variables > Actions), then re-run this workflow"
+            exit 1
+          else
+            echo "::warning title=Usage stats key missing::APTABASE_KEY isn't set, so this build can't send usage stats"
+          fi
+
       - name: Build release APK
         env:
+          APTABASE_KEY: ${{ secrets.APTABASE_KEY }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ vars.KEY_ALIAS || secrets.KEY_ALIAS }}

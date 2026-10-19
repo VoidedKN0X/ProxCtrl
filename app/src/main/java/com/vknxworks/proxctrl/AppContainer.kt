@@ -7,6 +7,7 @@ import com.vknxworks.proxctrl.data.overview.OverviewRepository
 import com.vknxworks.proxctrl.data.server.ServerStore
 import com.vknxworks.proxctrl.data.server.Sessions
 import com.vknxworks.proxctrl.data.settings.SettingsRepository
+import com.vknxworks.proxctrl.data.telemetry.Telemetry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -18,6 +19,9 @@ class AppContainer(val context: Context) {
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val settings = SettingsRepository(context, appScope)
+
+    /** Opt-in usage stats, with its own HTTP client (never [http] or a server's pinned copy of it). */
+    val telemetry = Telemetry(context, settings, appScope)
 
     /**
      * Shared HTTP client. Each server gets a copy with its own certificate pin (see httpFor), so a

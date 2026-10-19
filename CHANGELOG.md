@@ -4,6 +4,21 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v0.7.4 (2026-10-19)
+
+Optional, anonymous usage stats.
+
+### New
+
+- **Optional anonymous usage stats.** After you add your first server, ProxCtrl asks once whether you'd like to share anonymous usage stats. Nothing is sent unless you tap **Share stats**, and you can switch it on or off any time in **Settings > Usage stats**
+- **What's shared:** which screens you open (for example "Overview", "Guest" or "Console", never which node or guest), which power action you use (start, shut down, reboot, stop, suspend, resume or hibernate) and whether on a container or a VM, which kind of console you open (node shell, container terminal, VM screen or VM serial terminal), the app version, Android version, phone model, language, phone or tablet, your theme and whether you use the compact guest list
+- **What's never shared:** your server address, node names, guest names or IDs, IP addresses, username, API tokens or passwords, anything you type in a console, or any ID that follows you between sessions. Each session gets a new random ID, and stats from before and after you switch them off and on again aren't linked
+- **Where it goes:** to VKNXWorks' own self-hosted server (Aptabase), not to Google or any analytics company. Stats use their own connection with your phone's normal certificate checks, separate from your Proxmox connection and its pinned certificate. Builds you make from source can't send stats at all, and the setting doesn't appear in them
+
+### Changed
+
+- The README has a new **Usage stats** section listing exactly what's collected
+
 ## v0.7.3 (2026-10-19)
 
 The real fix for consoles that stayed frozen.

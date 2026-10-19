@@ -76,6 +76,7 @@ import com.vknxworks.proxctrl.ui.guests.GuestsScreen
 import com.vknxworks.proxctrl.ui.node.NodeScreen
 import com.vknxworks.proxctrl.ui.overview.OverviewScreen
 import com.vknxworks.proxctrl.ui.settings.SettingsScreen
+import com.vknxworks.proxctrl.ui.settings.UsageStatsPrompt
 import com.vknxworks.proxctrl.ui.settings.YouScreen
 import com.vknxworks.proxctrl.ui.storage.StorageScreen
 import com.vknxworks.proxctrl.ui.tasks.TasksScreen
@@ -128,6 +129,14 @@ private fun MainScaffold() {
 
     // proxctrl://guest/<vmid>: open that guest's page, or the Guests tab when it isn't on this server.
     val c = LocalContext.current.container
+
+    // Usage stats (only if the user opted in): the kind of screen, never its arguments (node, guest ID, title).
+    val entryId = backStack?.id
+    val screen = dest?.route?.let(::screenName)
+    LaunchedEffect(entryId) {
+        if (screen != null) c.telemetry.track("screen_viewed", mapOf("screen" to screen))
+    }
+    UsageStatsPrompt()
     val pendingGuest by DeepLinks.pendingGuest.collectAsStateWithLifecycle()
     LaunchedEffect(pendingGuest) {
         val vmid = pendingGuest ?: return@LaunchedEffect
@@ -183,6 +192,13 @@ private fun MainScaffold() {
         }
     }
 }
+
+/**
+ * "com.vknxworks.proxctrl.ui.nav.GuestRoute/{node}/{type}/{vmid}" -> "Guest". Only the route's class name:
+ * arguments (node names, guest IDs, console titles) are dropped.
+ */
+private fun screenName(route: String): String =
+    route.substringBefore('/').substringBefore('?').substringAfterLast('.').removeSuffix("Route")
 
 /**
  * Phones: content runs edge to edge and scrolls under a floating glass island.
