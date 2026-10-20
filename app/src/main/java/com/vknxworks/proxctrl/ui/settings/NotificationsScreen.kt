@@ -42,7 +42,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -66,7 +65,7 @@ import com.vknxworks.proxctrl.data.notify.NotifyWorker
 import com.vknxworks.proxctrl.data.notify.Notifier
 import com.vknxworks.proxctrl.data.notify.Push
 import com.vknxworks.proxctrl.data.notify.PushStatus
-import com.vknxworks.proxctrl.ui.components.ChoiceSheet
+import com.vknxworks.proxctrl.data.notify.UnifiedPush
 import com.vknxworks.proxctrl.ui.components.Group
 import com.vknxworks.proxctrl.ui.components.GroupChoice
 import com.vknxworks.proxctrl.ui.components.GroupRow
@@ -92,7 +91,8 @@ fun NotificationsScreen() {
     val unrestricted = remember(batteryVersion) {
         context.getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(context.packageName) == true
     }
-    var pickDistributor by remember { mutableStateOf<List<String>?>(null) }
+    val ntfyInstalled = remember(batteryVersion) { UnifiedPush.isNtfyInstalled(context) }
+    val ntfyUnrestricted = remember(batteryVersion) { UnifiedPush.isNtfyUnrestricted(context) }
 
     // Re-check permission, battery and push state when coming back from system settings or ntfy.
     val owner = LocalLifecycleOwner.current
@@ -120,12 +120,7 @@ fun NotificationsScreen() {
         Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
     }
     fun startPush() {
-        val list = Push.distributors(context)
-        when {
-            list.isEmpty() -> Push.load(context, true)
-            list.size == 1 -> Push.register(context, list.first())
-            else -> pickDistributor = list
-        }
+        Push.register(context)
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -215,17 +210,24 @@ fun NotificationsScreen() {
                         Push.unregister(context)
                     }
                 }
-                if (settings.push) {
+                if (!ntfyInstalled) {
+                    PushNote(stringResource(R.string.push_no_ntfy)) {
+                        FilledTonalButton(onClick = {
+                            runCatching {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(UnifiedPush.NTFY_DOWNLOAD)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            }
+                        }) { Text(stringResource(R.string.push_install_ntfy)) }
+                    }
+                }
+                if (settings.push && ntfyInstalled) {
                     when (val st = pushStatus) {
-                        PushStatus.NoDistributor, PushStatus.Off -> PushNote(stringResource(R.string.push_no_distributor)) {
-                            TextButton(onClick = ::startPush) { Text(stringResource(R.string.retry)) }
-                        }
-                        PushStatus.Registering -> PushNote(stringResource(R.string.push_registering)) {
+                        PushStatus.NoNtfy, PushStatus.Off, PushStatus.Registering -> PushNote(stringResource(R.string.push_registering)) {
                             TextButton(onClick = ::startPush) { Text(stringResource(R.string.retry)) }
                         }
                         is PushStatus.Failed -> PushNote(stringResource(R.string.push_failed, st.reason)) {
                             TextButton(onClick = ::startPush) { Text(stringResource(R.string.retry)) }
                         }
+                        is PushStatus.Unavailable -> PushNote(stringResource(R.string.push_unavailable)) {}
                         is PushStatus.Registered -> {
                             GroupRow(
                                 stringResource(R.string.push_endpoint),
@@ -281,6 +283,20 @@ fun NotificationsScreen() {
                     icon = if (unrestricted) Icons.Filled.BatteryFull else Icons.Filled.BatteryAlert,
                     iconTint = if (unrestricted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                 )
+                if (settings.push && ntfyInstalled && !ntfyUnrestricted) {
+                    GroupRow(
+                        stringResource(R.string.battery_ntfy_restricted),
+                        stringResource(R.string.battery_ntfy_restricted_body),
+                        icon = Icons.Filled.BatteryAlert,
+                        iconTint = MaterialTheme.colorScheme.error,
+                        showChevron = true,
+                        onClick = {
+                            val ntfyInfo = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${UnifiedPush.NTFY}"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            runCatching { context.startActivity(ntfyInfo) }
+                        },
+                    )
+                }
                 GroupRow(
                     stringResource(R.string.battery_open),
                     showChevron = true,
@@ -299,16 +315,6 @@ fun NotificationsScreen() {
         }
     }
 
-    pickDistributor?.let { list ->
-        val pm = context.packageManager
-        val options = list.map { pkg ->
-            pkg to runCatching { pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString() }.getOrDefault(pkg)
-        }
-        ChoiceSheet(stringResource(R.string.push_pick_distributor), options, null, onDismiss = { pickDistributor = null }) { pkg ->
-            pickDistributor = null
-            Push.register(context, pkg)
-        }
-    }
 }
 
 @Composable

@@ -22,8 +22,8 @@ android {
         minSdk = 33
         targetSdk = 36
         // Bump both to publish a new release (see CHANGELOG.md).
-        versionCode = 18
-        versionName = "1.0.2"
+        versionCode = 19
+        versionName = "1.1.0"
     }
 
     signingConfigs {
@@ -67,7 +67,7 @@ android {
         buildConfig = true
     }
 
-    // F-Droid: no Google dependency-info block in the APK.
+    // F-Droid: no dependency-info block in the APK.
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false
@@ -122,9 +122,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.okhttp)
     implementation(libs.haze)
-    // UnifiedPush (ntfy and other distributors) for push notifications without Google services.
-    implementation(libs.unifiedpush.connector)
-    // Home-screen widgets (Jetpack Glance, no Google services).
+    // Home-screen widgets (Jetpack Glance).
     implementation(libs.androidx.glance.appwidget)
     // App lock: fingerprint, face or screen lock (AOSP BiometricPrompt).
     implementation(libs.androidx.biometric)

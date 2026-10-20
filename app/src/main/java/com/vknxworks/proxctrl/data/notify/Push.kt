@@ -1,6 +1,12 @@
 package com.vknxworks.proxctrl.data.notify
 
+import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.os.Binder
+import android.os.Build
+import android.os.IBinder
 import android.util.Base64
 import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.container
@@ -14,24 +20,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import org.unifiedpush.android.connector.FailedReason
-import org.unifiedpush.android.connector.PushService
-import org.unifiedpush.android.connector.UnifiedPush
-import org.unifiedpush.android.connector.data.PushEndpoint
-import org.unifiedpush.android.connector.data.PushMessage
 
-/** Where ProxCtrl's UnifiedPush registration stands. */
+/** Where ProxCtrl's registration with ntfy stands. */
 sealed interface PushStatus {
     data object Off : PushStatus
-    data object NoDistributor : PushStatus
+    /** Push is on, but ntfy isn't installed (any more). */
+    data object NoNtfy : PushStatus
     data object Registering : PushStatus
     data class Registered(val endpoint: String) : PushStatus
+    /** ntfy's server is down for now; the address stays the same and ntfy says when it's back. */
+    data class Unavailable(val endpoint: String) : PushStatus
     data class Failed(val reason: String) : PushStatus
 }
 
 /**
- * UnifiedPush: a distributor app like ntfy gives ProxCtrl an endpoint URL; Proxmox's webhook
- * notification target posts to it, and the distributor hands the message to [ProxPushService].
+ * Push through ntfy only: ntfy gives ProxCtrl an endpoint URL on your ntfy server; Proxmox's webhook
+ * notification target posts to it, and ntfy hands the message to [PushReceiver].
  */
 object Push {
     private const val PREFS = "push"
@@ -40,44 +44,83 @@ object Push {
     private val _status = MutableStateFlow<PushStatus>(PushStatus.Off)
     val status: StateFlow<PushStatus> = _status.asStateFlow()
 
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
     fun load(context: Context, enabled: Boolean) {
-        val endpoint = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_ENDPOINT, null)
+        val endpoint = prefs(context).getString(KEY_ENDPOINT, null)
+        val unavailable = UnifiedPush.unavailable.value
         _status.value = when {
             !enabled -> PushStatus.Off
-            UnifiedPush.getDistributors(context).isEmpty() -> PushStatus.NoDistributor
+            !UnifiedPush.isNtfyInstalled(context) -> PushStatus.NoNtfy
+            endpoint != null && unavailable -> PushStatus.Unavailable(endpoint)
             endpoint != null -> PushStatus.Registered(endpoint)
+            _status.value is PushStatus.Failed -> _status.value
             else -> PushStatus.Registering
         }
     }
 
-    fun distributors(context: Context): List<String> = UnifiedPush.getDistributors(context)
+    /**
+     * At start-up: takes over a registration from an earlier version (kept as it is with ntfy, removed with any
+     * other push app) and registers with ntfy again, which keeps the same address and recovers from a reinstalled
+     * ntfy. Returns false when push had to be turned off because ntfy isn't installed.
+     */
+    fun start(context: Context, enabled: Boolean): Boolean {
+        val previous = UnifiedPush.migrateFromLibrary(context)
+        if (enabled && previous != null && previous != UnifiedPush.NTFY) {
+            // The address came from another push app: Proxmox needs the new one from ntfy.
+            prefs(context).edit().remove(KEY_ENDPOINT).apply()
+            if (!UnifiedPush.isNtfyInstalled(context)) {
+                _status.value = PushStatus.Off
+                return false
+            }
+        }
+        load(context, enabled)
+        if (enabled && UnifiedPush.isNtfyInstalled(context)) UnifiedPush.register(context, context.getString(R.string.app_name))
+        return true
+    }
 
-    /** Registers with [distributor] (a package name, e.g. io.heckel.ntfy). */
-    fun register(context: Context, distributor: String) {
-        UnifiedPush.saveDistributor(context, distributor)
-        _status.value = PushStatus.Registering
-        UnifiedPush.register(context, messageForDistributor = context.getString(R.string.app_name))
+    /** Asks ntfy for an address. Returns false (status [PushStatus.NoNtfy]) when ntfy isn't installed. */
+    fun register(context: Context): Boolean {
+        if (!UnifiedPush.register(context, context.getString(R.string.app_name))) {
+            _status.value = PushStatus.NoNtfy
+            return false
+        }
+        if (_status.value !is PushStatus.Registered) _status.value = PushStatus.Registering
+        return true
     }
 
     fun unregister(context: Context) {
         runCatching { UnifiedPush.unregister(context) }
-        runCatching { UnifiedPush.removeDistributor(context) }
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY_ENDPOINT).apply()
+        prefs(context).edit().remove(KEY_ENDPOINT).apply()
         _status.value = PushStatus.Off
     }
 
     internal fun onEndpoint(context: Context, url: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_ENDPOINT, url).apply()
+        prefs(context).edit().putString(KEY_ENDPOINT, url).apply()
+        UnifiedPush.onEndpoint(context)
         _status.value = PushStatus.Registered(url)
     }
 
-    internal fun onFailed(reason: String) {
+    internal fun onFailed(context: Context, reason: String) {
+        UnifiedPush.onLost(context, reason)
         _status.value = PushStatus.Failed(reason)
     }
 
     internal fun onUnregistered(context: Context) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().remove(KEY_ENDPOINT).apply()
-        _status.value = PushStatus.NoDistributor
+        UnifiedPush.onLost(context, null)
+        prefs(context).edit().remove(KEY_ENDPOINT).apply()
+        _status.value = PushStatus.Failed("UNREGISTERED")
+    }
+
+    internal fun onTempUnavailable(context: Context) {
+        UnifiedPush.onTempUnavailable()
+        prefs(context).getString(KEY_ENDPOINT, null)?.let { _status.value = PushStatus.Unavailable(it) }
+    }
+
+    internal fun onMessage(context: Context) {
+        UnifiedPush.onMessage()
+        val st = _status.value
+        if (st is PushStatus.Unavailable) _status.value = PushStatus.Registered(st.endpoint)
     }
 
     /**
@@ -173,29 +216,60 @@ pvesh create /cluster/notifications/targets/proxctrl/test
     }
 }
 
-/** Receives UnifiedPush events from the distributor (ntfy). */
-class ProxPushService : PushService() {
-    override fun onNewEndpoint(endpoint: PushEndpoint, instance: String) {
-        Push.onEndpoint(applicationContext, endpoint.url)
-    }
-
-    override fun onMessage(message: PushMessage, instance: String) {
-        val c = applicationContext.container
-        val text = message.content.toString(Charsets.UTF_8)
-        c.appScope.launch {
-            val settings = c.notifySettings.current()
-            if (!settings.push) return@launch
-            Push.toAlert(applicationContext, text, settings)?.let { Notifier.post(applicationContext, it, Notifier.CH_PROXMOX) }
-            // Something happened on the server: refresh the background check too.
-            NotifyWorker.runNow(applicationContext)
+/**
+ * Receives what ntfy hands over: the push address, registration errors and Proxmox's notifications. Exported
+ * because ntfy is another app, so every broadcast must carry the secret token of ProxCtrl's registration (and,
+ * from Android 14, come from ntfy) or it's ignored. Anyone who knows the push address can post to it, so
+ * [Push.toAlert] keeps what's shown short.
+ */
+class PushReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val token = intent.getStringExtra(UnifiedPush.EXTRA_TOKEN) ?: return
+        if (token != UnifiedPush.token(context)) return
+        if (Build.VERSION.SDK_INT >= 34) {
+            val sender = sentFromPackage
+            if (sender != null && sender != UnifiedPush.NTFY) return
+        }
+        val app = context.applicationContext
+        when (intent.action) {
+            UnifiedPush.ACTION_NEW_ENDPOINT -> {
+                val endpoint = intent.getStringExtra(UnifiedPush.EXTRA_ENDPOINT) ?: return
+                UnifiedPush.ack(app, token, intent.getStringExtra(UnifiedPush.EXTRA_ID))
+                Push.onEndpoint(app, endpoint)
+            }
+            UnifiedPush.ACTION_REGISTRATION_FAILED -> Push.onFailed(app, intent.getStringExtra(UnifiedPush.EXTRA_REASON) ?: "UNKNOWN")
+            UnifiedPush.ACTION_UNREGISTERED -> Push.onUnregistered(app)
+            UnifiedPush.ACTION_TEMP_UNAVAILABLE -> Push.onTempUnavailable(app)
+            UnifiedPush.ACTION_MESSAGE -> {
+                val bytes = intent.getByteArrayExtra(UnifiedPush.EXTRA_BYTES_MESSAGE)
+                    ?: intent.getStringExtra(UnifiedPush.EXTRA_MESSAGE)?.toByteArray()
+                UnifiedPush.ack(app, token, intent.getStringExtra(UnifiedPush.EXTRA_ID))
+                Push.onMessage(app)
+                if (bytes == null) return
+                val text = bytes.toString(Charsets.UTF_8)
+                val c = app.container
+                val pending = goAsync()
+                c.appScope.launch {
+                    try {
+                        val settings = c.notifySettings.current()
+                        if (!settings.push) return@launch
+                        Push.toAlert(app, text, settings)?.let { Notifier.post(app, it, Notifier.CH_PROXMOX) }
+                        // Something happened on the server: refresh the background check too.
+                        NotifyWorker.runNow(app)
+                    } finally {
+                        pending.finish()
+                    }
+                }
+            }
         }
     }
+}
 
-    override fun onRegistrationFailed(reason: FailedReason, instance: String) {
-        Push.onFailed(reason.name)
-    }
-
-    override fun onUnregistered(instance: String) {
-        Push.onUnregistered(applicationContext)
-    }
+/**
+ * ntfy binds to this for a few seconds before it delivers a message. That lifts ProxCtrl to foreground
+ * importance, so the notification can be handled straight away even while the phone is in deep sleep.
+ */
+class RaiseToForegroundService : Service() {
+    private val binder = Binder()
+    override fun onBind(intent: Intent?): IBinder = binder
 }

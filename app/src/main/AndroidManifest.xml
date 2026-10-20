@@ -7,6 +7,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
+    <!-- ntfy, the only push app ProxCtrl uses. -->
+    <queries>
+        <package android:name="io.heckel.ntfy" />
+        <intent>
+            <action android:name="org.unifiedpush.android.distributor.REGISTER" />
+        </intent>
+    </queries>
+
     <application
         android:name=".ProxCtrlApp"
         android:allowBackup="false"
@@ -38,12 +46,26 @@
             </intent-filter>
         </activity>
 
-        <!-- Receives push messages from a UnifiedPush distributor such as ntfy. -->
-        <service
-            android:name=".data.notify.ProxPushService"
-            android:exported="false">
+        <!-- Proxmox's notifications, handed over by ntfy. Exported because ntfy is another app; every broadcast
+             must carry the secret token of ProxCtrl's registration or it's ignored. -->
+        <receiver
+            android:name=".data.notify.PushReceiver"
+            android:exported="true">
             <intent-filter>
-                <action android:name="org.unifiedpush.android.connector.PUSH_EVENT" />
+                <action android:name="org.unifiedpush.android.connector.MESSAGE" />
+                <action android:name="org.unifiedpush.android.connector.UNREGISTERED" />
+                <action android:name="org.unifiedpush.android.connector.NEW_ENDPOINT" />
+                <action android:name="org.unifiedpush.android.connector.REGISTRATION_FAILED" />
+                <action android:name="org.unifiedpush.android.connector.TEMP_UNAVAILABLE" />
+            </intent-filter>
+        </receiver>
+        <!-- ntfy binds to this for a few seconds before delivering a message, so ProxCtrl can handle it at once. -->
+        <service
+            android:name=".data.notify.RaiseToForegroundService"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="org.unifiedpush.android.connector.RAISE_TO_FOREGROUND" />
             </intent-filter>
         </service>
 
@@ -115,16 +137,15 @@
                 <data android:mimeType="application/octet-stream" />
             </intent-filter>
         </activity>
-        <!-- Google-free: the built-in WebView doesn't send page addresses to Google Safe Browsing
-             or usage metrics to Google. -->
+        <!-- The built-in WebView (consoles) doesn't send page addresses to Safe Browsing or usage metrics anywhere. -->
         <meta-data
             android:name="android.webkit.WebView.EnableSafeBrowsing"
             android:value="false" />
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
-        <!-- Google-free: don't let androidx.emoji2 ask Google Play services for a downloadable emoji
-             font at start-up. Emoji are drawn with the phone's own emoji font instead. -->
+        <!-- Don't let androidx.emoji2 look up a downloadable emoji font at start-up: emoji are drawn with the
+             phone's own emoji font, and nothing is fetched. -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

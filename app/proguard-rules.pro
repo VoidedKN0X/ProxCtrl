@@ -12,14 +12,10 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
 
-# Tink (used by the UnifiedPush connector for Web Push decryption) refers to optional libraries
-# that aren't in the app.
--dontwarn com.google.errorprone.annotations.**
 -dontwarn javax.annotation.**
--dontwarn com.google.api.client.**
--dontwarn org.joda.time.**
--dontwarn com.google.crypto.tink.**
--keep class com.vknxworks.proxctrl.data.notify.ProxPushService { *; }
+# Push from ntfy: created by Android from their class names.
+-keep class com.vknxworks.proxctrl.data.notify.PushReceiver { *; }
+-keep class com.vknxworks.proxctrl.data.notify.RaiseToForegroundService { *; }
 
 # The console pages call the app through @JavascriptInterface methods; keep them by name.
 -keepclassmembers class * {
