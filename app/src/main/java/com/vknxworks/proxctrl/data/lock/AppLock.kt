@@ -135,24 +135,28 @@ object AppLock {
     private fun onBackground() {
         val c = container ?: return
         if (authenticating) return
-        // Only right after the app opened something itself; leaving later still counts.
-        if (expectReturnAt > 0 && SystemClock.elapsedRealtime() - expectReturnAt < 5_000) {
-            expectReturnAt = 0L
-            backgroundedAt = 0L
-            return
-        }
         backgroundedAt = SystemClock.elapsedRealtime()
+        // Only right after the app opened something itself; leaving later still counts.
+        exemptTrip = expectReturnAt > 0 && backgroundedAt - expectReturnAt < 5_000
+        expectReturnAt = 0L
         // "As soon as you leave" locks right away, so the key is gone while the app is in the background.
-        if (configured(c) && _state.value == State.UNLOCKED && lockTimeoutMs == 0L) lock()
+        if (configured(c) && _state.value == State.UNLOCKED && lockTimeoutMs == 0L && !exemptTrip) lock()
     }
+
+    /** The current trip away was started by the app itself (file picker, browser, settings). */
+    @Volatile private var exemptTrip = false
 
     private fun onForeground() {
         val c = container ?: return
         val since = backgroundedAt
+        val exempt = exemptTrip
         backgroundedAt = 0L
         expectReturnAt = 0L
+        exemptTrip = false
         if (!settingsLoaded || !configured(c) || _state.value != State.UNLOCKED || since <= 0 || lockTimeoutMs < 0) return
-        if (SystemClock.elapsedRealtime() - since >= lockTimeoutMs) lock()
+        // A trip the app started still locks if you stay away long: after 5 minutes, or the chosen time if longer.
+        val limit = if (exempt) maxOf(lockTimeoutMs, 5 * 60_000L) else lockTimeoutMs
+        if (SystemClock.elapsedRealtime() - since >= limit) lock()
     }
 
     fun lock() {

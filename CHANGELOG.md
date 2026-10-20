@@ -4,6 +4,12 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.3 (2026-10-21)
+
+### Security
+
+- **Trips out of the app no longer skip the lock if you stay away.** The file picker, links, ntfy and the notification, battery and permission screens still don't count as leaving the app, but if you don't come back within 5 minutes (or your "Lock again" time, if that's longer), ProxCtrl locks anyway. Before, such a trip never locked, however long you were gone.
+
 ## v1.1.2 (2026-10-21)
 
 The app lock now works the same way as in every other Ctrl app, with the strongest protection of the options compared.
