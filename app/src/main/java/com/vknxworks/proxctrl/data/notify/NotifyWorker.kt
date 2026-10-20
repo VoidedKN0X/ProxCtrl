@@ -56,6 +56,8 @@ class NotifyWorker(context: Context, params: WorkerParameters) : CoroutineWorker
 
     override suspend fun doWork(): Result {
         val c = applicationContext.container
+        // App lock on with background checks off: the logins stay sealed until ProxCtrl is unlocked.
+        if (c.backgroundBlocked()) return Result.success()
         val notify = c.notifySettings.current()
         if (!notify.polling && !inputData.getBoolean(KEY_FORCE, false)) return Result.success()
         val app = c.settings.settings.value

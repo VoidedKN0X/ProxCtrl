@@ -108,6 +108,7 @@ fun NotificationsScreen() {
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionVersion++ }
     fun ensurePermission() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            com.vknxworks.proxctrl.data.lock.AppLock.expectReturn()
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
@@ -145,6 +146,7 @@ fun NotificationsScreen() {
                             if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                                 ensurePermission()
                             } else {
+                                com.vknxworks.proxctrl.data.lock.AppLock.expectReturn()
                                 context.startActivity(
                                     Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
@@ -214,6 +216,7 @@ fun NotificationsScreen() {
                     PushNote(stringResource(R.string.push_no_ntfy)) {
                         FilledTonalButton(onClick = {
                             runCatching {
+                                com.vknxworks.proxctrl.data.lock.AppLock.expectReturn()
                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(UnifiedPush.NTFY_DOWNLOAD)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                             }
                         }) { Text(stringResource(R.string.push_install_ntfy)) }
@@ -293,6 +296,7 @@ fun NotificationsScreen() {
                         onClick = {
                             val ntfyInfo = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${UnifiedPush.NTFY}"))
                                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            com.vknxworks.proxctrl.data.lock.AppLock.expectReturn()
                             runCatching { context.startActivity(ntfyInfo) }
                         },
                     )
@@ -304,6 +308,7 @@ fun NotificationsScreen() {
                         // App info is where ColorOS keeps "Allow background activity"; fall back to the battery list.
                         val appInfo = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        com.vknxworks.proxctrl.data.lock.AppLock.expectReturn()
                         runCatching { context.startActivity(appInfo) }.onFailure {
                             runCatching {
                                 context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))

@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
+import com.vknxworks.proxctrl.ui.lock.LockOverlays
 import com.vknxworks.proxctrl.ui.lock.LockScreen
 import com.vknxworks.proxctrl.ui.widgets.WidgetActionConfirm
 import com.vknxworks.proxctrl.ui.widgets.WidgetActions
@@ -82,6 +83,8 @@ class MainActivity : FragmentActivity() {
                     if (lock == AppLock.State.UNLOCKED) {
                         // A widget's Start / Shut down button, waiting for confirmation.
                         WidgetActionConfirm()
+                        // Choosing or changing the app PIN, and "Confirm changes".
+                        LockOverlays(this@MainActivity)
                     } else {
                         // Covers everything until unlocked (and while the lock setting is read at start-up).
                         LockScreen(this@MainActivity)

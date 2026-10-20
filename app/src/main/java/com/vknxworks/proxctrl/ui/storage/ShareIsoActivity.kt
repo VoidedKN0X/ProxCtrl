@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.fragment.app.FragmentActivity
 import com.vknxworks.proxctrl.data.lock.AppLock
+import com.vknxworks.proxctrl.ui.lock.LockOverlays
 import com.vknxworks.proxctrl.ui.lock.LockScreen
 import androidx.compose.foundation.layout.Box
 import androidx.activity.enableEdgeToEdge
@@ -86,8 +87,12 @@ class ShareIsoActivity : FragmentActivity() {
             val lockState by AppLock.state.collectAsStateWithLifecycle()
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
-                    if (lockState == AppLock.State.UNLOCKED) ShareIsoScreen(uri, onClose = { finish() })
-                    else LockScreen(this@ShareIsoActivity)
+                    if (lockState == AppLock.State.UNLOCKED) {
+                        ShareIsoScreen(uri, onClose = { finish() })
+                        LockOverlays(this@ShareIsoActivity)
+                    } else {
+                        LockScreen(this@ShareIsoActivity)
+                    }
                 }
             }
         }

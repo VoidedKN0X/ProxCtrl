@@ -37,16 +37,30 @@ class Sessions(
     private val store: ServerStore,
     private val baseHttp: OkHttpClient,
     private val scope: CoroutineScope,
+    initiallyLocked: Boolean = false,
 ) {
     val servers: StateFlow<List<Server>> = store.servers
+
+    /** True while the app is locked and the logins are sealed: no client exists until the next unlock. */
+    private val locked = MutableStateFlow(initiallyLocked)
+
+    fun setLocked(value: Boolean) {
+        locked.value = value
+    }
 
     /** Bumped when secrets change outside the client (signing in again), so the client is rebuilt. */
     private val revision = MutableStateFlow(0)
 
-    val active: StateFlow<ActiveServer?> = combine(store.servers, store.activeId, revision) { list, id, rev -> list.firstOrNull { it.id == id } to rev }
+    val active: StateFlow<ActiveServer?> = combine(store.servers, store.activeId, revision, locked) { list, id, rev, isLocked ->
+        (if (isLocked) null else list.firstOrNull { it.id == id }) to rev
+    }
         .distinctUntilChanged()
         .map { (server, _) -> server?.let { ActiveServer(it, clientFor(it)) } }
-        .stateIn(scope, SharingStarted.Eagerly, store.servers.value.firstOrNull { it.id == store.activeId.value }?.let { ActiveServer(it, clientFor(it)) })
+        .stateIn(
+            scope,
+            SharingStarted.Eagerly,
+            if (initiallyLocked) null else store.servers.value.firstOrNull { it.id == store.activeId.value }?.let { ActiveServer(it, clientFor(it)) },
+        )
 
     private val _access = MutableStateFlow(Access())
     val access: StateFlow<Access> = _access.asStateFlow()

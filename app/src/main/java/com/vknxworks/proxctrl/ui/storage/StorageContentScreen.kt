@@ -143,7 +143,7 @@ fun StorageContentScreen(node: String, storage: String) {
                     }
                 }
                 if (writable && holdsIso) {
-                    IconButton(onClick = { pickIso.launch(arrayOf("*/*")) }, enabled = canTemplates && !uploader.busy) {
+                    IconButton(onClick = { com.vknxworks.proxctrl.data.lock.AppLock.expectReturn(); pickIso.launch(arrayOf("*/*")) }, enabled = canTemplates && !uploader.busy) {
                         Icon(Icons.Filled.Upload, stringResource(R.string.storage_upload_iso))
                     }
                 }

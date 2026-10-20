@@ -21,6 +21,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import com.vknxworks.proxctrl.data.lock.AppLock
+import com.vknxworks.proxctrl.data.lock.LockVault
+import com.vknxworks.proxctrl.data.lock.PinRequest
+import com.vknxworks.proxctrl.data.settings.LockTimeout
+import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Timer
+import androidx.fragment.app.FragmentActivity
+import android.widget.Toast
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -102,20 +110,65 @@ fun SettingsScreen() {
                     icon = Icons.Filled.VisibilityOff,
                 ) { on -> c.appScope.launch { c.settings.update { it.copy(hideContent = on) } } }
             }
-            val lockAvailable = remember { AppLock.isAvailable(context) }
-            Group(stringResource(R.string.lock_group), footer = stringResource(if (lockAvailable) R.string.lock_footer else R.string.lock_unavailable)) {
+            val lockOn = c.vault.enabled
+            val bioAvailable = remember { AppLock.biometricAvailable(context) }
+            val bioFailed = stringResource(R.string.lock_fingerprint_failed)
+            val bioTitle = stringResource(R.string.lock_fingerprint_prompt_title)
+            val bioSubtitle = stringResource(R.string.lock_fingerprint_prompt_subtitle)
+            Group(stringResource(R.string.lock_group), footer = stringResource(R.string.lock_footer)) {
                 GroupSwitch(
-                    stringResource(R.string.lock_on_open),
-                    stringResource(R.string.lock_on_open_subtitle),
-                    checked = settings.lockOnOpen && lockAvailable,
-                    icon = Icons.Filled.Fingerprint,
-                ) { on -> if (lockAvailable) c.appScope.launch { c.settings.update { it.copy(lockOnOpen = on) } } }
-                GroupSwitch(
-                    stringResource(R.string.lock_changes),
-                    stringResource(R.string.lock_changes_subtitle),
-                    checked = settings.lockChanges && lockAvailable,
+                    stringResource(R.string.lock_app),
+                    stringResource(R.string.lock_app_subtitle),
+                    checked = lockOn,
                     icon = Icons.Filled.Lock,
-                ) { on -> if (lockAvailable) c.appScope.launch { c.settings.update { it.copy(lockChanges = on) } } }
+                ) { on -> AppLock.request = if (on) PinRequest.ENABLE else PinRequest.DISABLE }
+                if (lockOn) {
+                    GroupRow(
+                        stringResource(R.string.lock_change_pin),
+                        stringResource(R.string.lock_change_pin_subtitle, LockVault.PIN_MIN),
+                        icon = Icons.Outlined.Password,
+                        showChevron = true,
+                        onClick = { AppLock.request = PinRequest.CHANGE },
+                    )
+                    GroupSwitch(
+                        stringResource(R.string.lock_fingerprint),
+                        stringResource(if (bioAvailable || c.vault.biometricEnabled) R.string.lock_fingerprint_subtitle else R.string.lock_fingerprint_unavailable),
+                        checked = c.vault.biometricEnabled,
+                        icon = Icons.Filled.Fingerprint,
+                    ) { on ->
+                        if (!on) {
+                            c.vault.disableBiometric()
+                        } else if (bioAvailable) {
+                            val activity = context as? FragmentActivity
+                            val cipher = c.vault.biometricEnrolCipher()
+                            if (activity == null || cipher == null) {
+                                Toast.makeText(context, bioFailed, Toast.LENGTH_SHORT).show()
+                            } else {
+                                AppLock.biometricPrompt(activity, bioTitle, bioSubtitle, cipher) { unlocked ->
+                                    if (!c.vault.finishBiometricEnrol(unlocked)) Toast.makeText(context, bioFailed, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+                    GroupChoice(
+                        stringResource(R.string.lock_again),
+                        LockTimeout.entries.map { it to stringResource(it.label) },
+                        settings.lockTimeout,
+                        icon = Icons.Outlined.Timer,
+                    ) { v -> c.appScope.launch { c.settings.update { it.copy(lockTimeout = v) } } }
+                    GroupSwitch(
+                        stringResource(R.string.lock_changes),
+                        stringResource(R.string.lock_changes_subtitle),
+                        checked = settings.lockChanges,
+                        icon = Icons.Outlined.Key,
+                    ) { on -> c.appScope.launch { c.settings.update { it.copy(lockChanges = on) } } }
+                    GroupSwitch(
+                        stringResource(R.string.lock_background),
+                        stringResource(R.string.lock_background_subtitle),
+                        checked = c.lockPrefs.backgroundChecks,
+                        icon = Icons.Filled.Notifications,
+                    ) { on -> c.appScope.launch { c.setBackgroundChecks(on) } }
+                }
             }
             Group(stringResource(R.string.widget_settings_group)) {
                 GroupRow(
