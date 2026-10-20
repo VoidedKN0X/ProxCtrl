@@ -21,11 +21,11 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Tasks** with live logs, history filters and Stop
 - **Node**: status and graphs, services, updates with changelogs, network and SDN, reboot and shutdown, Wake-on-LAN
 - **Widgets** for the node and pinned guests, and a Quick Settings tile
-- **App lock** with your fingerprint, face or screen lock, on opening and before changes
+- **App lock** with its own PIN and optional fingerprint, on opening and before changes; your server logins can be encrypted with the PIN while locked
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock, certificate pinning, screenshot protection, and token secrets and passwords encrypted with the Android Keystore
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, screenshot protection, and token secrets and passwords encrypted with the Android Keystore
 
 ## Screenshots
 
@@ -244,7 +244,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Pinned guests widget**: pick the guests it shows when you add it (tap its title to change them). Each shows a status dot and a **Start** or **Shut down** button. The buttons never act from the home screen: they open ProxCtrl and ask you to confirm first.
 - Widgets show the active server. They refresh about every 15 minutes (Android's minimum, with a network connection) and whenever you open ProxCtrl. When the server can't be reached they keep the last known state, marked as not updated.
 - **Quick Settings tile**: the node's name, health and CPU / RAM. It's lit when all is good. Tap it to open the Overview. Add it from the Quick Settings editor.
-- **App lock** (Settings > App lock): *Lock when opening the app* asks for your fingerprint, face or screen lock on start and when ProxCtrl comes back after 30 seconds; *Confirm changes* asks before anything that changes a server (one confirmation covers the next minute). It uses Android's own prompt; ProxCtrl never sees your fingerprint or PIN. Needs a screen lock on the phone.
+- **App lock** (Settings > App lock): an app PIN of at least 6 digits, separate from your phone's, with optional fingerprint unlock (strong biometrics only; the PIN is still needed after a restart and every 72 hours). *Lock again* sets when it asks again: as soon as you leave the app, after 1, 5 or 15 minutes or 1 hour, or only when the app restarts. *Confirm changes* asks for your fingerprint or PIN before anything that changes a server (one confirmation covers the next minute). With *Background checks while locked* off, your server logins are also encrypted with the PIN while ProxCtrl is locked, and notifications, widgets and the tile wait until you unlock. The PIN is never stored, and wrong tries make you wait.
 
 ## Consoles and the node shell
 

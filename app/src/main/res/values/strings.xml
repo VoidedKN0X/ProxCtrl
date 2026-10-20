@@ -121,7 +121,7 @@
     <string name="error_with_detail">%1$s\n\n%2$s</string>
     <string name="error_generic">Something went wrong.</string>
     <string name="error_read_only">This server is in read-only mode, so nothing was changed. Turn read-only mode off to make changes.</string>
-    <string name="error_cancelled">Cancelled: the change wasn\'t confirmed with your fingerprint or screen lock.</string>
+    <string name="error_cancelled">Cancelled: the change wasn\'t confirmed with your fingerprint or app PIN.</string>
 
     <!-- Connection result and access -->
     <string name="connected_to">Connected to %1$s</string>
@@ -909,17 +909,13 @@
 
     <!-- App lock -->
     <string name="lock_group">App lock</string>
-    <string name="lock_on_open">Lock when opening the app</string>
-    <string name="lock_on_open_subtitle">Ask for your fingerprint, face or screen lock when ProxCtrl opens or comes back after 30 seconds</string>
     <string name="lock_changes">Confirm changes</string>
-    <string name="lock_changes_subtitle">Ask before anything that changes a server: power actions, snapshots, backups, consoles, edits. Once confirmed, the next minute doesn\'t ask again</string>
-    <string name="lock_footer">Uses the phone\'s own fingerprint, face or screen lock. ProxCtrl never sees or stores it.</string>
-    <string name="lock_unavailable">Set up a screen lock (PIN, pattern, password or fingerprint) in the phone\'s settings to use the app lock.</string>
+    <string name="lock_changes_subtitle">Ask for your fingerprint or app PIN before anything that changes a server: power actions, snapshots, backups, consoles, edits. Once confirmed, the next minute doesn\'t ask again</string>
+    <string name="lock_footer">The app PIN is never stored. It is checked with a key in the phone\'s secure hardware, and after 5 wrong tries you have to wait (30 seconds, doubling up to 15 minutes). Forgot it? The lock screen can remove your servers so you can add them again.</string>
     <string name="lock_title">ProxCtrl is locked</string>
-    <string name="lock_body">Unlock with your fingerprint, face or screen lock.</string>
     <string name="lock_unlock">Unlock</string>
     <string name="lock_prompt_title">Unlock ProxCtrl</string>
-    <string name="lock_prompt_subtitle">Confirm it\'s you</string>
+    <string name="lock_prompt_subtitle">Confirm it\'s you to manage your servers</string>
     <string name="lock_confirm_title">Confirm the change</string>
     <string name="lock_confirm_subtitle">ProxCtrl is about to change something on your server</string>
 
@@ -1179,4 +1175,54 @@
     <string name="storage_job_run_title">Run backup job now?</string>
     <string name="storage_job_run_body">%1$s backs up its guests now, with its own settings. Its schedule isn\'t changed.</string>
     <string name="storage_job_run_task">Backup job %1$s</string>
+    <string name="lock_app">App lock</string>
+    <string name="lock_app_subtitle">Ask for an app PIN (and optionally your fingerprint) when opening ProxCtrl. It\'s separate from your phone\'s PIN</string>
+    <string name="lock_change_pin">Change app PIN</string>
+    <string name="lock_change_pin_subtitle">At least %1$d digits, separate from your phone\'s PIN</string>
+    <string name="lock_fingerprint">Unlock with fingerprint</string>
+    <string name="lock_fingerprint_subtitle">Only strong biometrics such as your fingerprint, checked by the phone\'s secure hardware. The PIN is still needed after a restart and every 72 hours</string>
+    <string name="lock_fingerprint_unavailable">Set up a fingerprint on this phone first</string>
+    <string name="lock_fingerprint_failed">Couldn\'t set up fingerprint unlock</string>
+    <string name="lock_fingerprint_prompt_title">Turn on fingerprint unlock</string>
+    <string name="lock_fingerprint_prompt_subtitle">Confirm your fingerprint</string>
+    <string name="lock_again">Lock again</string>
+    <string name="lock_again_immediately">As soon as you leave the app</string>
+    <string name="lock_again_1_min">After 1 minute away</string>
+    <string name="lock_again_5_min">After 5 minutes away</string>
+    <string name="lock_again_15_min">After 15 minutes away</string>
+    <string name="lock_again_1_hour">After 1 hour away</string>
+    <string name="lock_again_restart">Only when the app restarts</string>
+    <string name="lock_background">Background checks while locked</string>
+    <string name="lock_background_subtitle">On: notifications, widgets and the tile keep checking your servers while ProxCtrl is locked, so your server logins stay usable in the background. Off (most secure): the logins are also encrypted with your app PIN, and background checks wait until you unlock</string>
+    <string name="pin_enter">Enter your PIN</string>
+    <string name="pin_enter_restart">Enter your PIN. It\'s needed after a restart and every 72 hours.</string>
+    <string name="pin_wrong">Wrong PIN</string>
+    <string name="pin_lockout">Too many tries. Try again in %1$d s</string>
+    <string name="pin_use_fingerprint">Use fingerprint</string>
+    <string name="pin_use_pin">Use PIN</string>
+    <string name="pin_forgot">Forgot PIN?</string>
+    <string name="pin_forgot_title">Forgot your PIN?</string>
+    <string name="pin_forgot_body">The PIN can\'t be recovered, because it can encrypt your server logins. ProxCtrl will remove every server from this phone and turn the app lock off. Nothing changes on your Proxmox servers; add them again to continue.</string>
+    <string name="pin_forgot_confirm">Remove servers and reset</string>
+    <string name="pin_fingerprint_changed">A fingerprint was added or removed. Unlock with your PIN, then turn fingerprint unlock on again.</string>
+    <string name="pin_fingerprint_failed">Couldn\'t unlock with your fingerprint. Use your PIN.</string>
+    <string name="pin_choose_title">Choose an app PIN</string>
+    <string name="pin_choose_intro">At least %1$d digits, different from your phone\'s PIN. If you forget it, the only way back in is to remove your servers and add them again.</string>
+    <string name="pin_migrate_intro">ProxCtrl\'s app lock now has its own PIN, separate from your phone\'s. Your server logins can be encrypted with it while the app is locked.</string>
+    <string name="pin_change_title">Change app PIN</string>
+    <string name="pin_change_intro">At least %1$d digits, different from your phone\'s PIN.</string>
+    <string name="pin_disable_title">Turn off app lock</string>
+    <string name="pin_disable_intro">Enter your app PIN to turn the lock off.</string>
+    <string name="pin_current">Enter your current PIN</string>
+    <string name="pin_repeat">Enter the same PIN again</string>
+    <string name="pin_too_easy">Too easy to guess. Try a less obvious PIN.</string>
+    <string name="pin_mismatch">The PINs didn\'t match. Start again.</string>
+    <string name="pin_save_failed">Couldn\'t save the PIN. Try again.</string>
+    <string name="pin_next">Next</string>
+    <string name="pin_done">Done</string>
+    <string name="pin_ok">OK</string>
+    <string name="pin_delete">Delete</string>
+    <string name="pin_legacy_body">Unlock with your fingerprint, face or screen lock one last time, then choose an app PIN.</string>
+    <string name="pin_legacy_prompt_subtitle">Confirm it\'s you to choose an app PIN</string>
+    <string name="pin_confirm_body">ProxCtrl is about to change something on your server. Enter your app PIN or use your fingerprint.</string>
 </resources>

@@ -70,6 +70,7 @@ fun YouScreen() {
     val server = active?.server
     fun open(url: String) {
         try {
+            com.vknxworks.proxctrl.data.lock.AppLock.expectReturn()
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (_: ActivityNotFoundException) {
         }

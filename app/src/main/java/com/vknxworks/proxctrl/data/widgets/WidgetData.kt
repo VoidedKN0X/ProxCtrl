@@ -144,6 +144,8 @@ object WidgetRefresher {
     suspend fun refresh(context: Context) = lock.withLock {
         val app = context.applicationContext
         val c = app.container
+        // App lock on with background checks off: no login to check with until ProxCtrl is unlocked.
+        if (c.backgroundBlocked()) return@withLock
         val previous = WidgetStore.read(app)
         val active = c.sessions.active.value
         val now = System.currentTimeMillis()

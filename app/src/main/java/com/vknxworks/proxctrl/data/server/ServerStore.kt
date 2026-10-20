@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import com.vknxworks.proxctrl.data.lock.LockVault
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,12 @@ import javax.crypto.spec.GCMParameterSpec
  * password, ticket, CSRF token) is encrypted with an AES-GCM key that lives in the Android Keystore
  * and never leaves it. Nothing here is backed up or moved to another phone (see data_extraction_rules).
  */
-class ServerStore(context: Context) {
+class ServerStore(
+    context: Context,
+    private val vault: LockVault,
+    /** Whether new secrets are also sealed with the app lock's key (app lock on, background checks off). */
+    private val sealing: () -> Boolean,
+) {
     private val sp = context.getSharedPreferences("servers", Context.MODE_PRIVATE)
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val listSerializer = ListSerializer(Server.serializer())
@@ -77,14 +83,38 @@ class ServerStore(context: Context) {
         ticketIssuedAt = sp.getLong(secretKey(id, "ticket_at"), 0),
     )
 
-    fun saveSecrets(id: String, s: ServerSecrets) {
+    fun saveSecrets(id: String, s: ServerSecrets) = saveSecrets(id, s, sealing())
+
+    @Synchronized
+    private fun saveSecrets(id: String, s: ServerSecrets, seal: Boolean) {
+        // Locked: the key isn't in memory, so nothing can be sealed. Keep what's stored rather than
+        // writing a login that isn't sealed (or losing it).
+        if (seal && !vault.isOpen) return
         sp.edit()
-            .putString(secretKey(id, "token"), encrypt(s.tokenSecret))
-            .putString(secretKey(id, "password"), encrypt(s.password))
-            .putString(secretKey(id, "ticket"), encrypt(s.ticket))
-            .putString(secretKey(id, "csrf"), encrypt(s.csrf))
+            .putString(secretKey(id, "token"), encrypt(s.tokenSecret, seal))
+            .putString(secretKey(id, "password"), encrypt(s.password, seal))
+            .putString(secretKey(id, "ticket"), encrypt(s.ticket, seal))
+            .putString(secretKey(id, "csrf"), encrypt(s.csrf, seal))
             .putLong(secretKey(id, "ticket_at"), s.ticketIssuedAt)
-            .apply()
+            .commit()
+    }
+
+    /**
+     * Stores every server's secrets again, sealed with the app lock's key or not. Only while it's unlocked
+     * (or nothing is sealed), so every secret can be read first.
+     */
+    @Synchronized
+    fun resealAll(seal: Boolean) {
+        if (vault.enabled && !vault.isOpen) return
+        _servers.value.forEach { server -> saveSecrets(server.id, secrets(server.id), seal) }
+    }
+
+    /** Deletes every server and its secrets ("Forgot PIN?"). */
+    @Synchronized
+    fun removeAll() {
+        sp.edit().clear().commit()
+        _servers.value = emptyList()
+        _activeId.value = null
     }
 
     private fun secretKey(id: String, what: String) = "secret_${id}_$what"
@@ -105,12 +135,14 @@ class ServerStore(context: Context) {
         return gen.generateKey()
     }
 
-    private fun encrypt(plain: String): String? {
+    private fun encrypt(plain: String, seal: Boolean): String? {
         if (plain.isEmpty()) return null
         return try {
+            // With the app lock's key on top, the secret can't be read while the app is locked.
+            val inner = if (seal) vault.seal(plain) ?: return null else plain
             val c = Cipher.getInstance("AES/GCM/NoPadding")
             c.init(Cipher.ENCRYPT_MODE, key())
-            Base64.encodeToString(c.iv + c.doFinal(plain.toByteArray()), Base64.NO_WRAP)
+            Base64.encodeToString(c.iv + c.doFinal(inner.toByteArray()), Base64.NO_WRAP)
         } catch (_: Exception) {
             null
         }
@@ -122,7 +154,9 @@ class ServerStore(context: Context) {
             val raw = Base64.decode(stored, Base64.NO_WRAP)
             val c = Cipher.getInstance("AES/GCM/NoPadding")
             c.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, raw, 0, 12))
-            String(c.doFinal(raw, 12, raw.size - 12))
+            val inner = String(c.doFinal(raw, 12, raw.size - 12))
+            // Sealed with the app lock's key: readable only while unlocked.
+            if (LockVault.isSealed(inner)) vault.open(inner).orEmpty() else inner
         } catch (_: Exception) {
             ""
         }

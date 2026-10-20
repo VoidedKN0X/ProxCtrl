@@ -4,6 +4,28 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.2 (2026-10-21)
+
+The app lock now works the same way as in every other Ctrl app, with the strongest protection of the options compared.
+
+### Changed
+
+- **App lock now has its own PIN**, separate from your phone's screen lock (**Settings › App lock › App lock**). It needs at least 6 digits, and very obvious ones (like 111111 or 123456) are refused. Someone who knows or has seen your phone's PIN can't open ProxCtrl with it
+- **Updating with the app lock (or "Confirm changes") already on:** the first time you open ProxCtrl, unlock once more with your fingerprint, face or screen lock as before, then choose your app PIN. This step can't be skipped. If the phone no longer has a screen lock, ProxCtrl goes straight to choosing the PIN. Having only "Confirm changes" on now also turns on the app lock, because both use the PIN
+- **Fingerprint unlock is optional** (**Unlock with fingerprint**). It only accepts strong biometrics such as the fingerprint sensor, not face unlock that only uses the camera, which a photo can sometimes fool. The PIN is still needed after the phone restarts and at least every 72 hours, the same as Android does for your screen lock
+- **Lock again**: choose when ProxCtrl asks again: as soon as you leave the app (the new default; it used to be after 30 seconds), after 1, 5 or 15 minutes or 1 hour away, or only when the app restarts. Opening the file picker, a link, ntfy or the notification and battery settings from ProxCtrl doesn't count as leaving the app
+- **Confirm changes** now asks for your fingerprint or app PIN instead of the phone's screen lock. One confirmation still covers the next minute, and unlocking counts as one
+- **Change app PIN** asks for your current PIN first, and turning the app lock off asks for the PIN too
+- **Background checks while locked** (new switch, shown with the app lock on): on, notifications, widgets and the Quick Settings tile keep checking your servers while ProxCtrl is locked. Off (most secure), your server logins are also encrypted with your app PIN while ProxCtrl is locked, and background checks, widgets and the tile wait until you unlock. When you turn the app lock on, this starts on if you use background checks, push or widgets, so nothing stops without you choosing it
+
+### Security
+
+- **Server logins can be encrypted with your PIN while ProxCtrl is locked** (with *Background checks while locked* off). The key that decrypts them only exists in memory while the app is unlocked and is wiped the moment it locks; the connection to the server is closed until you unlock. A locked app, or a copy of its files, can't use your API token, password or session
+- **The PIN can't be guessed off the phone.** It's never stored. It's stretched with 600,000 rounds of PBKDF2 and mixed with a secret held in the phone's secure hardware (StrongBox where available), so copying ProxCtrl's files to a computer isn't enough to try PINs there
+- **Wrong PINs lock the screen**: after 5 tries you wait 30 seconds, doubling with every further 5 wrong tries up to 15 minutes. Restarting the app or the phone, or changing the clock, doesn't reset the wait. The same counter covers "Confirm changes"
+- **Fingerprint unlock can't be faked**: the fingerprint has to unlock a key in the phone's secure hardware, so a tampered "success" on a rooted phone doesn't open the app. Adding a new fingerprint turns fingerprint unlock off until you turn it on again
+- **Forgot your PIN?** The lock screen offers to remove every server from this phone and turn the app lock off. Because the PIN can encrypt your logins, there's no way around it. Nothing changes on your Proxmox servers; add them again to continue
+
 ## v1.1.1 (2026-10-20)
 
 ### Changed

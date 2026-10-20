@@ -16,7 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.LinkAnnotation
+import com.vknxworks.proxctrl.data.lock.AppLock
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,23 +41,24 @@ fun MarkdownText(markdown: String, modifier: Modifier = Modifier) {
     val blocks = remember(markdown) { parseBlocks(markdown) }
     val linkColor = MaterialTheme.colorScheme.primary
     val codeBg = MaterialTheme.colorScheme.surfaceContainerHighest
+    val uriHandler = LocalUriHandler.current
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         blocks.forEach { block ->
             when (block) {
                 is Block.Heading -> Text(
-                    inline(block.text, linkColor, codeBg),
+                    inline(block.text, linkColor, codeBg, uriHandler),
                     style = when (block.level) {
                         1 -> MaterialTheme.typography.titleLarge
                         2 -> MaterialTheme.typography.titleMedium
                         else -> MaterialTheme.typography.titleSmall
                     },
                 )
-                is Block.Paragraph -> Text(inline(block.text, linkColor, codeBg), style = MaterialTheme.typography.bodyMedium)
+                is Block.Paragraph -> Text(inline(block.text, linkColor, codeBg, uriHandler), style = MaterialTheme.typography.bodyMedium)
                 is Block.ListBlock -> Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     block.items.forEachIndexed { i, item ->
                         Row {
                             Text(if (block.ordered) "${i + 1}." else "•", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.width(22.dp))
-                            Text(inline(item, linkColor, codeBg), style = MaterialTheme.typography.bodyMedium)
+                            Text(inline(item, linkColor, codeBg, uriHandler), style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
@@ -145,7 +149,7 @@ private fun parseBlocks(md: String): List<Block> {
 
 private val INLINE = Regex("""(\*\*|__)(.+?)\1|(\*|_)(.+?)\3|`([^`]+)`|\[([^\]]+)]\(([^)\s]+)\)""")
 
-private fun inline(text: String, linkColor: Color, codeBg: Color): AnnotatedString = buildAnnotatedString {
+private fun inline(text: String, linkColor: Color, codeBg: Color, uriHandler: UriHandler): AnnotatedString = buildAnnotatedString {
     var last = 0
     for (m in INLINE.findAll(text)) {
         append(text.substring(last, m.range.first))
@@ -157,7 +161,13 @@ private fun inline(text: String, linkColor: Color, codeBg: Color): AnnotatedStri
             g[6].isNotEmpty() -> {
                 val url = g[7]
                 if (url.startsWith("https://", true) || url.startsWith("http://", true) || url.startsWith("mailto:", true)) {
-                    withLink(LinkAnnotation.Url(url, TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)))) { append(g[6]) }
+                    withLink(
+                        LinkAnnotation.Url(url, TextLinkStyles(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline))) {
+                            // Opening a link isn't leaving the app for the app lock.
+                            AppLock.expectReturn()
+                            runCatching { uriHandler.openUri(url) }
+                        },
+                    ) { append(g[6]) }
                 } else {
                     append(g[6])
                 }

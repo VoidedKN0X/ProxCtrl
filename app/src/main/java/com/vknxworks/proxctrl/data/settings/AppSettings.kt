@@ -37,6 +37,16 @@ enum class GuestSort(@StringRes val label: Int) {
     UPTIME(R.string.sort_uptime),
 }
 
+/** When the app lock asks again after you leave the app. */
+enum class LockTimeout(@StringRes val label: Int, val millis: Long) {
+    IMMEDIATELY(R.string.lock_again_immediately, 0L),
+    MINUTE_1(R.string.lock_again_1_min, 60_000L),
+    MINUTES_5(R.string.lock_again_5_min, 5 * 60_000L),
+    MINUTES_15(R.string.lock_again_15_min, 15 * 60_000L),
+    HOUR_1(R.string.lock_again_1_hour, 60 * 60_000L),
+    RESTART(R.string.lock_again_restart, -1L),
+}
+
 data class AppSettings(
     val theme: ThemeChoice = ThemeChoice.SYSTEM,
     val dynamicColor: Boolean = false,
@@ -52,10 +62,12 @@ data class AppSettings(
     val backupMaxAgeDays: Int = 7,
     /** FLAG_SECURE on the whole app: blank screenshots, screen recordings and Recents card. On by default. */
     val hideContent: Boolean = true,
-    /** App lock: ask for the fingerprint or screen lock when opening the app. */
+    /** The old app lock (phone's screen lock). Only read to move people to the app PIN. */
     val lockOnOpen: Boolean = false,
-    /** App lock: ask before anything that changes something on a server. */
+    /** App lock: ask for the fingerprint or PIN before anything that changes something on a server. */
     val lockChanges: Boolean = false,
+    /** How long the app may be in the background before the app lock asks again. */
+    val lockTimeout: LockTimeout = LockTimeout.IMMEDIATELY,
 )
 
 class SettingsRepository(private val context: Context, scope: CoroutineScope) {
@@ -71,6 +83,7 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         val hideContent = booleanPreferencesKey("hide_content")
         val lockOnOpen = booleanPreferencesKey("lock_on_open")
         val lockChanges = booleanPreferencesKey("lock_changes")
+        val lockTimeout = stringPreferencesKey("lock_timeout")
     }
 
     val settings: StateFlow<AppSettings> = context.appDataStore.data
@@ -104,6 +117,7 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         hideContent = this[K.hideContent] ?: true,
         lockOnOpen = this[K.lockOnOpen] ?: false,
         lockChanges = this[K.lockChanges] ?: false,
+        lockTimeout = enumOr(this[K.lockTimeout], LockTimeout.IMMEDIATELY),
     )
 
     suspend fun update(transform: (AppSettings) -> AppSettings) {
@@ -120,6 +134,7 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
             p[K.hideContent] = s.hideContent
             p[K.lockOnOpen] = s.lockOnOpen
             p[K.lockChanges] = s.lockChanges
+            p[K.lockTimeout] = s.lockTimeout.name
         }
     }
 

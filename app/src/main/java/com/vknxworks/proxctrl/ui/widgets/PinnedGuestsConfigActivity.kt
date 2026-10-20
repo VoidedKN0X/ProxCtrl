@@ -49,6 +49,7 @@ import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.data.widgets.WidgetStore
 import com.vknxworks.proxctrl.ui.components.StatusDot
+import com.vknxworks.proxctrl.ui.lock.LockOverlays
 import com.vknxworks.proxctrl.ui.lock.LockScreen
 import com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme
 import kotlinx.coroutines.launch
@@ -87,6 +88,7 @@ class PinnedGuestsConfigActivity : FragmentActivity() {
                 Box(Modifier.fillMaxSize()) {
                     if (lockState == AppLock.State.UNLOCKED) {
                         Picker(appWidgetId, onDone = ::done, onCancel = ::finish)
+                        LockOverlays(this@PinnedGuestsConfigActivity)
                     }
                     if (lockState != AppLock.State.UNLOCKED) {
                         LockScreen(this@PinnedGuestsConfigActivity)
