@@ -1,0 +1,19 @@
+<p>Manage your Proxmox VE 8 or 9 server from your phone: a fast, touch-first alternative to the web UI.</p>
+<ul>
+<li>Overview with live node graphs and a needs-attention list</li>
+<li>All containers and VMs with usage, tags, search, sorting and bulk power actions</li>
+<li>Guest pages with graphs, power controls, IP addresses, notes, resources, options and firewall</li>
+<li>Edit cores, memory and tags, grow disks, clone guests and make templates</li>
+<li>Consoles for containers and VMs, and a node shell</li>
+<li>Snapshots, backups and restore</li>
+<li>Storage: content, ISO upload, container templates, disks with SMART health, ZFS, LVM and backup jobs</li>
+<li>Tasks with live logs, history filters and Stop</li>
+<li>Node: services, updates with changelogs, network and SDN, reboot and shutdown, Wake-on-LAN</li>
+<li>Home screen widgets and a Quick Settings tile</li>
+<li>Notifications through ntfy, with the app's own background checks as a fallback</li>
+<li>Several servers, API token or password with two-factor</li>
+<li>Read-only mode, typed confirmations for dangerous actions, optional fingerprint or screen-lock app lock, certificate pinning and screenshot protection</li>
+</ul>
+<p>Unofficial app, not affiliated with Proxmox Server Solutions.</p>
+<p>Google-free and de-Googled: no Google Play services, Firebase or other Google services, and the app never contacts Google. It works the same on de-Googled phones (GrapheneOS, CalyxOS, /e/OS, LineageOS without Google apps).</p>
+<p>Telemetry-free: no analytics, crash reporting, usage stats or tracking of any kind.</p>
