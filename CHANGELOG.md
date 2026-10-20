@@ -4,6 +4,22 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.0 (2026-10-20)
+
+### Changed
+
+- **Push from Proxmox through ntfy only.** Push notifications now always come through the [ntfy app](https://f-droid.org/packages/io.heckel.ntfy/), and other push apps can no longer be picked (the "Choose a push app" list is gone). If you already used ntfy, nothing changes: your push address stays the same, so the webhook target on your Proxmox server keeps working. If you used another push app, ProxCtrl removes its registration there and registers with ntfy instead when ntfy is installed; then copy the new setup commands under **Set up Proxmox** and run them again, since the push address changes. Without ntfy, push from Proxmox is off until you install it. Background checks keep running either way
+- **ntfy isn't installed?** **Settings › Notifications** now says so under **Push from Proxmox**, with an **Install ntfy** button that opens ntfy on F-Droid. It checks again whenever you come back to the screen
+- **ntfy battery warning**: with push on, the **Battery** section warns when ntfy is battery-restricted (Android can then cut its connection while the phone sleeps), and tapping it opens ntfy's app info so you can set its battery usage to Unrestricted
+- **ntfy temporarily unavailable**: when ntfy reports that your ntfy server is down, **Push from Proxmox** says so. The push address stays the same and push resumes by itself once the server is back
+- **ProxCtrl registers with ntfy again every time it starts**, which keeps the same push address and recovers by itself if ntfy was reinstalled
+- Texts on the Notifications screen now talk about ntfy instead of "UnifiedPush" or "push apps"
+
+### Privacy
+
+- **De-Googled.** The push library ProxCtrl used is gone, along with the Google crypto library (Tink) it brought along, its built-in check for Google Play services and its references to Firebase. ProxCtrl now talks to ntfy directly, contains no Google libraries or services and never contacts Google, and the app's texts no longer mention Google
+- **README**: the Google-free line now reads "Google-free and de-Googled", push is described as ntfy-only with background checks as a fallback, and the ntfy setup steps are updated
+
 ## v1.0.2 (2026-10-20)
 
 ### Privacy

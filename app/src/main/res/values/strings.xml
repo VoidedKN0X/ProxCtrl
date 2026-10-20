@@ -431,7 +431,7 @@
     <string name="ch_info">Updates and info</string>
     <string name="ch_info_desc">Available updates</string>
     <string name="ch_proxmox">From Proxmox</string>
-    <string name="ch_proxmox_desc">Notifications your Proxmox server pushes through UnifiedPush</string>
+    <string name="ch_proxmox_desc">Notifications your Proxmox server pushes through ntfy</string>
 
     <!-- Notification texts -->
     <string name="nt_cpu_title">%1$s CPU is at %2$d%%</string>
@@ -462,7 +462,7 @@
     <!-- Notification settings -->
     <string name="notifications">Notifications</string>
     <string name="notifications_subtitle">Background checks, push from Proxmox, what to notify about</string>
-    <string name="notif_intro">ProxCtrl can check your servers in the background and tell you when something needs attention. Push from Proxmox adds instant notifications for backups, updates and cluster events. Neither uses Google services.</string>
+    <string name="notif_intro">ProxCtrl can check your servers in the background and tell you when something needs attention. Push from Proxmox adds instant notifications for backups, updates and cluster events. Both stay between your phone, your servers and your own ntfy server.</string>
     <string name="notif_permission_off">Notifications are turned off for ProxCtrl.</string>
     <string name="notif_permission_allow">Allow notifications</string>
     <string name="group_polling">Background checks</string>
@@ -481,11 +481,12 @@
     <string name="last_check_failed">Last check %1$s couldn\'t reach the server</string>
     <string name="group_push">Push from Proxmox</string>
     <string name="push_title">Receive Proxmox notifications</string>
-    <string name="push_subtitle">Through UnifiedPush, for example your own ntfy</string>
-    <string name="push_no_distributor">No UnifiedPush app found. Install ntfy (from F-Droid or your F-Droid repo), connect it to your ntfy server, then come back here.</string>
-    <string name="push_pick_distributor">Choose a push app</string>
-    <string name="push_registering">Waiting for the push app…</string>
-    <string name="push_failed">The push app couldn\'t register ProxCtrl (%1$s).</string>
+    <string name="push_subtitle">Through the ntfy app and your own ntfy server</string>
+    <string name="push_no_ntfy">ntfy isn\'t installed. Push from Proxmox comes only through the ntfy app: install it, connect it to your ntfy server, then come back here. Background checks work without it.</string>
+    <string name="push_install_ntfy">Install ntfy</string>
+    <string name="push_unavailable">ntfy temporarily unavailable: its server can\'t be reached. The push address stays the same and background checks keep running.</string>
+    <string name="push_registering">Waiting for ntfy…</string>
+    <string name="push_failed">ntfy couldn\'t register ProxCtrl (%1$s). Open ntfy once, then try again.</string>
     <string name="push_endpoint">Push address</string>
     <string name="push_endpoint_footer">Treat this address like a password: anyone who has it can send you notifications.</string>
     <string name="copy">Copy</string>
@@ -508,7 +509,9 @@
     <string name="battery_unrestricted">ProxCtrl may run in the background</string>
     <string name="battery_restricted">Battery optimisation can delay or skip checks</string>
     <string name="battery_open">Open battery settings</string>
-    <string name="battery_footer">On ColorOS and other phones that close background apps aggressively: open ProxCtrl\'s app info, then under Battery choose Allow background activity (or Don\'t optimise), and allow Auto launch if your phone has it. Push from Proxmox keeps working as long as your push app (ntfy) is allowed to run in the background.</string>
+    <string name="battery_ntfy_restricted">ntfy is battery-restricted</string>
+    <string name="battery_ntfy_restricted_body">Android can cut ntfy\'s connection while the phone sleeps, so Proxmox notifications arrive late. Tap to open ntfy\'s app info and set Battery to Unrestricted.</string>
+    <string name="battery_footer">On ColorOS and other phones that close background apps aggressively: open ProxCtrl\'s app info, then under Battery choose Allow background activity (or Don\'t optimise), and allow Auto launch if your phone has it. Push from Proxmox keeps working as long as ntfy is allowed to run in the background.</string>
 
     <!-- Console and shell -->
     <string name="console">Console</string>

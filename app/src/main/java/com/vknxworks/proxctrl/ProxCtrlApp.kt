@@ -18,10 +18,13 @@ class ProxCtrlApp : Application() {
         Notifier.createChannels(this)
         val c = container
         c.appScope.launch {
-            // Keep the background check and push registration in line with the settings.
+            // Keep the background check and the registration with ntfy in line with the settings.
             val first = c.notifySettings.current()
             NotifyWorker.schedule(this@ProxCtrlApp, first)
-            Push.load(this@ProxCtrlApp, first.push)
+            if (!Push.start(this@ProxCtrlApp, first.push)) {
+                // Push used another push app before, and ntfy isn't installed: off until it is.
+                c.notifySettings.update { it.copy(push = false) }
+            }
             c.notifySettings.settings.drop(1).distinctUntilChanged().collect { s ->
                 NotifyWorker.schedule(this@ProxCtrlApp, s)
                 if (!s.push && Push.status.value !is com.vknxworks.proxctrl.data.notify.PushStatus.Off) Push.unregister(this@ProxCtrlApp)

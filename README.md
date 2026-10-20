@@ -16,7 +16,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Guests**: all your containers and VMs with CPU, memory and disk use, tags, search, sorting, a compact view and bulk start/stop
 - **Guest pages** with live status, graphs, power controls, IP addresses, notes, console, snapshots, backups and restore
 - **Node shell** from the node's card on the Overview
-- **Notifications** without Google services: polling, or UnifiedPush through your own ntfy
+- **Notifications**: background checks, plus instant push from Proxmox through [ntfy](https://f-droid.org/packages/io.heckel.ntfy/) and your own ntfy server
 - **Storage**: storages and their content, backup deletion, ISO upload (also from the share menu), container templates, disks with SMART health, ZFS pools, LVM and backup jobs
 - **Tasks** with live logs, history filters and Stop
 - **Node**: status and graphs, services, updates with changelogs, network and SDN, reboot and shutdown, Wake-on-LAN
@@ -35,7 +35,7 @@ Coming soon.
 
 - Android 13 or newer
 - Proxmox VE 8 or 9
-- **Google-free:** works without Google Play services, contains no Google libraries that contact Google, and draws emoji with your phone's own emoji font. The built-in web view used for the consoles and node shell has Google Safe Browsing and WebView usage reports turned off
+- **Google-free and de-Googled:** no Google Play services, Firebase or other Google services, and the app never contacts Google. It works the same on de-Googled phones (GrapheneOS, CalyxOS, /e/OS, LineageOS without Google apps).
 
 ## Install
 
@@ -139,7 +139,7 @@ ProxCtrl checks what your token can do when it connects and greys out anything i
 
 ## Notifications
 
-ProxCtrl doesn't use Google services for notifications. Turn them on under **Settings › Notifications**. There are two kinds, and you can use either or both:
+Turn notifications on under **Settings › Notifications**. There are two kinds, and you can use either or both:
 
 **Background checks** look at every saved server every 15, 30 or 60 minutes and notify you when something starts going wrong. You get one notification per problem, not one every check. The notification goes away when the problem does.
 
@@ -159,12 +159,12 @@ ProxCtrl doesn't use Google services for notifications. Turn them on under **Set
 
 CPU and memory are judged from the node's per-minute graphs, so a long interval reports a high period later but doesn't miss it. Each event can be switched off. ZFS and SMART need `Sys.Audit` on `/`, and updates need the optional `ProxCtrl.Node` role from step 3 above.
 
-**Push from Proxmox** delivers Proxmox's own notifications instantly through [UnifiedPush](https://unifiedpush.org/), using your self-hosted [ntfy](https://ntfy.sh/) (or another UnifiedPush app). Proxmox only sends notifications for backups, available updates, fencing, replication and system mail (which is how ZFS and SMART problems arrive). Everything else on the list above still comes from the background checks.
+**Push from Proxmox** delivers Proxmox's own notifications instantly through the [ntfy app](https://f-droid.org/packages/io.heckel.ntfy/) and your self-hosted ntfy server. Push comes through ntfy only (no other push apps), and the background checks keep running alongside as a fallback. Proxmox only sends notifications for backups, available updates, fencing, replication and system mail (which is how ZFS and SMART problems arrive). Everything else on the list above still comes from the background checks.
 
 ### Set up push with ntfy
 
-1. Install the ntfy app (from F-Droid) and set its default server to your ntfy server under its Settings.
-2. In ProxCtrl, turn on **Settings › Notifications › Receive Proxmox notifications**. If you have more than one UnifiedPush app, pick ntfy. ProxCtrl then shows its **push address**, like `https://ntfy.example.com/upAbC123?up=1`. Treat it like a password: anyone who has it can send you notifications.
+1. Install the [ntfy app](https://f-droid.org/packages/io.heckel.ntfy/) and set its default server to your ntfy server under its Settings. If ntfy isn't installed, **Settings › Notifications** says so and has an **Install ntfy** button.
+2. In ProxCtrl, turn on **Settings › Notifications › Receive Proxmox notifications**. ProxCtrl registers with ntfy and shows its **push address**, like `https://ntfy.example.com/upAbC123?up=1`. Treat it like a password: anyone who has it can send you notifications.
 3. Tap **Copy commands** under **Set up Proxmox** and run them in your node's shell as root. They create:
    - A **webhook target** called `proxctrl` that posts a small JSON message to your push address. The topic part of the address is stored as a webhook secret, which only root can read, so it doesn't show in the Proxmox UI. Only the title and type are sent, not the full report, so long backup logs never go over ntfy's size limit.
    - Four **matchers** that send notifications to it:
@@ -189,7 +189,7 @@ Proxmox has no notification for failed tasks in general, so ProxCtrl can't get t
 
 ### Keep checks running on your phone
 
-Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus, realme) closes background apps aggressively. Under **Settings › Notifications › Battery**, ProxCtrl shows whether it's restricted and opens its app info. There, set **Battery** to **Allow background activity** (or **Don't optimise**), and allow **Auto launch** if your phone offers it. Do the same for ntfy if you use push.
+Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus, realme) closes background apps aggressively. Under **Settings › Notifications › Battery**, ProxCtrl shows whether it's restricted and opens its app info. There, set **Battery** to **Allow background activity** (or **Don't optimise**), and allow **Auto launch** if your phone offers it. Do the same for ntfy if you use push; ProxCtrl warns under **Battery** when ntfy is battery-restricted.
 
 ## Snapshots and backups
 
@@ -258,8 +258,8 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 
 **Telemetry-free.** ProxCtrl has no analytics, crash reporting, usage stats or tracking of any kind. It only talks to the servers you add.
 
-- **Servers:** your own Proxmox servers. Push notifications come through your own ntfy server (or another UnifiedPush app). The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
-- **Google-free:** no Google Play services or Google libraries that contact Google. The built-in web view for the consoles has Google Safe Browsing and WebView usage reports turned off.
+- **Servers:** your own Proxmox servers. Push notifications come through the ntfy app and your own ntfy server. The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
+- **Consoles:** the built-in web view for the consoles and node shell has Safe Browsing and WebView usage reports turned off, so page addresses never leave the phone.
 - **Links:** the Support, Report a bug, Source code and Licence rows in About open in your browser; the app itself doesn't contact GitHub.
 
 ## Build from source
