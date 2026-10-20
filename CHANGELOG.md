@@ -4,6 +4,12 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+### Changed
+
+- **Store listing for IzzyOnDroid**: the app's name, short and full description, icon and feature graphic are now in the repo (`fastlane/metadata/android/en-US`), so app stores like IzzyOnDroid can show them. Screenshots are coming soon
+
 ## v1.1.1 (2026-10-20)
 
 ### Changed
