@@ -4,6 +4,13 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.1 (2026-10-20)
+
+### Changed
+
+- **64-bit ARM phones only.** ProxCtrl now ships only the 64-bit ARM (arm64-v8a) build that nearly every phone from the last several years uses, like every Ctrl app, so the download is smaller. Old 32-bit phones and x86 devices (emulators, some Chromebooks) are no longer supported.
+- **README**: Requirements say 64-bit ARM phones only
+
 ## v1.1.0 (2026-10-20)
 
 ### Changed
