@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Widgets
-import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
@@ -40,7 +39,7 @@ import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import kotlinx.coroutines.launch
 
-/** App settings: notifications, appearance, warning thresholds, privacy, app lock, widgets and usage stats. */
+/** App settings: notifications, appearance, warning thresholds, privacy, app lock and widgets. */
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
@@ -124,16 +123,6 @@ fun SettingsScreen() {
                     stringResource(R.string.widget_settings_subtitle),
                     icon = Icons.Filled.Widgets,
                 )
-            }
-            if (c.telemetry.available) {
-                Group(stringResource(R.string.group_usage_stats), footer = stringResource(R.string.usage_stats_description)) {
-                    GroupSwitch(
-                        stringResource(R.string.usage_stats_switch),
-                        stringResource(R.string.usage_stats_switch_subtitle),
-                        checked = settings.usageStats,
-                        icon = Icons.Filled.Insights,
-                    ) { on -> c.appScope.launch { c.settings.update { it.copy(usageStats = on, usageStatsAsked = true) } } }
-                }
             }
         }
     }

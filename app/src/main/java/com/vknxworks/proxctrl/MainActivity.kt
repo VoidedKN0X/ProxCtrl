@@ -51,7 +51,6 @@ class MainActivity : FragmentActivity() {
             WidgetRefresher.schedule(applicationContext)
             if (WidgetRefresher.anyWidgets(applicationContext)) WidgetRefresher.refreshSoon(applicationContext)
         }
-        if (savedInstanceState == null) c.telemetry.appOpened()
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
             // FLAG_SECURE follows "Hide content in screenshots & recents" (on by default, and on

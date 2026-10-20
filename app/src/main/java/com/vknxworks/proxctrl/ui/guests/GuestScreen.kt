@@ -272,12 +272,6 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                     if (status?.status == "running" && c.sessions.canWrite(ref.aclPath, "VM.Console")) {
                         FilledTonalButton(
                             onClick = {
-                                val consoleKind = when {
-                                    ref.type == GuestType.LXC -> "lxc_terminal"
-                                    config?.serialConsole != null -> "vm_serial"
-                                    else -> "vm_screen"
-                                }
-                                c.telemetry.track("console_opened", mapOf("kind" to consoleKind))
                                 nav.navigate(
                                     ConsoleRoute(
                                         kind = ref.type.api,
@@ -364,7 +358,6 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 val cl = client ?: return@PowerConfirmDialog
                 scope.launch {
                     val result = cl.power(g, action)
-                    trackPower(c.telemetry, action, g.type)
                     val label = context.getString(action.label())
                     val e = result.error
                     snackbar.showSnackbar(

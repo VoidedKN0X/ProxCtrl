@@ -142,7 +142,6 @@ fun OverviewScreen() {
                         onClick = { nav.tab(NodeRoute) },
                         onShell = if (node.isOnline && c.sessions.canWrite("/nodes/${node.node}", "Sys.Console")) {
                             {
-                                c.telemetry.track("console_opened", mapOf("kind" to "node_shell"))
                                 nav.navigate(ConsoleRoute(kind = "node", node = node.node, title = shellTitle.replace("%s", node.node)))
                             }
                         } else {
