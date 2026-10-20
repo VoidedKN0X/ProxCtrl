@@ -4,11 +4,15 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
-## Unreleased
+## v1.0.2 (2026-10-20)
+
+### Privacy
+
+- **No more usage stats: ProxCtrl is now telemetry-free.** The optional anonymous usage stats are gone completely, along with the Usage stats setting in Settings and the one-time question after adding your first server. The app no longer contacts VKNXWorks' stats server at all, and the settings it used are deleted from your phone when you update. ProxCtrl now only talks to your own Proxmox servers (and your ntfy server, if you use push notifications)
 
 ### Changed
 
-- **README**: a Screenshots section (screenshots are coming soon), and a link preview image (`.github/assets/social-preview.png`) with ProxCtrl's icon, name and summary, for when the repo is shared on Reddit, Discord or elsewhere
+- **README**: a Screenshots section (screenshots are coming soon), a new Privacy section and a "Telemetry-free" badge, and a link preview image (`.github/assets/social-preview.png`) with ProxCtrl's icon, name and summary, for when the repo is shared on Reddit, Discord or elsewhere
 
 ## v1.0.1 (2026-10-19)
 

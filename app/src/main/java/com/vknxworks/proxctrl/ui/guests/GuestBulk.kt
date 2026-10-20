@@ -38,9 +38,6 @@ import com.vknxworks.proxctrl.data.api.PveClient
 import com.vknxworks.proxctrl.data.guests.Guest
 import com.vknxworks.proxctrl.data.guests.PowerAction
 import com.vknxworks.proxctrl.data.guests.power
-import com.vknxworks.proxctrl.data.guests.GuestType
-import com.vknxworks.proxctrl.data.telemetry.Telemetry
-import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.ui.theme.Gutter
 
 fun PowerAction.icon(): ImageVector = when (this) {
@@ -154,8 +151,6 @@ fun BulkPowerDialog(
 /** Runs [action] on each guest in turn and returns a one-line summary for the snackbar. */
 suspend fun runBulk(context: Context, client: PveClient, action: PowerAction, targets: List<Guest>): String {
     val results = targets.map { client.power(it, action) }
-    // One event per guest type in the batch, never which guests or how many of each.
-    targets.map { it.type }.distinct().forEach { trackPower(context.container.telemetry, action, it) }
     val ok = results.count { it.error == null }
     val label = context.getString(action.label())
     val failed = results.filter { it.error != null }
@@ -164,15 +159,4 @@ suspend fun runBulk(context: Context, client: PveClient, action: PowerAction, ta
     } else {
         context.getString(R.string.bulk_failed, label, failed.joinToString(", ") { "${it.guest.vmid} ${it.guest.name}" })
     }
-}
-
-/**
- * Usage stats: which power action on which kind of guest, never the guest itself. Exactly what the
- * README and the in-app description promise, nothing more.
- */
-fun trackPower(telemetry: Telemetry, action: PowerAction, type: GuestType) {
-    telemetry.track(
-        "guest_power_action",
-        mapOf("action" to action.name.lowercase(), "guest_type" to type.api),
-    )
 }

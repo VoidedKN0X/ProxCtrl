@@ -1,5 +1,3 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -15,16 +13,6 @@ val isCi: Boolean = System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIO
 val releaseSigningComplete: Boolean = releaseKeystorePath != null &&
     listOf("KEYSTORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD").all { !System.getenv(it).isNullOrBlank() }
 
-// Opt-in usage stats go to VKNXWorks' self-hosted Aptabase server. The app key comes from the APTABASE_KEY
-// environment variable (a GitHub Actions secret) or `aptabase.key` in local.properties. Without one, the
-// build can't send stats at all and the setting is hidden, so builds from source never send anything.
-val aptabaseKey: String = System.getenv("APTABASE_KEY")?.trim()?.takeIf { it.isNotEmpty() }
-    ?: rootProject.file("local.properties").takeIf { it.exists() }?.let { f ->
-        Properties().apply { f.inputStream().use { stream -> load(stream) } }.getProperty("aptabase.key")?.trim()
-    }
-    ?: ""
-val aptabaseHost = "https://telemetry.vkhub.org"
-
 android {
     namespace = "com.vknxworks.proxctrl"
     compileSdk = 36
@@ -34,11 +22,8 @@ android {
         minSdk = 33
         targetSdk = 36
         // Bump both to publish a new release (see CHANGELOG.md).
-        versionCode = 17
-        versionName = "1.0.1"
-
-        buildConfigField("String", "APTABASE_KEY", "\"${aptabaseKey.replace("\"", "")}\"")
-        buildConfigField("String", "APTABASE_HOST", "\"$aptabaseHost\"")
+        versionCode = 18
+        versionName = "1.0.2"
     }
 
     signingConfigs {

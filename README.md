@@ -2,7 +2,7 @@
 
 **Manage your Proxmox VE server from your phone.**
 
-[![Latest release](https://img.shields.io/github/v/release/VoidedKN0X/ProxCtrl?label=download)](https://github.com/VoidedKN0X/ProxCtrl/releases/latest) ![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white) [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) [![Sponsor](https://img.shields.io/badge/sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/VoidedKN0X)
+[![Latest release](https://img.shields.io/github/v/release/VoidedKN0X/ProxCtrl?label=download)](https://github.com/VoidedKN0X/ProxCtrl/releases/latest) ![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white) [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) ![Telemetry-free](https://img.shields.io/badge/telemetry-none-brightgreen) [![Sponsor](https://img.shields.io/badge/sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/VoidedKN0X)
 
 ProxCtrl is an Android app for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environment) 8 and 9: a fast, touch-first alternative to the web UI for monitoring your node and managing your containers and VMs day to day.
 
@@ -254,17 +254,13 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - With an API token, the node shell asks for a Linux login, because Proxmox only skips the login for `root@pam`. Sign in with `root@pam` and its password if you want a root shell straight away.
 - If a console doesn't behave, tap the bug icon at the top for a live diagnostics readout (connection, data sent and received, keyboard, page errors) and copy it into an issue. It never includes what you typed.
 
-## Usage stats
+## Privacy
 
-ProxCtrl can share anonymous usage stats, **only if you say yes**. It asks once after you add your first server, and you can change it any time in **Settings > Usage stats**.
+**Telemetry-free.** ProxCtrl has no analytics, crash reporting, usage stats or tracking of any kind. It only talks to the servers you add.
 
-- **Shared:** which screens you open (the kind of screen, never which node or guest), which power actions you use (start, shut down, reboot, stop and so on) and whether on a container or a VM, which kind of console you open (node shell, container terminal, VM screen or serial terminal), the app version, Android version, phone model, language, phone or tablet, your theme and whether you use the compact guest list.
-- **Never shared:** your server address, node names, guest names or IDs, IP addresses, username, tokens or passwords, anything typed in a console, or any ID that stays the same between sessions.
-- **Where:** VKNXWorks' own self-hosted [Aptabase](https://aptabase.com) server. Nothing goes to Google or analytics companies. Like any website, the server sees your IP address; Aptabase uses it only to work out the country and doesn't store it. The stats use their own connection with your phone's normal certificate checks; your Proxmox login and pinned certificate are never used for it.
-
-Builds from source don't include the stats key, so they can't send anything and the setting is hidden. The code is in [`Telemetry.kt`](app/src/main/java/com/vknxworks/proxctrl/data/telemetry/Telemetry.kt).
-
-Apart from these opt-in stats, ProxCtrl only talks to your own Proxmox servers. Push notifications come through your own ntfy server (or another UnifiedPush app). The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
+- **Servers:** your own Proxmox servers. Push notifications come through your own ntfy server (or another UnifiedPush app). The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
+- **Google-free:** no Google Play services or Google libraries that contact Google. The built-in web view for the consoles has Google Safe Browsing and WebView usage reports turned off.
+- **Links:** the Support, Report a bug, Source code and Licence rows in About open in your browser; the app itself doesn't contact GitHub.
 
 ## Build from source
 

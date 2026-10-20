@@ -543,19 +543,11 @@
     <string name="key_del">Del</string>
     <string name="paste_empty">The clipboard is empty.</string>
 
-    <!-- Usage stats -->
+    <!-- Privacy -->
     <string name="group_privacy">Privacy</string>
     <string name="hide_content">Hide content in screenshots &amp; recents</string>
     <string name="hide_content_subtitle">Screenshots, screen recordings and the recent apps view show a blank screen</string>
     <string name="hide_content_footer">Signing in to a server and consoles are always hidden, even with this off.</string>
-    <string name="group_usage_stats">Usage stats</string>
-    <string name="usage_stats_switch">Share anonymous usage stats</string>
-    <string name="usage_stats_switch_subtitle">Helps decide what to improve next</string>
-    <string name="usage_stats_description">Which screens you open, which power actions you use (like start or shut down) on containers or VMs, which kind of console you open, the app version, Android version, phone model, language, phone or tablet, your theme and whether you use the compact guest list. Never your server address, node names, guest names or IDs, IP addresses, username or tokens. Sent to VKNXWorks\' own server, not to any analytics company.</string>
-    <string name="usage_stats_prompt_title">Help improve ProxCtrl?</string>
-    <string name="usage_stats_prompt_text">Share anonymous usage stats so I can see which features people use and which Android versions to support.\n\n%1$s\n\nYou can change this any time in Settings.</string>
-    <string name="usage_stats_share">Share stats</string>
-    <string name="usage_stats_no">No thanks</string>
     <!-- Tasks started from the app -->
     <string name="task_running">%1$s…</string>
     <string name="task_done">%1$s: done</string>
