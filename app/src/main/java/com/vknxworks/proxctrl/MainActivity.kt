@@ -30,15 +30,14 @@ import com.vknxworks.proxctrl.data.settings.ThemeChoice
 import com.vknxworks.proxctrl.ui.components.ScreenPrivacy
 import com.vknxworks.proxctrl.ui.nav.AppRoot
 import com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme
+import com.vknxworks.proxctrl.ui.components.WindowPrivacy
 
 /** A FragmentActivity (not just a ComponentActivity) because the fingerprint prompt needs one. */
 class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Recents shows a blank card, never a snapshot of a console, token or server details.
-        setRecentsScreenshotEnabled(false)
-        // Secure from the first frame; the setting below can lift it once it has been read.
+        // Secure from the first frame (the lock is still being checked); lifted below once it's known.
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
         // A link like proxctrl://guest/103; not again when the activity is recreated (rotation).
@@ -58,16 +57,11 @@ class MainActivity : FragmentActivity() {
             val lock by AppLock.state.collectAsStateWithLifecycle()
             // A lock or PIN screen covers the app (also "Confirm changes" and choosing a PIN).
             val covered = lock != AppLock.State.UNLOCKED || AppLock.legacy || AppLock.request != null || AppLock.confirm != null
-            // FLAG_SECURE follows "Hide in screenshots and recent apps" (on by default, and on before the
-            // setting has been read), and is always on for sign-in, consoles and the lock and PIN screens.
-            val secure = settings.hideContent || covered || ScreenPrivacy.forced > 0
-            LaunchedEffect(secure) {
-                if (secure) {
-                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                } else {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                }
-            }
+            // "Hide in screenshots" and "Hide in recent apps" (both off by default). FLAG_SECURE is always on
+            // for sign-in, consoles and the lock and PIN screens, and with the app lock on Recents always
+            // shows a blank card (a preview there would show your servers without the PIN).
+            val secure = settings.hideScreenshots || covered || ScreenPrivacy.forced > 0
+            WindowPrivacy(this, secure, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
             val dark = when (settings.theme) {
                 ThemeChoice.SYSTEM -> isSystemInDarkTheme()
                 ThemeChoice.LIGHT -> false

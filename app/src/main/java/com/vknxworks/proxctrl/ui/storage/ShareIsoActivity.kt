@@ -59,6 +59,7 @@ import com.vknxworks.proxctrl.ui.components.formatBytes
 import com.vknxworks.proxctrl.ui.theme.Gutter
 import com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme
 import kotlinx.serialization.builtins.ListSerializer
+import com.vknxworks.proxctrl.ui.components.WindowPrivacy
 
 /**
  * Receives a file shared from another app ("Share" → ProxCtrl) and uploads it as an ISO image to a
@@ -68,7 +69,6 @@ class ShareIsoActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setRecentsScreenshotEnabled(false)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
         val uri = sharedUri(intent)
@@ -78,14 +78,8 @@ class ShareIsoActivity : FragmentActivity() {
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
             val locked by AppLock.state.collectAsStateWithLifecycle()
-            val secure = settings.hideContent || locked != AppLock.State.UNLOCKED || AppLock.confirm != null
-            LaunchedEffect(secure) {
-                if (secure) {
-                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                } else {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                }
-            }
+            val secure = settings.hideScreenshots || locked != AppLock.State.UNLOCKED || AppLock.confirm != null
+            WindowPrivacy(this, secure, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
             val lockState by AppLock.state.collectAsStateWithLifecycle()
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {

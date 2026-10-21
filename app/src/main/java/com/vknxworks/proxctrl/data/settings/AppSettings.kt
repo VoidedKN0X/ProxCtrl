@@ -60,8 +60,10 @@ data class AppSettings(
     val memWarnPercent: Int = 85,
     /** A guest's newest backup older than this many days is flagged. */
     val backupMaxAgeDays: Int = 7,
-    /** FLAG_SECURE on the whole app: blank screenshots, screen recordings and Recents card. On by default. */
-    val hideContent: Boolean = true,
+    /** "Hide in screenshots": FLAG_SECURE on every window (also blanks the recent-apps preview). */
+    val hideScreenshots: Boolean = false,
+    /** "Hide in recent apps": the recent-apps view shows a blank card. Screenshots still work. */
+    val hideRecents: Boolean = false,
     /** The old app lock (phone's screen lock). Only read to move people to the app PIN. */
     val lockOnOpen: Boolean = false,
     /** App lock: ask for the fingerprint or PIN before anything that changes something on a server. */
@@ -80,7 +82,13 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         val diskWarn = intPreferencesKey("disk_warn_percent")
         val memWarn = intPreferencesKey("mem_warn_percent")
         val backupAge = intPreferencesKey("backup_max_age_days")
-        val hideContent = booleanPreferencesKey("hide_content")
+        val hideScreenshots = booleanPreferencesKey("hide_screenshots")
+        val hideRecents = booleanPreferencesKey("hide_recents")
+        /**
+         * The old combined switch, on by default and written with every settings change, so a stored
+         * "on" can't tell a choice from the default: it isn't carried over (both new switches start off).
+         */
+        val legacyHideContent = booleanPreferencesKey("hide_content")
         val lockOnOpen = booleanPreferencesKey("lock_on_open")
         val lockChanges = booleanPreferencesKey("lock_changes")
         val lockTimeout = stringPreferencesKey("lock_timeout")
@@ -114,7 +122,8 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         diskWarnPercent = (this[K.diskWarn] ?: 80).coerceIn(50, 99),
         memWarnPercent = (this[K.memWarn] ?: 85).coerceIn(50, 99),
         backupMaxAgeDays = (this[K.backupAge] ?: 7).coerceIn(1, 90),
-        hideContent = this[K.hideContent] ?: true,
+        hideScreenshots = this[K.hideScreenshots] ?: false,
+        hideRecents = this[K.hideRecents] ?: false,
         lockOnOpen = this[K.lockOnOpen] ?: false,
         lockChanges = this[K.lockChanges] ?: false,
         lockTimeout = enumOr(this[K.lockTimeout], LockTimeout.IMMEDIATELY),
@@ -131,7 +140,9 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
             p[K.diskWarn] = s.diskWarnPercent
             p[K.memWarn] = s.memWarnPercent
             p[K.backupAge] = s.backupMaxAgeDays
-            p[K.hideContent] = s.hideContent
+            p[K.hideScreenshots] = s.hideScreenshots
+            p[K.hideRecents] = s.hideRecents
+            p.remove(K.legacyHideContent)
             p[K.lockOnOpen] = s.lockOnOpen
             p[K.lockChanges] = s.lockChanges
             p[K.lockTimeout] = s.lockTimeout.name
