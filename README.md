@@ -60,6 +60,8 @@ If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X
 4. If your node uses the self-signed certificate Proxmox created on install, compare the fingerprint ProxCtrl shows with the one under Datacenter › your node › System › Certificates (or `pvenode cert info`), then tap **Trust**.
 5. ProxCtrl shows what your sign-in is allowed to do. Tap **Continue**.
 
+Your servers, read-only mode, **Settings** and **About** are on the **You** page: tap your profile picture at the top right of any tab. Every path below that starts with **Settings** is there.
+
 ## Create an API token for ProxCtrl
 
 ProxCtrl works best with its own Proxmox user and an API token that can only do what the app needs. Run these on your Proxmox node as root.
@@ -247,7 +249,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 
 ## App lock
 
-Turn it on under **Settings > Privacy and security > App lock**. It's off until you turn it on.
+Turn it on under **Settings › Privacy and security › App lock** (tap your profile picture, then **Settings**). It's off until you turn it on.
 
 - **Its own app PIN** of at least 6 digits, separate from your phone's screen lock. Very obvious PINs such as 111111 or 123456 are refused.
 - **Unlock with fingerprint** (optional) only accepts strong biometrics, such as the fingerprint sensor, checked by the phone's secure hardware. Face unlock that only uses the camera isn't accepted. The PIN is still needed after the phone restarts and at least every 72 hours, and adding a new fingerprint to the phone turns fingerprint unlock off until you turn it on again.
@@ -308,7 +310,7 @@ Or open the folder in Android Studio and press **Run** with your phone connected
 
 ProxCtrl is free and open source. If it's useful to you, you can support development on [GitHub Sponsors](https://github.com/sponsors/VoidedKN0X). Starring the repo and [reporting bugs](https://github.com/VoidedKN0X/ProxCtrl/issues) helps too.
 
-In the app, the **About** section at the bottom of the Account page has **Support ProxCtrl** and **Report a bug** rows that open these pages.
+In the app, the **About** section at the bottom of the **You** page (tap your profile picture) has **Support ProxCtrl** and **Report a bug** rows that open these pages.
 
 ## The Ctrl series
 
