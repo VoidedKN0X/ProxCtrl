@@ -4,6 +4,12 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.7 (2026-10-21)
+
+### Fixed
+
+- **Clear message when a certificate can't be read**: when you add a server with a self-signed or changed certificate and the app can't fetch that certificate to show you, it now says either that it can't reach the server (check the address and network) or that it couldn't read the certificate the server presents. Before, it showed the phone's raw technical error text, or just the server's address.
+
 ## v1.1.6 (2026-10-21)
 
 ### Changed
