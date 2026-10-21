@@ -101,7 +101,7 @@ fun TabTitle(
 }
 
 /**
- * The profile picture; tapping it opens account and settings (there is no "You" tab).
+ * The profile picture; tapping it opens the You page with the server, Settings and About (there is no settings tab).
  * Shows the first letter of the signed-in user once a server is connected.
  */
 @Composable
@@ -109,7 +109,7 @@ fun ProfileButton() {
     val nav = LocalNavigator.current
     val active by LocalContext.current.container.sessions.active.collectAsStateWithLifecycle()
     val initial = active?.server?.initial
-    val label = stringResource(R.string.account_and_settings)
+    val label = stringResource(R.string.you_title)
     IconButton(onClick = { nav.navigate(YouRoute) }) {
         Box(
             Modifier.size(34.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)),
