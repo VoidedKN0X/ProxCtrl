@@ -43,7 +43,7 @@ class MainActivity : FragmentActivity() {
         // A link like proxctrl://guest/103; not again when the activity is recreated (rotation).
         if (savedInstanceState == null) {
             DeepLinks.handle(intent?.data)
-            WidgetActions.handle(intent)
+            WidgetActions.handle(this, intent)
         }
         val c = container
         AppLock.attach(this, c)
@@ -98,6 +98,6 @@ class MainActivity : FragmentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         DeepLinks.handle(intent.data)
-        WidgetActions.handle(intent)
+        WidgetActions.handle(this, intent)
     }
 }

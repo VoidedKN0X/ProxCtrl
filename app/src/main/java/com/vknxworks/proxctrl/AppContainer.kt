@@ -15,6 +15,7 @@ import com.vknxworks.proxctrl.data.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
@@ -106,12 +107,25 @@ class AppContainer(val context: Context) {
     /** Locked: wipe the key from memory and drop the clients that hold the logins. */
     fun onLocked() {
         vault.close()
-        if (sealing()) sessions.setLocked(true)
+        if (sealing()) {
+            sessions.setLocked(true)
+            // The widgets and the tile now only say that ProxCtrl is locked.
+            appScope.launch { runCatching { WidgetRefresher.redraw(context) } }
+        }
     }
 
     fun onUnlocked() {
         AppLock.markUnlocked()
         sessions.setLocked(false)
+        // Seal any login left unsealed (ProxCtrl stopped between setting up the lock and sealing them).
+        if (vault.enabled) appScope.launch(Dispatchers.Default) { runCatching { serverStore.resealAll(sealing()) } }
+        // Widgets that said "locked" show the server again.
+        if (sealing()) {
+            appScope.launch {
+                runCatching { WidgetRefresher.redraw(context) }
+                if (runCatching { WidgetRefresher.anyWidgets(context) }.getOrDefault(false)) WidgetRefresher.refreshSoon(context)
+            }
+        }
     }
     val guests = GuestRepository(context, sessions, appScope)
     val overview = OverviewRepository(context, sessions, guests, appScope)

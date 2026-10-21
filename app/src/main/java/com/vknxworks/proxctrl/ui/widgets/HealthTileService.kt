@@ -7,6 +7,7 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.vknxworks.proxctrl.R
+import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.widgets.Health
 import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.data.widgets.WidgetStore
@@ -20,8 +21,17 @@ class HealthTileService : TileService() {
 
     override fun onStartListening() {
         super.onStartListening()
-        val s = WidgetStore.readBlocking(this)
         val tile = qsTile ?: return
+        // Locked with sealed logins: say so instead of showing the last saved state.
+        if (container.backgroundBlocked()) {
+            tile.label = getString(R.string.tile_label)
+            tile.subtitle = getString(R.string.widget_locked)
+            tile.state = Tile.STATE_INACTIVE
+            tile.icon = Icon.createWithResource(this, R.drawable.ic_notification)
+            tile.updateTile()
+            return
+        }
+        val s = WidgetStore.readBlocking(this)
         val node = s.node
         tile.label = node?.name ?: s.serverName.ifBlank { getString(R.string.tile_label) }
         tile.subtitle = when {

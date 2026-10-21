@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.widgets
 
+import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.material3.AlertDialog
@@ -37,6 +38,7 @@ object WidgetActions {
     const val EXTRA_SERVER = "server"
     const val EXTRA_VMID = "vmid"
     const val EXTRA_ACTION = "action"
+    const val EXTRA_INTERNAL = "internal"
     const val START = "start"
     const val SHUTDOWN = "shutdown"
 
@@ -55,10 +57,21 @@ object WidgetActions {
      */
     val openOverview: StateFlow<Boolean> = _openOverview.asStateFlow()
 
+    /**
+     * A random value only ProxCtrl's own widgets carry. MainActivity is exported, so other apps can open it
+     * too, but without this they can't open it straight into the "Start/Shut down?" question.
+     */
+    fun internalToken(context: Context): String {
+        val prefs = context.getSharedPreferences("widget_internal", Context.MODE_PRIVATE)
+        return prefs.getString("token", null)
+            ?: java.util.UUID.randomUUID().toString().also { prefs.edit().putString("token", it).apply() }
+    }
+
     /** Reads an intent MainActivity was started or resumed with. */
-    fun handle(intent: Intent?) {
+    fun handle(context: Context, intent: Intent?) {
         when (intent?.action) {
             ACTION_CONFIRM_POWER -> {
+                if (intent.getStringExtra(EXTRA_INTERNAL) != internalToken(context)) return
                 val server = intent.getStringExtra(EXTRA_SERVER) ?: return
                 val vmid = intent.getIntExtra(EXTRA_VMID, 0).takeIf { it > 0 } ?: return
                 val action = intent.getStringExtra(EXTRA_ACTION)?.takeIf { it == START || it == SHUTDOWN } ?: return

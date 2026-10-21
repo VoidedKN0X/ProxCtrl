@@ -35,6 +35,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.vknxworks.proxctrl.R
+import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.widgets.GuestSnapshot
 import com.vknxworks.proxctrl.data.widgets.WidgetSnapshot
 import com.vknxworks.proxctrl.data.widgets.WidgetStore
@@ -49,6 +50,10 @@ import kotlinx.coroutines.launch
  */
 class PinnedGuestsWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Locked with sealed logins: no guest names or states, not even the last saved ones.
+        if (context.container.backgroundBlocked()) {
+            provideContent { GlanceTheme { LockedWidgetContent() } }
+        }
         val appWidgetId = runCatching { GlanceAppWidgetManager(context).getAppWidgetId(id) }.getOrDefault(AppWidgetManager.INVALID_APPWIDGET_ID)
         val snapshot = WidgetStore.read(context)
         val pins = WidgetStore.pins(context, appWidgetId)

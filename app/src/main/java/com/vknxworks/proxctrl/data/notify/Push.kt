@@ -218,15 +218,18 @@ pvesh create /cluster/notifications/targets/proxctrl/test
 
 /**
  * Receives what ntfy hands over: the push address, registration errors and Proxmox's notifications. Exported
- * because ntfy is another app, so every broadcast must carry the secret token of ProxCtrl's registration (and,
- * from Android 14, come from ntfy) or it's ignored. Anyone who knows the push address can post to it, so
- * [Push.toAlert] keeps what's shown short.
+ * because ntfy is another app, so every broadcast must carry the secret token of ProxCtrl's registration or
+ * it's ignored: the token is what keeps other apps out. From Android 14 a broadcast from a sender that
+ * identifies itself as an app other than ntfy is dropped too, but a sender can stay anonymous, so that check
+ * only adds to the token. Anyone who knows the push address can post to it, so [Push.toAlert] keeps what's
+ * shown short.
  */
 class PushReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val token = intent.getStringExtra(UnifiedPush.EXTRA_TOKEN) ?: return
         if (token != UnifiedPush.token(context)) return
         if (Build.VERSION.SDK_INT >= 34) {
+            // Only rejects senders that identify as another app; anonymous ones get through to the token check.
             val sender = sentFromPackage
             if (sender != null && sender != UnifiedPush.NTFY) return
         }

@@ -1,6 +1,8 @@
 package com.vknxworks.proxctrl.data.storage
 
 import android.content.ContentResolver
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.OpenableColumns
 import com.vknxworks.proxctrl.data.api.PveClient
@@ -25,6 +27,22 @@ object IsoUpload {
     private val ISO_NAME = Regex("""^[^/]+\.(iso|img)$""", RegexOption.IGNORE_CASE)
 
     fun isIsoName(name: String): Boolean = ISO_NAME.matches(name.trim())
+
+    /**
+     * Whether a file shared from another app is safe to read: only content:// from another app's
+     * provider, never file:// and never a provider that belongs to ProxCtrl itself.
+     */
+    fun isForeignContentUri(context: Context, uri: Uri): Boolean {
+        if (!uri.scheme.equals(ContentResolver.SCHEME_CONTENT, ignoreCase = true)) return false
+        // "content://0@<authority>" still reaches <authority> (the number is a user id), so look past it.
+        val authority = uri.authority?.substringAfterLast('@')?.takeIf { it.isNotBlank() } ?: return false
+        if (authority.startsWith(context.packageName)) return false
+        // Whatever its name, a provider that belongs to this app is never "another app's".
+        val owner = runCatching {
+            context.packageManager.resolveContentProvider(authority, PackageManager.ComponentInfoFlags.of(0))?.packageName
+        }.getOrNull()
+        return owner != context.packageName
+    }
 
     /** Name and size of a content Uri (size is -1 when the provider doesn't say). */
     fun describe(resolver: ContentResolver, uri: Uri): PickedFile {

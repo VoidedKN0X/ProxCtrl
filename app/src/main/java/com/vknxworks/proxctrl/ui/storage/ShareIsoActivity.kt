@@ -96,7 +96,9 @@ class ShareIsoActivity : FragmentActivity() {
 
     private fun sharedUri(intent: Intent?): Uri? {
         if (intent?.action != Intent.ACTION_SEND) return null
-        return intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java) ?: intent.data
+        val uri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java) ?: intent.data ?: return null
+        // Only content:// from another app: a file:// address could point ProxCtrl at its own private files.
+        return uri.takeIf { IsoUpload.isForeignContentUri(this, it) }
     }
 }
 
