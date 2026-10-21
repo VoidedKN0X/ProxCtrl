@@ -4,6 +4,15 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.8 (2026-10-21)
+
+### Security
+
+- **Sharing an ISO only accepts files from other apps**: the Share → ProxCtrl screen accepted any address another app handed it, including `file://` addresses and ProxCtrl's own files, so another app could get ProxCtrl to upload one of its private files to your server. It now only takes files offered by another app (a `content://` address that doesn't belong to ProxCtrl, also when written with a user number in front), and otherwise says there's no file to upload.
+- **Only the pinned guests widget can open the Start / Shut down question**: any app could open ProxCtrl straight into "Start …?" or "Shut down …?" for one of your guests. Nothing happened without your confirmation, but the question could be made to pop up out of nowhere. The widget's buttons now carry a secret only ProxCtrl knows, and requests without it are ignored. Widgets already on your home screen pick it up at their next update (about every 15 minutes, or when you open ProxCtrl).
+- **Widgets and the tile say "ProxCtrl is locked" while it's locked**: with the app lock on and *Background checks while locked* off, the node status and pinned guests widgets kept showing your guests' names and the node's last known state, and the Quick Settings tile the node's name and health, while ProxCtrl was locked. They now only say "ProxCtrl is locked" until you unlock it, then show your server again.
+- **Your server logins are always sealed with the app lock**: if ProxCtrl was stopped in the split second between setting up the app lock and encrypting your server logins with the PIN, they could stay encrypted with the Android Keystore only. ProxCtrl now checks every time you unlock and seals anything that was missed.
+
 ## v1.1.7 (2026-10-21)
 
 ### Fixed

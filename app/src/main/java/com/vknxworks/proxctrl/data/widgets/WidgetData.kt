@@ -145,7 +145,11 @@ object WidgetRefresher {
         val app = context.applicationContext
         val c = app.container
         // App lock on with background checks off: no login to check with until ProxCtrl is unlocked.
-        if (c.backgroundBlocked()) return@withLock
+        // The widgets and the tile say that ProxCtrl is locked instead of showing what was last saved.
+        if (c.backgroundBlocked()) {
+            redraw(app)
+            return@withLock
+        }
         val previous = WidgetStore.read(app)
         val active = c.sessions.active.value
         val now = System.currentTimeMillis()

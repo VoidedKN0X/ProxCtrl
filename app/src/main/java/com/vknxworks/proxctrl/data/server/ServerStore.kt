@@ -106,7 +106,16 @@ class ServerStore(
     @Synchronized
     fun resealAll(seal: Boolean) {
         if (vault.enabled && !vault.isOpen) return
-        _servers.value.forEach { server -> saveSecrets(server.id, secrets(server.id), seal) }
+        _servers.value.forEach { server ->
+            // Already as asked: leave it alone (this also runs at every unlock).
+            if (!sealedAs(server.id, seal)) saveSecrets(server.id, secrets(server.id), seal)
+        }
+    }
+
+    /** Whether every stored secret of [id] is already sealed (or not) as [seal] says. */
+    private fun sealedAs(id: String, seal: Boolean): Boolean = listOf("token", "password", "ticket", "csrf").all { what ->
+        val inner = keystoreOpen(sp.getString(secretKey(id, what), null)) ?: return@all true
+        LockVault.isSealed(inner) == seal
     }
 
     /** Deletes every server and its secrets ("Forgot PIN?"). */
@@ -148,18 +157,23 @@ class ServerStore(
         }
     }
 
-    private fun decrypt(stored: String?): String {
-        if (stored.isNullOrEmpty()) return ""
+    /** The Keystore layer only: the secret, or the app lock's sealed form of it. Null when there's none. */
+    private fun keystoreOpen(stored: String?): String? {
+        if (stored.isNullOrEmpty()) return null
         return try {
             val raw = Base64.decode(stored, Base64.NO_WRAP)
             val c = Cipher.getInstance("AES/GCM/NoPadding")
             c.init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, raw, 0, 12))
-            val inner = String(c.doFinal(raw, 12, raw.size - 12))
-            // Sealed with the app lock's key: readable only while unlocked.
-            if (LockVault.isSealed(inner)) vault.open(inner).orEmpty() else inner
+            String(c.doFinal(raw, 12, raw.size - 12))
         } catch (_: Exception) {
-            ""
+            null
         }
+    }
+
+    private fun decrypt(stored: String?): String {
+        val inner = keystoreOpen(stored) ?: return ""
+        // Sealed with the app lock's key: readable only while unlocked.
+        return if (LockVault.isSealed(inner)) vault.open(inner).orEmpty() else inner
     }
 
     private companion object {

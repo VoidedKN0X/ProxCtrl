@@ -6,11 +6,24 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
+import androidx.glance.action.clickable
+import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.text.FontWeight
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.vknxworks.proxctrl.MainActivity
 import com.vknxworks.proxctrl.R
@@ -80,4 +93,36 @@ internal fun confirmPowerIntent(context: Context, serverId: String, vmid: Int, a
         .putExtra(WidgetActions.EXTRA_SERVER, serverId)
         .putExtra(WidgetActions.EXTRA_VMID, vmid)
         .putExtra(WidgetActions.EXTRA_ACTION, action)
+        .putExtra(WidgetActions.EXTRA_INTERNAL, WidgetActions.internalToken(context))
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+
+/**
+ * Shown instead of a widget's content while ProxCtrl is locked and the logins are sealed (app lock on,
+ * background checks off): nothing about the server, not even what was last saved. Tap opens ProxCtrl.
+ */
+@Composable
+internal fun LockedWidgetContent() {
+    val context = LocalContext.current
+    Column(
+        GlanceModifier
+            .fillMaxSize()
+            .appWidgetBackground()
+            .cornerRadius(20.dp)
+            .background(GlanceTheme.colors.widgetBackground)
+            .padding(14.dp)
+            .clickable(actionStartActivity(openOverviewIntent(context))),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            context.getString(R.string.widget_locked),
+            style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 15.sp, fontWeight = FontWeight.Bold),
+            maxLines = 1,
+        )
+        Text(
+            context.getString(R.string.widget_locked_subtitle),
+            style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp),
+            maxLines = 2,
+        )
+    }
+}

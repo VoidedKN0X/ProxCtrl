@@ -244,7 +244,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 
 - **Node status widget**: the node's health (all good, things to look at, or offline), CPU, RAM, root disk and uptime, and when it was last updated. Tap it to open the Overview.
 - **Pinned guests widget**: pick the guests it shows when you add it (tap its title to change them). Each shows a status dot and a **Start** or **Shut down** button. The buttons never act from the home screen: they open ProxCtrl and ask you to confirm first.
-- Widgets show the active server. They refresh about every 15 minutes (Android's minimum, with a network connection) and whenever you open ProxCtrl. When the server can't be reached they keep the last known state, marked as not updated.
+- Widgets show the active server. They refresh about every 15 minutes (Android's minimum, with a network connection) and whenever you open ProxCtrl. When the server can't be reached they keep the last known state, marked as not updated. With the app lock on and *Background checks while locked* off, they only say "ProxCtrl is locked" until you unlock it.
 - **Quick Settings tile**: the node's name, health and CPU / RAM. It's lit when all is good. Tap it to open the Overview. Add it from the Quick Settings editor.
 
 ## App lock
@@ -258,7 +258,7 @@ Turn it on under **Settings › Privacy and security › App lock** (tap your pr
 - **Lock again:** as soon as you leave the app (the default), after 1, 5 or 15 minutes or 1 hour away, or only when the app restarts. Picking a file, opening a link in your browser or Android's settings don't count as leaving, unless you stay away for more than 5 minutes.
 - **Change app PIN** asks for your current PIN first, and turning the app lock off asks for the PIN too.
 - **Confirm changes** (ProxCtrl only) asks for your fingerprint or PIN before anything that changes a server: power actions, snapshots, backups, consoles and edits. One confirmation covers the next minute.
-- **Background checks while locked:** on, notifications, widgets and the Quick Settings tile keep checking your servers while ProxCtrl is locked, so your logins are only encrypted with the Android Keystore (as without the app lock). Off (most secure), your logins are also encrypted with the PIN, and background checks wait until you unlock. It starts on when you already use notifications or widgets, so turning the lock on never silently stops them.
+- **Background checks while locked:** on, notifications, widgets and the Quick Settings tile keep checking your servers while ProxCtrl is locked, so your logins are only encrypted with the Android Keystore (as without the app lock). Off (most secure), your logins are also encrypted with the PIN, and background checks wait until you unlock; while ProxCtrl is locked, the widgets and the tile only say "ProxCtrl is locked" instead of showing your guests or the node's last known state. It starts on when you already use notifications or widgets, so turning the lock on never silently stops them.
 - **Forgot your PIN?** It can't be recovered. The lock screen offers to remove every server from this phone and turn the app lock off; nothing changes on your Proxmox servers.
 - **Sharing an ISO to ProxCtrl** asks for the PIN first, and the lock screen and every PIN screen are always kept out of screenshots.
 

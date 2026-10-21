@@ -30,6 +30,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.vknxworks.proxctrl.R
+import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.widgets.Health
 import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.data.widgets.WidgetSnapshot
@@ -45,6 +46,10 @@ import kotlinx.coroutines.launch
 /** Home-screen widget: the node's health, CPU, RAM, root disk and uptime. Tap opens the Overview. */
 class NodeStatusWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Locked with sealed logins: show that, not the last saved state.
+        if (context.container.backgroundBlocked()) {
+            provideContent { GlanceTheme { LockedWidgetContent() } }
+        }
         val snapshot = WidgetStore.read(context)
         provideContent {
             GlanceTheme {
