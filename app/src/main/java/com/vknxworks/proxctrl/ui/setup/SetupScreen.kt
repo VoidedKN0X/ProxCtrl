@@ -215,11 +215,11 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
             try {
                 realms = Auth.realms(http, base)
             } catch (e: PveError.UntrustedCertificate) {
-                askToTrust(url, changed = false, onCert = { certPrompt = it }, onFail = { error = it })
+                askToTrust(context, url, changed = false, onCert = { certPrompt = it }, onFail = { error = it })
                 busy = false
                 return@launch
             } catch (e: PveError.PinMismatch) {
-                askToTrust(url, changed = true, onCert = { certPrompt = it }, onFail = { error = it })
+                askToTrust(context, url, changed = true, onCert = { certPrompt = it }, onFail = { error = it })
                 busy = false
                 return@launch
             } catch (e: Exception) {
@@ -507,11 +507,22 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
 }
 
 /** Reads the certificate the server presents and asks the user to confirm it. */
-private suspend fun askToTrust(url: HttpUrl, changed: Boolean, onCert: (CertPrompt) -> Unit, onFail: (String) -> Unit) {
+private suspend fun askToTrust(
+    context: android.content.Context,
+    url: HttpUrl,
+    changed: Boolean,
+    onCert: (CertPrompt) -> Unit,
+    onFail: (String) -> Unit,
+) {
     try {
         onCert(CertPrompt(fetchCertInfo(url), changed))
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
     } catch (e: Exception) {
-        onFail(e.message ?: url.host)
+        // A plain connection problem reads like the connection test; anything else means the certificate itself
+        // couldn't be read. Never the exception's own (English, technical) text.
+        val unreachable = e is java.io.IOException && e !is javax.net.ssl.SSLException
+        onFail(context.getString(if (unreachable) R.string.error_unreachable else R.string.error_cert_unreadable, url.host))
     }
 }
 

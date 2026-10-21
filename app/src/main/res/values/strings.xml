@@ -1226,4 +1226,5 @@
     <string name="pin_legacy_body">Unlock with your fingerprint, face or screen lock one last time, then choose an app PIN.</string>
     <string name="pin_legacy_prompt_subtitle">Confirm it\'s you to choose an app PIN</string>
     <string name="pin_confirm_body">ProxCtrl is about to change something on your server. Enter your app PIN or use your fingerprint.</string>
+    <string name="error_cert_unreadable">Couldn\'t read the certificate %1$s presents, so it can\'t be checked. Try again, or check the address.</string>
 </resources>
