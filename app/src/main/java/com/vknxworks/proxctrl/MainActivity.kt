@@ -11,6 +11,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.vknxworks.proxctrl.data.lock.AppLock
@@ -54,9 +55,12 @@ class MainActivity : FragmentActivity() {
         }
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
-            // FLAG_SECURE follows "Hide content in screenshots & recents" (on by default, and on
-            // before the setting has been read), and is always on for sign-in and consoles.
-            val secure = settings.hideContent || ScreenPrivacy.forced > 0
+            val lock by AppLock.state.collectAsStateWithLifecycle()
+            // A lock or PIN screen covers the app (also "Confirm changes" and choosing a PIN).
+            val covered = lock != AppLock.State.UNLOCKED || AppLock.legacy || AppLock.request != null || AppLock.confirm != null
+            // FLAG_SECURE follows "Hide in screenshots and recent apps" (on by default, and on before the
+            // setting has been read), and is always on for sign-in, consoles and the lock and PIN screens.
+            val secure = settings.hideContent || covered || ScreenPrivacy.forced > 0
             LaunchedEffect(secure) {
                 if (secure) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -76,10 +80,12 @@ class MainActivity : FragmentActivity() {
                 enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
                 onDispose { }
             }
-            val lock by AppLock.state.collectAsStateWithLifecycle()
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
-                    AppRoot()
+                    // The app stays underneath the lock (so nothing you typed is lost), but hidden from
+                    // TalkBack and other accessibility services, which could otherwise read or tap it.
+                    val hidden = lock != AppLock.State.UNLOCKED
+                    Box(if (hidden) Modifier.fillMaxSize().clearAndSetSemantics { } else Modifier.fillMaxSize()) { AppRoot() }
                     if (lock == AppLock.State.UNLOCKED) {
                         // A widget's Start / Shut down button, waiting for confirmation.
                         WidgetActionConfirm()

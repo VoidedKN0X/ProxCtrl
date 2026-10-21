@@ -47,8 +47,8 @@
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
     <string name="theme_black">Pure black</string>
-    <string name="dynamic_colour">Dynamic colour</string>
-    <string name="dynamic_colour_subtitle">Use colours from your wallpaper</string>
+    <string name="dynamic_colour">Use wallpaper colours</string>
+    <string name="dynamic_colour_subtitle">Replaces the default colours with ones from your wallpaper</string>
 
     <!-- Server setup -->
     <string name="setup_title">Add your Proxmox server</string>
@@ -547,10 +547,11 @@
     <string name="paste_empty">The clipboard is empty.</string>
 
     <!-- Privacy -->
-    <string name="group_privacy">Privacy</string>
-    <string name="hide_content">Hide content in screenshots &amp; recents</string>
+    <string name="group_privacy">Privacy and security</string>
+    <string name="group_notifications">Notifications</string>
+    <string name="hide_content">Hide in screenshots and recent apps</string>
     <string name="hide_content_subtitle">Screenshots, screen recordings and the recent apps view show a blank screen</string>
-    <string name="hide_content_footer">Signing in to a server and consoles are always hidden, even with this off.</string>
+    <string name="hide_content_footer">Signing in to a server, consoles and the lock screen are always kept out of screenshots and recordings, even with Hide in screenshots and recent apps off.</string>
     <!-- Tasks started from the app -->
     <string name="task_running">%1$s…</string>
     <string name="task_done">%1$s: done</string>
@@ -908,7 +909,6 @@
     <string name="tile_subtitle_stale">%1$s (old)</string>
 
     <!-- App lock -->
-    <string name="lock_group">App lock</string>
     <string name="lock_changes">Confirm changes</string>
     <string name="lock_changes_subtitle">Ask for your fingerprint or app PIN before anything that changes a server: power actions, snapshots, backups, consoles, edits. Once confirmed, the next minute doesn\'t ask again</string>
     <string name="lock_footer">The app PIN is never stored. It is checked with a key in the phone\'s secure hardware, and after 5 wrong tries you have to wait (30 seconds, doubling up to 15 minutes). Forgot it? The lock screen can remove your servers so you can add them again.</string>

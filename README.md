@@ -238,13 +238,29 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Wake-on-LAN**: enter the node's MAC address (and, if needed, your network's broadcast address and port) from the menu on the Node tab, and ProxCtrl can turn the node back on. When the node can't be reached, the Node tab offers to wake it. The packet is sent from your phone, so your phone has to be on the same network as the node, and Wake-on-LAN must be turned on in the node's firmware and network card. ProxCtrl never looks at your Wi-Fi name or location.
 - Services, updates and changelogs need `Sys.Modify` on the node (see step 3 of the API token setup), and reboot and shutdown need `Sys.PowerMgmt`.
 
-## Widgets, Quick Settings tile and app lock
+## Widgets and Quick Settings tile
 
 - **Node status widget**: the node's health (all good, things to look at, or offline), CPU, RAM, root disk and uptime, and when it was last updated. Tap it to open the Overview.
 - **Pinned guests widget**: pick the guests it shows when you add it (tap its title to change them). Each shows a status dot and a **Start** or **Shut down** button. The buttons never act from the home screen: they open ProxCtrl and ask you to confirm first.
 - Widgets show the active server. They refresh about every 15 minutes (Android's minimum, with a network connection) and whenever you open ProxCtrl. When the server can't be reached they keep the last known state, marked as not updated.
 - **Quick Settings tile**: the node's name, health and CPU / RAM. It's lit when all is good. Tap it to open the Overview. Add it from the Quick Settings editor.
-- **App lock** (Settings > App lock): an app PIN of at least 6 digits, separate from your phone's, with optional fingerprint unlock (strong biometrics only; the PIN is still needed after a restart and every 72 hours). *Lock again* sets when it asks again: as soon as you leave the app, after 1, 5 or 15 minutes or 1 hour, or only when the app restarts. *Confirm changes* asks for your fingerprint or PIN before anything that changes a server (one confirmation covers the next minute). With *Background checks while locked* off, your server logins are also encrypted with the PIN while ProxCtrl is locked, and notifications, widgets and the tile wait until you unlock. The PIN is never stored, and wrong tries make you wait.
+
+## App lock
+
+Turn it on under **Settings > Privacy and security > App lock**. It's off until you turn it on.
+
+- **Its own app PIN** of at least 6 digits, separate from your phone's screen lock. Very obvious PINs such as 111111 or 123456 are refused.
+- **Unlock with fingerprint** (optional) only accepts strong biometrics, such as the fingerprint sensor, checked by the phone's secure hardware. Face unlock that only uses the camera isn't accepted. The PIN is still needed after the phone restarts and at least every 72 hours, and adding a new fingerprint to the phone turns fingerprint unlock off until you turn it on again.
+- **Your server logins can be encrypted with the PIN while ProxCtrl is locked** (see *Background checks while locked* below). The key only exists in memory while the app is unlocked and is wiped the moment it locks. The PIN itself is never stored: it's stretched with 600,000 rounds of PBKDF2 and mixed with a key held in the phone's secure hardware, so a copy of the app's files isn't enough to guess it on a computer.
+- **Wrong PINs:** after 5 tries you wait 30 seconds, doubling up to 15 minutes. Restarting the app or the phone, or changing the clock, doesn't skip the wait.
+- **Lock again:** as soon as you leave the app (the default), after 1, 5 or 15 minutes or 1 hour away, or only when the app restarts. Picking a file, opening a link in your browser or Android's settings don't count as leaving, unless you stay away for more than 5 minutes.
+- **Change app PIN** asks for your current PIN first, and turning the app lock off asks for the PIN too.
+- **Confirm changes** (ProxCtrl only) asks for your fingerprint or PIN before anything that changes a server: power actions, snapshots, backups, consoles and edits. One confirmation covers the next minute.
+- **Background checks while locked:** on, notifications, widgets and the Quick Settings tile keep checking your servers while ProxCtrl is locked, so your logins are only encrypted with the Android Keystore (as without the app lock). Off (most secure), your logins are also encrypted with the PIN, and background checks wait until you unlock. It starts on when you already use notifications or widgets, so turning the lock on never silently stops them.
+- **Forgot your PIN?** It can't be recovered. The lock screen offers to remove every server from this phone and turn the app lock off; nothing changes on your Proxmox servers.
+- **Sharing an ISO to ProxCtrl** asks for the PIN first, and the lock screen and every PIN screen are always kept out of screenshots.
+
+**Hide in screenshots and recent apps** (in the same section, on by default, also without the app lock) keeps ProxCtrl out of screenshots, screen recordings and the recent-apps view. Signing in to a server, consoles and the lock screen are always hidden.
 
 ## Consoles and the node shell
 
@@ -260,7 +276,10 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 
 - **Servers:** your own Proxmox servers. Push notifications come through the ntfy app and your own ntfy server. The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
 - **Consoles:** the built-in web view for the consoles and node shell has Safe Browsing and WebView usage reports turned off, so page addresses never leave the phone.
+- **Wake-on-LAN** sends its packet only on your own network, to the node's MAC address and the broadcast address you entered.
 - **Links:** the Support, Report a bug, Source code and Licence rows in About open in your browser; the app itself doesn't contact GitHub.
+- **Notifications** on the lock screen hide guest and node details when you hide sensitive notification content in Android's settings.
+- **No backups:** Android doesn't back up ProxCtrl's data or move it to a new phone.
 
 ## Build from source
 
@@ -292,6 +311,7 @@ Native Android apps for self-hosted services and everyday tools, all with the sa
 
 | App | What it's for |
 | --- | --- |
+| [AdCtrl](https://github.com/VoidedKN0X/AdCtrl) | Control your AdGuard Home DNS server |
 | [ArrCtrl](https://github.com/VoidedKN0X/ArrCtrl) | Radarr, Sonarr, Prowlarr, Bazarr, qBittorrent, autobrr and Cleanuparr in one app |
 | [BeamCtrl](https://github.com/VoidedKN0X/BeamCtrl) | TV remote for phones with an IR blaster |
 | [CraftyCtrl](https://github.com/VoidedKN0X/CraftyCtrl) | Manage Minecraft servers on Crafty Controller |
@@ -300,6 +320,7 @@ Native Android apps for self-hosted services and everyday tools, all with the sa
 | [FrigateCtrl](https://github.com/VoidedKN0X/FrigateCtrl) | Watch and review your Frigate NVR cameras |
 | [ImmichCtrl](https://github.com/VoidedKN0X/ImmichCtrl) | Photos and backup for your Immich server |
 | [JellyCtrl](https://github.com/VoidedKN0X/JellyCtrl) | Movies, shows, music and Live TV from Jellyfin |
+| [MemoCtrl](https://github.com/VoidedKN0X/MemoCtrl) | Notes on your Memos server |
 | [NaviCtrl](https://github.com/VoidedKN0X/NaviCtrl) | Music player for Navidrome servers |
 | [PaperCtrl](https://github.com/VoidedKN0X/PaperCtrl) | Scan and browse documents on Paperless-ngx |
 | [PrintCtrl](https://github.com/VoidedKN0X/PrintCtrl) | Bambu Lab printers through Bambuddy, and Spoolman spools |
