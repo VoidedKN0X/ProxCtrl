@@ -97,6 +97,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.webkit.WebViewAssetLoader
+import com.vknxworks.proxctrl.BuildConfig
 import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.api.PveError
@@ -465,8 +466,10 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             }
             IconButton(onClick = {
                 showDiag = !showDiag
-                // Lets the console page be inspected from a computer (chrome://inspect) while the panel is open.
-                runCatching { WebView.setWebContentsDebuggingEnabled(showDiag) }
+                // Debug builds only: lets the console page be inspected from a computer (chrome://inspect)
+                // while the panel is open. Never in a release, where it would expose the open shell to
+                // anything connected over USB debugging.
+                if (BuildConfig.DEBUG) runCatching { WebView.setWebContentsDebuggingEnabled(showDiag) }
             }) {
                 Icon(
                     Icons.Filled.BugReport,

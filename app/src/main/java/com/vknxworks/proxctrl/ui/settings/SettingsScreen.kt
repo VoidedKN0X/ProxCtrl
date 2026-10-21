@@ -47,7 +47,7 @@ import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import kotlinx.coroutines.launch
 
-/** App settings: notifications, appearance, warning thresholds, privacy, app lock and widgets. */
+/** App settings: appearance, notifications, privacy and security (app lock), warning thresholds and widgets. */
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
@@ -59,15 +59,6 @@ fun SettingsScreen() {
     Column(Modifier.fillMaxSize()) {
         ScreenTopBar(stringResource(R.string.settings))
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
-            Group {
-                GroupRow(
-                    stringResource(R.string.notifications),
-                    stringResource(R.string.notifications_subtitle),
-                    icon = Icons.Filled.Notifications,
-                    showChevron = true,
-                    onClick = { nav.navigate(NotificationsRoute) },
-                )
-            }
             Group(stringResource(R.string.group_appearance)) {
                 GroupChoice(
                     stringResource(R.string.theme),
@@ -82,40 +73,21 @@ fun SettingsScreen() {
                     icon = Icons.Filled.Palette,
                 ) { on -> c.appScope.launch { c.settings.update { it.copy(dynamicColor = on) } } }
             }
-            Group(stringResource(R.string.group_warnings)) {
-                GroupChoice(
-                    stringResource(R.string.disk_warn_title),
-                    listOf(70, 75, 80, 85, 90, 95).map { it to stringResource(R.string.disk_warn_subtitle, it) },
-                    settings.diskWarnPercent,
-                    icon = Icons.Filled.Storage,
-                ) { pct -> c.appScope.launch { c.settings.update { it.copy(diskWarnPercent = pct) } } }
-                GroupChoice(
-                    stringResource(R.string.mem_warn_title),
-                    listOf(75, 80, 85, 90, 95).map { it to stringResource(R.string.mem_warn_subtitle, it) },
-                    settings.memWarnPercent,
-                    icon = Icons.Filled.Memory,
-                ) { pct -> c.appScope.launch { c.settings.update { it.copy(memWarnPercent = pct) } } }
-                GroupChoice(
-                    stringResource(R.string.backup_age_title),
-                    listOf(1, 2, 3, 7, 14, 30).map { it to pluralStringResource(R.plurals.backup_age_subtitle, it, it) },
-                    settings.backupMaxAgeDays,
-                    icon = Icons.Filled.Backup,
-                ) { d -> c.appScope.launch { c.settings.update { it.copy(backupMaxAgeDays = d) } } }
-            }
-            Group(stringResource(R.string.group_privacy), footer = stringResource(R.string.hide_content_footer)) {
-                GroupSwitch(
-                    stringResource(R.string.hide_content),
-                    stringResource(R.string.hide_content_subtitle),
-                    checked = settings.hideContent,
-                    icon = Icons.Filled.VisibilityOff,
-                ) { on -> c.appScope.launch { c.settings.update { it.copy(hideContent = on) } } }
+            Group(stringResource(R.string.group_notifications)) {
+                GroupRow(
+                    stringResource(R.string.notifications),
+                    stringResource(R.string.notifications_subtitle),
+                    icon = Icons.Filled.Notifications,
+                    showChevron = true,
+                    onClick = { nav.navigate(NotificationsRoute) },
+                )
             }
             val lockOn = c.vault.enabled
             val bioAvailable = remember { AppLock.biometricAvailable(context) }
             val bioFailed = stringResource(R.string.lock_fingerprint_failed)
             val bioTitle = stringResource(R.string.lock_fingerprint_prompt_title)
             val bioSubtitle = stringResource(R.string.lock_fingerprint_prompt_subtitle)
-            Group(stringResource(R.string.lock_group), footer = stringResource(R.string.lock_footer)) {
+            Group(stringResource(R.string.group_privacy), footer = stringResource(R.string.lock_footer) + "\n\n" + stringResource(R.string.hide_content_footer)) {
                 GroupSwitch(
                     stringResource(R.string.lock_app),
                     stringResource(R.string.lock_app_subtitle),
@@ -169,6 +141,32 @@ fun SettingsScreen() {
                         icon = Icons.Filled.Notifications,
                     ) { on -> c.appScope.launch { c.setBackgroundChecks(on) } }
                 }
+                GroupSwitch(
+                    stringResource(R.string.hide_content),
+                    stringResource(R.string.hide_content_subtitle),
+                    checked = settings.hideContent,
+                    icon = Icons.Filled.VisibilityOff,
+                ) { on -> c.appScope.launch { c.settings.update { it.copy(hideContent = on) } } }
+            }
+            Group(stringResource(R.string.group_warnings)) {
+                GroupChoice(
+                    stringResource(R.string.disk_warn_title),
+                    listOf(70, 75, 80, 85, 90, 95).map { it to stringResource(R.string.disk_warn_subtitle, it) },
+                    settings.diskWarnPercent,
+                    icon = Icons.Filled.Storage,
+                ) { pct -> c.appScope.launch { c.settings.update { it.copy(diskWarnPercent = pct) } } }
+                GroupChoice(
+                    stringResource(R.string.mem_warn_title),
+                    listOf(75, 80, 85, 90, 95).map { it to stringResource(R.string.mem_warn_subtitle, it) },
+                    settings.memWarnPercent,
+                    icon = Icons.Filled.Memory,
+                ) { pct -> c.appScope.launch { c.settings.update { it.copy(memWarnPercent = pct) } } }
+                GroupChoice(
+                    stringResource(R.string.backup_age_title),
+                    listOf(1, 2, 3, 7, 14, 30).map { it to pluralStringResource(R.plurals.backup_age_subtitle, it, it) },
+                    settings.backupMaxAgeDays,
+                    icon = Icons.Filled.Backup,
+                ) { d -> c.appScope.launch { c.settings.update { it.copy(backupMaxAgeDays = d) } } }
             }
             Group(stringResource(R.string.widget_settings_group)) {
                 GroupRow(

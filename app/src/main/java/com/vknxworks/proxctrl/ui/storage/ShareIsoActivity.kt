@@ -77,8 +77,10 @@ class ShareIsoActivity : FragmentActivity() {
         AppLock.attach(this, c)
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
-            LaunchedEffect(settings.hideContent) {
-                if (settings.hideContent) {
+            val locked by AppLock.state.collectAsStateWithLifecycle()
+            val secure = settings.hideContent || locked != AppLock.State.UNLOCKED || AppLock.confirm != null
+            LaunchedEffect(secure) {
+                if (secure) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 } else {
                     window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)

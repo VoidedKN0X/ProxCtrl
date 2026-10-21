@@ -4,6 +4,22 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.4 (2026-10-21)
+
+Settings now follow the same layout as the other Ctrl apps, and the lock screen is better protected.
+
+### Changed
+
+- **Settings are in the same order as in every Ctrl app:** Appearance first, then Notifications, then **Privacy and security**, then Warnings and Widgets. Privacy and security now holds everything that was under Privacy and App lock, in the same order as the other apps: App lock, Change app PIN, Unlock with fingerprint, Lock again, Confirm changes, Background checks while locked, and Hide in screenshots and recent apps.
+- **"Hide content in screenshots & recents" is now called "Hide in screenshots and recent apps"**, and "Dynamic colour" is now **Use wallpaper colours**, the same names as in the other Ctrl apps. Both work as before.
+- **The lock screen after updating from the old app lock** looks like the PIN screen and the other Ctrl apps: the same lock badge, and a full-width **Unlock** button.
+
+### Security
+
+- **The lock screen and every PIN screen are always kept out of screenshots and screen recordings**, also with "Hide in screenshots and recent apps" turned off, and when sharing an ISO to ProxCtrl.
+- **Accessibility services can't read or tap the app behind the lock screen any more.** While ProxCtrl is locked, the screens underneath are hidden from TalkBack and other accessibility services, not only covered.
+- **The console's diagnostics panel no longer turns on remote debugging** (inspecting the console from a computer over USB) in the release app. A computer with USB debugging access could otherwise reach the open shell while the panel was open. The panel itself still shows its diagnostics.
+
 ## v1.1.3 (2026-10-21)
 
 ### Security
