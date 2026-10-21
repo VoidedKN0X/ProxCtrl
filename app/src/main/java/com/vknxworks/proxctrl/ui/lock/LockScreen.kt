@@ -44,18 +44,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vknxworks.proxctrl.AppContainer
 import com.vknxworks.proxctrl.R
@@ -67,6 +72,7 @@ import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.ui.components.ConfirmDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
@@ -142,6 +148,16 @@ fun LockOverlays(activity: FragmentActivity) {
     }
 }
 
+/**
+ * Waits until the app is really back on screen: resumed, with its window focused. A fingerprint prompt asked
+ * for earlier (while the app is still coming back from the background) is dropped by the system, on some
+ * phones without any answer, which used to leave fingerprint unlock not working until the app was closed.
+ */
+private suspend fun awaitOnScreen(lifecycle: Lifecycle, windowInfo: WindowInfo) {
+    lifecycle.currentStateFlow.first { it.isAtLeast(Lifecycle.State.RESUMED) }
+    snapshotFlow { windowInfo.isWindowFocused }.first { it }
+}
+
 /** Background checks stay on when they're in use (notifications or widgets), so turning the lock on doesn't silently stop them. */
 private suspend fun defaultBackgroundChecks(c: AppContainer): Boolean {
     val n = c.notifySettings.current()
@@ -152,10 +168,18 @@ private suspend fun defaultBackgroundChecks(c: AppContainer): Boolean {
 private fun LegacyLockedScreen(activity: FragmentActivity) {
     var error by remember { mutableStateOf<String?>(null) }
     fun unlock() = AppLock.legacyAuthenticate(activity) { error = it }
-    LaunchedEffect(AppLock.lockCount) {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val windowInfo = LocalWindowInfo.current
+    LaunchedEffect(AppLock.lockCount, AppLock.returns) {
         // No screen lock or fingerprint on the phone any more: there's nothing to confirm with, and
         // anyone holding the phone could already open it, so go straight to choosing a PIN.
-        if (!AppLock.legacyAvailable(activity)) AppLock.markUnlocked() else unlock()
+        if (!AppLock.legacyAvailable(activity)) {
+            AppLock.markUnlocked()
+            return@LaunchedEffect
+        }
+        // Asked for on every lock and every return, once the app is really on screen.
+        awaitOnScreen(lifecycle, windowInfo)
+        unlock()
     }
     Box(Modifier.fillMaxSize().systemBarsPadding().padding(32.dp), contentAlignment = Alignment.Center) {
         Column(
@@ -198,7 +222,7 @@ private fun PinLockScreen(activity: FragmentActivity) {
     var checking by remember { mutableStateOf(false) }
     var lockout by remember { mutableLongStateOf(vault.lockoutRemaining()) }
     var forgetting by remember { mutableStateOf(false) }
-    val bioAvailable = remember(AppLock.lockCount) {
+    val bioAvailable = remember(AppLock.lockCount, AppLock.returns) {
         vault.biometricEnabled && AppLock.biometricAvailable(activity) && !vault.pinRequired()
     }
     val wrongText = stringResource(R.string.pin_wrong)
@@ -223,7 +247,14 @@ private fun PinLockScreen(activity: FragmentActivity) {
             if (vault.unlockWithBiometric(unlocked)) c.onUnlocked() else message = failedText
         }
     }
-    LaunchedEffect(AppLock.lockCount) { if (bioAvailable) askFingerprint() }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val windowInfo = LocalWindowInfo.current
+    // Offered on every lock and every time you come back to the lock screen, once the app is really on screen.
+    LaunchedEffect(AppLock.lockCount, AppLock.returns) {
+        if (!bioAvailable) return@LaunchedEffect
+        awaitOnScreen(lifecycle, windowInfo)
+        askFingerprint()
+    }
 
     fun submit() {
         if (checking || lockout > 0 || pin.length < LockVault.PIN_MIN) return
@@ -305,7 +336,9 @@ private fun ConfirmChangeScreen(activity: FragmentActivity, onResult: (Boolean) 
     var message by remember { mutableStateOf<String?>(null) }
     var checking by remember { mutableStateOf(false) }
     var lockout by remember { mutableLongStateOf(vault.lockoutRemaining()) }
-    val bioAvailable = remember { vault.biometricEnabled && AppLock.biometricAvailable(activity) && !vault.pinRequired() }
+    val bioAvailable = remember(AppLock.returns) {
+        vault.biometricEnabled && AppLock.biometricAvailable(activity) && !vault.pinRequired()
+    }
     val wrongText = stringResource(R.string.pin_wrong)
     val failedText = stringResource(R.string.pin_fingerprint_failed)
     val promptTitle = stringResource(R.string.lock_confirm_title)
@@ -325,7 +358,14 @@ private fun ConfirmChangeScreen(activity: FragmentActivity, onResult: (Boolean) 
             if (vault.unlockWithBiometric(unlocked)) onResult(true) else message = failedText
         }
     }
-    LaunchedEffect(Unit) { if (bioAvailable) askFingerprint() }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val windowInfo = LocalWindowInfo.current
+    // Offered when the screen opens and again every time you come back to it, once the app is really on screen.
+    LaunchedEffect(AppLock.returns) {
+        if (!bioAvailable) return@LaunchedEffect
+        awaitOnScreen(lifecycle, windowInfo)
+        askFingerprint()
+    }
 
     fun submit() {
         if (checking || lockout > 0 || pin.length < LockVault.PIN_MIN) return

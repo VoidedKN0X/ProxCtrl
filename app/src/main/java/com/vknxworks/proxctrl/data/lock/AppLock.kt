@@ -53,6 +53,13 @@ object AppLock {
     var lockCount by mutableIntStateOf(0)
         private set
 
+    /**
+     * Goes up every time you come back to the app after really leaving it (not for the fingerprint prompt
+     * itself), so the lock screen offers the fingerprint again on every return, not just once per lock.
+     */
+    var returns by mutableIntStateOf(0)
+        private set
+
     /** A PIN screen shown on top of the app: turning the lock on or off, or changing the PIN. */
     var request by mutableStateOf<PinRequest?>(null)
 
@@ -72,7 +79,11 @@ object AppLock {
     @Volatile private var settingsLoaded = false
     @Volatile private var foreground: WeakReference<FragmentActivity>? = null
     @Volatile private var startedActivities = 0
-    @Volatile private var authenticating = false
+    /** The fingerprint (or old screen lock) prompt that is open right now, if any. */
+    @Volatile private var openPrompt: BiometricPrompt? = null
+    @Volatile private var openGeneration = 0
+    @Volatile private var promptStartedAt = 0L
+    private var promptGeneration = 0
     @Volatile private var backgroundedAt = 0L
     @Volatile private var expectReturnAt = 0L
     @Volatile private var lastConfirmAt = 0L
@@ -82,6 +93,34 @@ object AppLock {
     var saveBeforeLock: (() -> Unit)? = null
 
     private fun configured(c: AppContainer) = c.vault.enabled || legacy
+
+    private const val PROMPT_STALE_MS = 60_000L
+
+    /**
+     * A prompt is open. Some phones drop a prompt without ever answering (for example one asked for while
+     * the app was still coming back on screen); such a prompt stops counting after a minute, and asking
+     * again always replaces it, so it can never block fingerprint unlock until the app is closed.
+     */
+    private val authenticating: Boolean
+        get() = openGeneration != 0 && SystemClock.elapsedRealtime() - promptStartedAt < PROMPT_STALE_MS
+
+    /** Starts tracking a new prompt, replacing one that is still marked as open. Returns its generation. */
+    private fun beginPrompt(): Int {
+        openPrompt?.let { runCatching { it.cancelAuthentication() } }
+        openPrompt = null
+        val generation = ++promptGeneration
+        openGeneration = generation
+        promptStartedAt = SystemClock.elapsedRealtime()
+        return generation
+    }
+
+    /** True once, and only for the newest prompt: a late answer from a replaced prompt is ignored. */
+    private fun endPrompt(generation: Int): Boolean {
+        if (generation != openGeneration) return false
+        openGeneration = 0
+        openPrompt = null
+        return true
+    }
 
     /**
      * Hooks the lock into [activity] (call from onCreate). The first call also starts following the
@@ -153,6 +192,7 @@ object AppLock {
         backgroundedAt = 0L
         expectReturnAt = 0L
         exemptTrip = false
+        if (since > 0) returns++
         if (!settingsLoaded || !configured(c) || _state.value != State.UNLOCKED || since <= 0 || lockTimeoutMs < 0) return
         // A trip the app started still locks if you stay away long: after 5 minutes, or the chosen time if longer.
         val limit = if (exempt) maxOf(lockTimeoutMs, 5 * 60_000L) else lockTimeoutMs
@@ -196,20 +236,20 @@ object AppLock {
         onError: (String?) -> Unit = {},
         onSuccess: (Cipher) -> Unit,
     ) {
-        if (authenticating) return
-        authenticating = true
+        // Replaces a prompt that is still marked as open; its late answer (if any) is ignored below.
+        val generation = beginPrompt()
         val prompt = BiometricPrompt(
             activity,
             ContextCompat.getMainExecutor(activity),
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    authenticating = false
+                    if (!endPrompt(generation)) return
                     val c = result.cryptoObject?.cipher
                     if (c != null) onSuccess(c) else onError(activity.getString(R.string.pin_fingerprint_failed))
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    authenticating = false
+                    if (!endPrompt(generation)) return
                     val cancelled = errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON ||
                         errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
                         errorCode == BiometricPrompt.ERROR_CANCELED
@@ -227,28 +267,27 @@ object AppLock {
             .setAllowedAuthenticators(BIOMETRIC_STRONG)
             .setConfirmationRequired(false)
             .build()
+        openPrompt = prompt
         runCatching { prompt.authenticate(info, BiometricPrompt.CryptoObject(cipher)) }.onFailure {
-            authenticating = false
-            onError(it.message)
+            if (endPrompt(generation)) onError(it.message)
         }
     }
 
     /** The old unlock with the phone's screen lock, to prove it's you before choosing a PIN. */
     fun legacyAuthenticate(activity: FragmentActivity, onResult: (String?) -> Unit) {
-        if (authenticating) return
-        authenticating = true
+        val generation = beginPrompt()
         val prompt = BiometricPrompt(
             activity,
             ContextCompat.getMainExecutor(activity),
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    authenticating = false
+                    if (!endPrompt(generation)) return
                     markUnlocked()
                     onResult(null)
                 }
 
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    authenticating = false
+                    if (!endPrompt(generation)) return
                     onResult(errString.toString())
                 }
 
@@ -261,9 +300,9 @@ object AppLock {
             .setAllowedAuthenticators(BIOMETRIC_WEAK or DEVICE_CREDENTIAL)
             .setConfirmationRequired(false)
             .build()
+        openPrompt = prompt
         runCatching { prompt.authenticate(info) }.onFailure {
-            authenticating = false
-            onResult(it.message)
+            if (endPrompt(generation)) onResult(it.message)
         }
     }
 
