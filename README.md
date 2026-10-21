@@ -25,7 +25,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, screenshot protection, and token secrets and passwords encrypted with the Android Keystore
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, **Hide in screenshots** and **Hide in recent apps** switches, sign-in and consoles always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore
 
 ## Screenshots
 
@@ -260,7 +260,12 @@ Turn it on under **Settings > Privacy and security > App lock**. It's off until 
 - **Forgot your PIN?** It can't be recovered. The lock screen offers to remove every server from this phone and turn the app lock off; nothing changes on your Proxmox servers.
 - **Sharing an ISO to ProxCtrl** asks for the PIN first, and the lock screen and every PIN screen are always kept out of screenshots.
 
-**Hide in screenshots and recent apps** (in the same section, on by default, also without the app lock) keeps ProxCtrl out of screenshots, screen recordings and the recent-apps view. Signing in to a server, consoles and the lock screen are always hidden.
+Two more switches in the same section work with or without the app lock, and are both off until you turn them on:
+
+- **Hide in screenshots**: screenshots and screen recordings show a blank screen (and so does the recent-apps view).
+- **Hide in recent apps**: the recent-apps view shows a blank card instead of ProxCtrl. Screenshots still work.
+
+Signing in to a server, consoles, the node shell and the lock and PIN screens are always kept out of screenshots and recordings, whatever these switches say. With the app lock on, the recent-apps view always shows a blank card.
 
 ## Consoles and the node shell
 

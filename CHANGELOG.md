@@ -4,6 +4,14 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.5 (2026-10-21)
+
+### Changed
+
+- **Hide in screenshots** and **Hide in recent apps** are now two separate switches in **Settings > Privacy and security**, both off by default. **Hide in screenshots** makes screenshots and screen recordings show a blank screen (the recent-apps view too). **Hide in recent apps** only shows a blank card in the recent-apps view, so screenshots still work. They replace "Hide in screenshots and recent apps".
+- **What changes if you never touched it:** the old switch was on by default, so ProxCtrl used to block every screenshot and always showed a blank card in recent apps. Both new switches start off, so screenshots of ProxCtrl now work and recent apps shows a preview. Turn both switches on to keep the old behaviour. With the app lock on, recent apps still always shows a blank card, because a preview there would show your servers without the PIN.
+- Signing in to a server, consoles, the node shell and the lock and PIN screens are still always kept out of screenshots and recordings, whatever the switches say. Sharing an ISO and the pinned guests widget's settings follow the same switches.
+
 ## v1.1.4 (2026-10-21)
 
 Settings now follow the same layout as the other Ctrl apps, and the lock screen is better protected.

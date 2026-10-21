@@ -53,6 +53,7 @@ import com.vknxworks.proxctrl.ui.lock.LockOverlays
 import com.vknxworks.proxctrl.ui.lock.LockScreen
 import com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme
 import kotlinx.coroutines.launch
+import com.vknxworks.proxctrl.ui.components.WindowPrivacy
 
 /**
  * Picks the guests a pinned-guests widget shows, from the active server's guest list. Opens when the
@@ -72,18 +73,14 @@ class PinnedGuestsConfigActivity : FragmentActivity() {
             finish()
             return
         }
-        setRecentsScreenshotEnabled(false)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
         val c = container
         AppLock.attach(this, c)
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
-            LaunchedEffect(settings.hideContent) {
-                if (settings.hideContent) window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                else window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            }
             val lockState by AppLock.state.collectAsStateWithLifecycle()
+            WindowPrivacy(this, settings.hideScreenshots || lockState != AppLock.State.UNLOCKED, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
                     if (lockState == AppLock.State.UNLOCKED) {

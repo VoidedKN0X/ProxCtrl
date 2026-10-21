@@ -549,9 +549,11 @@
     <!-- Privacy -->
     <string name="group_privacy">Privacy and security</string>
     <string name="group_notifications">Notifications</string>
-    <string name="hide_content">Hide in screenshots and recent apps</string>
-    <string name="hide_content_subtitle">Screenshots, screen recordings and the recent apps view show a blank screen</string>
-    <string name="hide_content_footer">Signing in to a server, consoles and the lock screen are always kept out of screenshots and recordings, even with Hide in screenshots and recent apps off.</string>
+    <string name="hide_screenshots">Hide in screenshots</string>
+    <string name="hide_screenshots_subtitle">Screenshots and screen recordings show a blank screen</string>
+    <string name="hide_recents">Hide in recent apps</string>
+    <string name="hide_recents_subtitle">The recent apps view shows a blank card instead of the app</string>
+    <string name="hide_content_footer">Signing in to a server, consoles and the lock and PIN screens are always kept out of screenshots and recordings, even with Hide in screenshots off. With the app lock on, the recent apps view always shows a blank card.</string>
     <!-- Tasks started from the app -->
     <string name="task_running">%1$s…</string>
     <string name="task_done">%1$s: done</string>
