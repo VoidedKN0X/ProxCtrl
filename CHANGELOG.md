@@ -4,6 +4,18 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.1.10 (2026-10-22)
+
+### Fixed
+
+- **ProxCtrl now really asks to show notifications**: on Android 13 and later an app can only show notifications after you allow it, and ProxCtrl only asked when you turned **Check in the background** or **Push from Proxmox** on. If that question was missed or answered with no, checks and push messages kept arriving but every alert (node or guest down, high CPU, storage, backups, updates and Proxmox's own notifications) was silently dropped. With background checks or push on, ProxCtrl now asks once by itself as soon as it's unlocked, and never again after that, so it doesn't nag on every start.
+- **Allow notifications always does something**: once you'd said no twice, Android stops showing its question, and the **Allow notifications** button on the Notifications screen did nothing at all. It now opens ProxCtrl's notification settings in Android when the question can't be shown any more (and when notifications are turned off there), and the app lock doesn't lock you out when you come back.
+
+### Changed
+
+- **Notification switches show the truth**: while notifications are blocked, **Check in the background**, **Push from Proxmox** and the event switches show as off, because nothing can reach you, and the red banner at the top explains why. The push address and setup commands are hidden until notifications are allowed. Turning any of the switches on asks for the permission (or opens Android's settings when it can't ask any more). As soon as you allow notifications, the switches show your saved choices again; you don't have to set anything twice.
+- **Settings shows when notifications are blocked**: the **Notifications** row in Settings reads "Notifications are blocked: tap to allow them" while background checks or push are on but ProxCtrl can't show notifications.
+
 ## v1.1.9 (2026-10-21)
 
 ### Fixed
