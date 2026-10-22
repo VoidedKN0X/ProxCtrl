@@ -78,6 +78,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.toRoute
 import com.vknxworks.proxctrl.ui.components.LocalBottomClearance
 import com.vknxworks.proxctrl.ui.components.LocalHazeState
+import com.vknxworks.proxctrl.ui.components.rememberNotificationAccess
+import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.ui.guests.GuestScreen
 import com.vknxworks.proxctrl.ui.guests.GuestsScreen
 import com.vknxworks.proxctrl.ui.node.NodeScreen
@@ -143,6 +145,17 @@ private fun MainScaffold() {
 
     // proxctrl://guest/<vmid>: open that guest's page, or the Guests tab when it isn't on this server.
     val c = LocalContext.current.container
+
+    // Android 13+ drops notifications until they're allowed: with background checks or push on, ask
+    // once, as soon as ProxCtrl is unlocked. After that, the Notifications screen shows it and offers the fix.
+    val notifySettings by c.notifySettings.settings.collectAsStateWithLifecycle()
+    val lockState by AppLock.state.collectAsStateWithLifecycle()
+    val notificationAccess = rememberNotificationAccess()
+    val covered = lockState != AppLock.State.UNLOCKED || AppLock.request != null || AppLock.confirm != null
+    val notificationsInUse = notifySettings.polling || notifySettings.push
+    LaunchedEffect(covered, notificationsInUse, notificationAccess.granted) {
+        if (!covered && notificationsInUse) notificationAccess.askOnce()
+    }
 
     val pendingGuest by DeepLinks.pendingGuest.collectAsStateWithLifecycle()
     LaunchedEffect(pendingGuest) {

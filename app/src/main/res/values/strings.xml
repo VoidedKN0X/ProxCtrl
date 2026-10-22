@@ -461,6 +461,7 @@
     <!-- Notification settings -->
     <string name="notifications">Notifications</string>
     <string name="notifications_subtitle">Background checks, push from Proxmox, what to notify about</string>
+    <string name="notifications_subtitle_blocked">Notifications are blocked: tap to allow them</string>
     <string name="notif_intro">ProxCtrl can check your servers in the background and tell you when something needs attention. Push from Proxmox adds instant notifications for backups, updates and cluster events. Both stay between your phone, your servers and your own ntfy server.</string>
     <string name="notif_permission_off">Notifications are turned off for ProxCtrl.</string>
     <string name="notif_permission_allow">Allow notifications</string>
