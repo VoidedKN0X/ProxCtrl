@@ -1,6 +1,6 @@
 # ProxCtrl
 
-Android app for managing a Proxmox VE 8/9 server. Part of the VKNXWorks Ctrl series: same look, structure and libraries as NaviCtrl, FrigateCtrl and the other Ctrl apps (Kotlin, Compose, Material 3, manual `AppContainer` DI, OkHttp + kotlinx.serialization, haze glass tab bar). No Firebase or Google Play Services: it must build for F-Droid.
+Android app for managing a Proxmox VE 8/9 server. Part of the VKNXWorks Ctrl series: same look, structure and libraries as NaviCtrl, FrigateCtrl and the other Ctrl apps (Kotlin, Compose, Material 3, manual `AppContainer` DI, OkHttp + kotlinx.serialization, Ctrl / Signal look with a floating tab bar). No Firebase or Google Play Services: it must build for F-Droid.
 
 ## Working on this repo
 

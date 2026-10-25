@@ -91,7 +91,7 @@ fun CtrlWordmark(name: String, modifier: Modifier = Modifier) {
     Text(
         buildAnnotatedString {
             append(name.uppercase())
-            withStyle(SpanStyle(color = CtrlColors.Accent)) { append("/") }
+            withStyle(SpanStyle(color = CtrlColors.AccentText)) { append("/") }
             append("CTRL")
         },
         style = CtrlType.Wordmark,
@@ -206,7 +206,7 @@ fun CtrlListRow(
     subtitle: String? = null,
     status: String? = null,
     active: Boolean = true,
-    statusColor: Color = if (active) CtrlColors.Accent else CtrlColors.Stopped,
+    statusColor: Color = if (active) CtrlColors.AccentText else CtrlColors.Stopped,
     divider: Boolean = true,
     onClick: (() -> Unit)? = null,
 ) {
@@ -406,11 +406,11 @@ fun CtrlTextField(
             unfocusedContainerColor = CtrlColors.Surface,
             disabledContainerColor = CtrlColors.Surface,
             errorContainerColor = CtrlColors.Surface,
-            focusedBorderColor = CtrlColors.Accent,
+            focusedBorderColor = CtrlColors.AccentText,
             unfocusedBorderColor = CtrlColors.ControlOutline,
             disabledBorderColor = CtrlColors.Outline,
-            cursorColor = CtrlColors.Accent,
-            focusedLabelColor = CtrlColors.Accent,
+            cursorColor = CtrlColors.AccentText,
+            focusedLabelColor = CtrlColors.AccentText,
             unfocusedLabelColor = CtrlColors.Muted,
         ),
     )
@@ -470,7 +470,7 @@ fun CtrlDialog(
         text = text,
         shape = CtrlShapes.Dialog,
         containerColor = CtrlColors.Surface,
-        iconContentColor = CtrlColors.Accent,
+        iconContentColor = CtrlColors.AccentText,
         titleContentColor = CtrlColors.Text,
         textContentColor = CtrlColors.Muted,
         tonalElevation = 0.dp,

@@ -4,6 +4,27 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.3.0 (2026-10-25)
+
+ProxCtrl now has a **light mode that follows the device theme**. The home-screen widgets get the Signal look too.
+
+### New
+
+- **Light mode that follows the device theme**: ProxCtrl now switches between Signal dark and the new **Signal light** by itself, whenever your phone switches between dark and light mode (including scheduled or sunset switching). There's no setting for it and no theme picker: it always follows the phone. Wallpaper colours (Material You) stay off.
+- **Signal light colours**: a warm off-white background (#F5F5F1), white cards with a thin grey border, near-black text and grey secondary text. The violet accent (#B48CFF) still fills the most important things (the CPU card on the Overview, main buttons, the selected tab, switches that are on, the PIN dots, the profile picture on the You page), with dark content on it, the same as in dark mode. Where the accent is text or an icon on a light background (the slash in PROX/CTRL, RUN states, checkmarks, the focused text field, the fingerprint key on the lock screen, chart lines), it's a deeper violet (#6A3BDB) so it stays readable on white. Warnings are a darker amber and errors a darker red in light mode.
+- **Every screen in both modes**: Overview, Guests, Storage, Tasks, Node and every page behind them, the You page and Settings, dialogs, bottom sheets, text fields, switches (light grey track with a grey knob when off), progress bars (light track, dark fill), the floating tab bar (white with a thin border), the lock screen (white keys, light grey empty PIN squares), Confirm changes, Share → ProxCtrl and the pinned guests widget's settings.
+- **Status and navigation bars follow too**: their colour is the app's background, with light icons in dark mode and dark icons in light mode. The window behind the app as it starts also matches, so there's no dark flash in light mode.
+
+### Changed
+
+- **Home-screen widgets in the Signal look**, light or dark with the phone: a card with a thin border and rounded corners, small upper-case mono labels, square status dots (violet when running or healthy, grey when stopped, amber or red for problems), 6dp bars (the CPU bar in violet, RAM and disk in the text colour) and mono times. The node status widget shows the health ("ALL GOOD", "2 ISSUES") and uptime on top and the node's name in large type. In the pinned guests widget each guest shows its ID in mono, its name and its state, and **Start** is a violet button while **Shut down** is a grey one. "ProxCtrl is locked" uses the same card. Widgets already on your home screen change at their next update.
+- **Notifications** use the Signal violet as their accent colour.
+- **Consoles stay dark**: the VM and container consoles and the node shell are terminals, so they keep their dark look (and light status bar icons) in light mode too, like a photo or video viewer. Everything else follows the phone.
+
+### Removed
+
+- The frosted-glass blur library (haze) is no longer part of ProxCtrl. The tab bar hasn't used it since 1.2.0, so nothing changes on screen, but the app is a little smaller.
+
 ## v1.2.0 (2026-10-25)
 
 ProxCtrl gets the new **Ctrl / Signal** look shared by every Ctrl app: near-black, one violet accent, square-cornered shapes and two new fonts. Only the look changed. Every screen, feature, setting and button works as before.

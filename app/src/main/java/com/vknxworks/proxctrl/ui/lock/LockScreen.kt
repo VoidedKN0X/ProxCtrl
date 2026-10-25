@@ -590,7 +590,7 @@ private fun PinPadScreen(
             Spacer(Modifier.height(28.dp))
             Box(Modifier.height(20.dp).offset { IntOffset(shake.roundToInt(), 0) }, contentAlignment = Alignment.Center) {
                 if (checking) {
-                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = CtrlColors.Accent)
+                    CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = CtrlColors.AccentText)
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         repeat(maxOf(pin.length, LockVault.PIN_MIN)) { i ->
@@ -624,8 +624,8 @@ private fun PinPadScreen(
                             enabled = enabled,
                             onClick = onFingerprint,
                             label = stringResource(R.string.pin_use_fingerprint),
-                            modifier = Modifier.weight(1f).border(1.dp, CtrlColors.Accent, KeyShape),
-                        ) { Icon(Icons.Outlined.Fingerprint, null, Modifier.size(26.dp), tint = CtrlColors.Accent) }
+                            modifier = Modifier.weight(1f).border(1.dp, CtrlColors.AccentText, KeyShape),
+                        ) { Icon(Icons.Outlined.Fingerprint, null, Modifier.size(26.dp), tint = CtrlColors.AccentText) }
                     } else {
                         PadKey(
                             enabled = enabled && showConfirm,

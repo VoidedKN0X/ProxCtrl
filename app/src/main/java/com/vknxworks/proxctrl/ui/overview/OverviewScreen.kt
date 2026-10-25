@@ -178,7 +178,7 @@ fun OverviewScreen() {
                             ),
                             active = g.isRunning,
                             statusColor = when {
-                                g.isRunning -> CtrlColors.Accent
+                                g.isRunning -> CtrlColors.AccentText
                                 g.status == "paused" || g.status == "suspended" -> Health.warn
                                 else -> CtrlColors.Stopped
                             },

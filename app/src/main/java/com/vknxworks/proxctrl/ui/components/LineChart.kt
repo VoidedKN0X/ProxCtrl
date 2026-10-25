@@ -46,14 +46,10 @@ import java.util.Date
  * A single-series chart uses the first one.
  */
 object ChartColors {
-    // Signal: the accent and off-white, so two series are always told apart.
-    val darkSeries = listOf(com.vknxworks.proxctrl.ui.theme.CtrlColors.Accent, com.vknxworks.proxctrl.ui.theme.CtrlColors.Text)
-    val lightSeries = listOf(Color(0xFFB85C14), Color(0xFF1F78B4))
-
+    // Signal: the accent (as text colour, so it reads on white in light mode) and the text colour,
+    // so two series are always told apart.
     @Composable
-    fun series(): List<Color> = if (MaterialTheme.colorScheme.background.luminanceIsDark()) darkSeries else lightSeries
-
-    private fun Color.luminanceIsDark(): Boolean = (0.2126f * red + 0.7152f * green + 0.0722f * blue) < 0.5f
+    fun series(): List<Color> = listOf(com.vknxworks.proxctrl.ui.theme.CtrlColors.AccentText, com.vknxworks.proxctrl.ui.theme.CtrlColors.Text)
 }
 
 data class ChartSeries(val label: String, val values: List<Double?>)

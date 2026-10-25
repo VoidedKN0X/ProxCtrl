@@ -6,26 +6,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.action.actionStartActivity
-import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -48,14 +46,10 @@ class NodeStatusWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         // Locked with sealed logins: show that, not the last saved state.
         if (context.container.backgroundBlocked()) {
-            provideContent { GlanceTheme { LockedWidgetContent() } }
+            provideContent { LockedWidgetContent() }
         }
         val snapshot = WidgetStore.read(context)
-        provideContent {
-            GlanceTheme {
-                NodeStatusContent(snapshot)
-            }
-        }
+        provideContent { NodeStatusContent(snapshot) }
     }
 }
 
@@ -63,81 +57,78 @@ class NodeStatusWidget : GlanceAppWidget() {
 private fun NodeStatusContent(s: WidgetSnapshot) {
     val context = LocalContext.current
     val node = s.node
-    Column(
-        GlanceModifier
-            .fillMaxSize()
-            .appWidgetBackground()
-            .cornerRadius(20.dp)
-            .background(GlanceTheme.colors.widgetBackground)
-            .padding(14.dp)
-            .clickable(actionStartActivity(openOverviewIntent(context))),
-    ) {
-        Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Dot(healthColor(s.health))
-            Spacer(GlanceModifier.width(8.dp))
+    SignalWidgetFrame(GlanceModifier.clickable(actionStartActivity(openOverviewIntent(context)))) {
+        Column(GlanceModifier.fillMaxSize()) {
+            Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Dot(healthColor(s.health))
+                Spacer(GlanceModifier.width(8.dp))
+                Text(
+                    healthLabel(context, s.health, s.issues).uppercase(),
+                    style = widgetLabel(healthColor(s.health)),
+                    maxLines = 1,
+                    modifier = GlanceModifier.defaultWeight(),
+                )
+                if (node != null && node.online && s.health != Health.OFFLINE) {
+                    Text(
+                        context.getString(R.string.widget_uptime, formatUptime(node.uptime)).uppercase(),
+                        style = widgetLabel(),
+                        maxLines = 1,
+                    )
+                }
+            }
+            Spacer(GlanceModifier.height(4.dp))
             Text(
                 node?.name ?: s.serverName.ifBlank { context.getString(R.string.widget_app_name) },
-                style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(color = WidgetColors.text, fontSize = 22.sp, fontWeight = FontWeight.Bold),
                 maxLines = 1,
-                modifier = GlanceModifier.defaultWeight(),
             )
-            if (node != null && node.online && s.health != Health.OFFLINE) {
+            Spacer(GlanceModifier.height(8.dp))
+            if (node != null) {
+                Meter(context.getString(R.string.widget_cpu), "${percent(node.cpu)}%", node.cpu.toFloat(), primary = true)
+                Meter(
+                    context.getString(R.string.widget_ram),
+                    node.memFraction?.let { "${percent(it)}% · ${formatBytes(node.memUsed)}" } ?: "–",
+                    node.memFraction?.toFloat() ?: 0f,
+                )
+                Meter(
+                    context.getString(R.string.widget_disk),
+                    node.rootFraction?.let { "${percent(it)}% · ${formatBytes(node.rootUsed)}" } ?: "–",
+                    node.rootFraction?.toFloat() ?: 0f,
+                )
+            } else {
                 Text(
-                    context.getString(R.string.widget_uptime, formatUptime(node.uptime)),
-                    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp),
-                    maxLines = 1,
+                    context.getString(if (s.serverId == null) R.string.widget_open_app_hint else R.string.widget_no_data),
+                    style = TextStyle(color = WidgetColors.muted, fontSize = 13.sp),
                 )
             }
-        }
-        Text(
-            healthLabel(context, s.health, s.issues),
-            style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp),
-            maxLines = 1,
-        )
-        Spacer(GlanceModifier.height(8.dp))
-        if (node != null) {
-            Meter(context.getString(R.string.widget_cpu), "${percent(node.cpu)}%", node.cpu.toFloat())
-            Meter(
-                context.getString(R.string.widget_ram),
-                node.memFraction?.let { "${percent(it)}% · ${formatBytes(node.memUsed)}" } ?: "–",
-                node.memFraction?.toFloat() ?: 0f,
-            )
-            Meter(
-                context.getString(R.string.widget_disk),
-                node.rootFraction?.let { "${percent(it)}% · ${formatBytes(node.rootUsed)}" } ?: "–",
-                node.rootFraction?.toFloat() ?: 0f,
-            )
-        } else {
+            Spacer(GlanceModifier.defaultWeight())
             Text(
-                context.getString(if (s.serverId == null) R.string.widget_open_app_hint else R.string.widget_no_data),
-                style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 13.sp),
+                updatedLabel(context, s.updatedAt, s.isStale),
+                style = TextStyle(
+                    color = if (s.isStale) WidgetColors.critical else WidgetColors.muted,
+                    fontSize = 11.sp,
+                    fontFamily = FontFamily.Monospace,
+                ),
+                maxLines = 1,
             )
         }
-        Spacer(GlanceModifier.defaultWeight())
-        Text(
-            updatedLabel(context, s.updatedAt, s.isStale),
-            style = TextStyle(
-                color = if (s.isStale) GlanceTheme.colors.error else GlanceTheme.colors.onSurfaceVariant,
-                fontSize = 11.sp,
-            ),
-            maxLines = 1,
-        )
     }
 }
 
+/** Label and value over a 6dp Signal bar; the CPU (the primary metric) fills with the accent. */
 @Composable
-private fun Meter(label: String, value: String, fraction: Float) {
+private fun Meter(label: String, value: String, fraction: Float, primary: Boolean = false) {
     Column(GlanceModifier.fillMaxWidth().padding(bottom = 6.dp)) {
         Row(GlanceModifier.fillMaxWidth()) {
-            Text(label, style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 12.sp), modifier = GlanceModifier.defaultWeight())
-            Text(value, style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp), maxLines = 1)
+            Text(label.uppercase(), style = widgetLabel(), modifier = GlanceModifier.defaultWeight())
+            Text(value, style = TextStyle(color = WidgetColors.text, fontSize = 11.sp, fontFamily = FontFamily.Monospace), maxLines = 1)
         }
         Spacer(GlanceModifier.height(3.dp))
         LinearProgressIndicator(
             progress = fraction.coerceIn(0f, 1f),
-            modifier = GlanceModifier.fillMaxWidth().height(4.dp),
-            color = GlanceTheme.colors.primary,
-            backgroundColor = GlanceTheme.colors.surfaceVariant,
+            modifier = GlanceModifier.fillMaxWidth().height(6.dp).cornerRadius(3.dp),
+            color = if (primary) WidgetColors.accent else WidgetColors.fill,
+            backgroundColor = WidgetColors.track,
         )
     }
 }
