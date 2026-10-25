@@ -4,6 +4,45 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.0 (2026-10-25)
+
+ProxCtrl can now **create containers and VMs** and **move disks between storages**.
+
+### New
+
+- **Create button on Guests**: a violet + button at the bottom right of the Guests tab (hidden in read-only mode and while selecting guests) opens **Create**, with three choices: **New container**, **New VM**, and **From a template**. If your sign-in lacks `VM.Allocate`, the page says so and the wizards stay closed.
+- **New container wizard** (eight steps, with Back and Next; the system back gesture goes to the previous step):
+  - **Template**: pick a template storage, then a container template on it. **Download templates** opens the existing template list for that storage (needs `Datastore.AllocateTemplate`); come back and tap **Refresh** to see it. What you entered so far is kept.
+  - **General**: the ID (the next free one is filled in; an ID in use is flagged), the hostname, **Unprivileged container** (on by default) and **Nesting** (on by default; needed by modern systemd and Docker). Turning unprivileged off explains that it needs `Sys.Modify` on `/` and turns nesting off, because only root@pam can set features on privileged containers.
+  - **Login**: a root password (typed twice, at least 5 characters), SSH public keys (one per line), or both. The password is sent to Proxmox once and never saved, and the whole wizard is kept out of screenshots and the recent-apps preview.
+  - **Disk**: the storage for the root disk (only storages that can hold containers; ones your sign-in can't allocate on are greyed out) and its size in GiB.
+  - **CPU and memory**: cores, memory with quick picks, and swap.
+  - **Network**: the bridge (picked from the node's bridges, or typed when the sign-in can't list them), an optional VLAN tag, the firewall switch, IPv4 (DHCP, static with optional gateway, or none) and IPv6 (none, SLAAC, DHCP, or static with optional gateway).
+  - **DNS**: an optional DNS domain and DNS servers; empty uses the node's settings.
+  - **Confirm**: a summary of everything, **Start after creating** (on by default), and the privileges your sign-in seems to lack for these choices.
+- **New VM wizard** (eight steps):
+  - **General**: ID (next free one filled in) and name.
+  - **OS**: guest OS type (Linux, Windows 11/10/8/7, Solaris, Other) and an ISO from any ISO storage, or **No CD/DVD**. Picking Windows 11 turns on UEFI, Secure Boot keys and a TPM, as the web UI does.
+  - **System**: SeaBIOS or OVMF (UEFI); with OVMF, the EFI disk's storage, **Pre-enroll Secure Boot keys** and **TPM 2.0**; machine type q35 (default) or i440fx; SCSI controller (VirtIO SCSI single by default, VirtIO SCSI, LSI 53C895A, LSI 53C810, MegaRAID SAS, VMware PVSCSI); and the **QEMU guest agent** switch (on by default).
+  - **Disk**: bus (SCSI, VirtIO Block, SATA, IDE), storage (only storages that hold VM images), size in GiB, and the format (qcow2, raw, vmdk) on file storages such as directories, NFS and CIFS. VirtIO disks get an IO thread, as in the web UI.
+  - **CPU**: sockets, cores per socket and CPU type (x86-64-v2-AES by default, x86-64-v3, x86-64-v4, host, kvm64, qemu64, or any other you type).
+  - **Memory**: memory with quick picks, **Ballooning** (on by default) and an optional ballooning minimum.
+  - **Network**: bridge, VLAN tag, firewall and the model (VirtIO, Intel E1000/E1000E, Realtek RTL8139, VMware vmxnet3).
+  - **Confirm**: a summary, **Start after creating** (off by default) and any privileges that seem to be missing.
+- **From a template**: every template on the server is listed; tapping one opens the existing clone dialog (ID, name, full or linked clone, target storage). Templates your sign-in can't clone say "needs VM.Clone".
+- **The task log opens after creating**: as soon as Proxmox accepts a new container, VM or clone, ProxCtrl opens that task's live log (the same screen as in Tasks), and the Create pages close behind it. The guest list refreshes too.
+- **Clear permission errors**: before creating, the last step lists each privilege your sign-in seems to lack and where (for example "SDN.Use on /sdn/zones/localnetwork/vmbr0"); you can still try, since Proxmox decides. If Proxmox refuses, a red card shows "Your sign-in isn't allowed to do this" with Proxmox's own message, and you stay on the page to change your choices.
+- **Move disks to another storage**: on a guest's page, each disk in Resources has a **Move** button next to Grow (needs `VM.Config.Disk`). The dialog lists only other active storages on the guest's node that can hold the disk (VM images, or container directories), with their free space; ones without `Datastore.AllocateSpace` are greyed out. For VMs moving to a file storage you can keep the format or pick qcow2, raw or vmdk. **Delete the original** (off by default; otherwise the old disk stays as an unused disk) is blocked when the guest has snapshots, as Proxmox requires. An optional **speed limit** in MiB/s overrides the storage or datacenter limit. A second dialog confirms the move, and the task card follows it to the end. VMs can move disks while running; for running containers the page says to stop them first. EFI and TPM disks of VMs can be moved too; bind mounts can't.
+
+### Changed
+
+- The README lists the privileges for creating guests and moving disks (`VM.Config.Network`, `VM.Config.HWType`, `SDN.Use` on `/sdn/zones/localnetwork`), and the command that adds them to the operator role.
+- The guest list has a little more room at the bottom so the + button never covers the last guest.
+
+### Removed
+
+- An unused placeholder screen for tabs that weren't built yet (and its two texts) was removed from the code. Nothing changes on screen.
+
 ## v1.3.0 (2026-10-25)
 
 ProxCtrl now has a **light mode that follows the device theme**. The home-screen widgets get the Signal look too.
