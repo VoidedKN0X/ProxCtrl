@@ -3,7 +3,6 @@ package com.vknxworks.proxctrl
 import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import com.vknxworks.proxctrl.ui.lock.LockScreen
 import com.vknxworks.proxctrl.ui.widgets.WidgetActionConfirm
 import com.vknxworks.proxctrl.ui.widgets.WidgetActions
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,10 +25,10 @@ import com.vknxworks.proxctrl.data.DeepLinks
 import com.vknxworks.proxctrl.ui.components.ScreenPrivacy
 import com.vknxworks.proxctrl.ui.nav.AppRoot
 import com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme
+import com.vknxworks.proxctrl.ui.theme.SignalSystemBars
+import com.vknxworks.proxctrl.ui.theme.isSystemDark
+import com.vknxworks.proxctrl.ui.theme.signalBarStyle
 import com.vknxworks.proxctrl.ui.components.WindowPrivacy
-
-/** The Signal background (#08080A) as an ARGB int, for the system bars. */
-private val SIGNAL_BACKGROUND: Int = 0xFF08080A.toInt()
 
 /** A FragmentActivity (not just a ComponentActivity) because the fingerprint prompt needs one. */
 class MainActivity : FragmentActivity() {
@@ -39,7 +37,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         // Secure from the first frame (the lock is still being checked); lifted below once it's known.
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(SIGNAL_BACKGROUND), navigationBarStyle = SystemBarStyle.dark(SIGNAL_BACKGROUND))
+        isSystemDark().let { dark -> enableEdgeToEdge(statusBarStyle = signalBarStyle(dark), navigationBarStyle = signalBarStyle(dark)) }
         // A link like proxctrl://guest/103; not again when the activity is recreated (rotation).
         if (savedInstanceState == null) {
             DeepLinks.handle(intent?.data)
@@ -62,12 +60,8 @@ class MainActivity : FragmentActivity() {
             // shows a blank card (a preview there would show your servers without the PIN).
             val secure = settings.hideScreenshots || covered || ScreenPrivacy.forced > 0
             WindowPrivacy(this, secure, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
-            // Ctrl / Signal is dark only: system bars show the background colour with light icons.
-            DisposableEffect(Unit) {
-                val bars = SystemBarStyle.dark(SIGNAL_BACKGROUND)
-                enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
-                onDispose { }
-            }
+            // Bars in the background colour, icons light in dark mode and dark in light mode.
+            SignalSystemBars(this)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
                     // The app stays underneath the lock (so nothing you typed is lost), but hidden from

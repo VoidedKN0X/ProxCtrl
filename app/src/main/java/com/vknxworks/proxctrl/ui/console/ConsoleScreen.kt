@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.console
 
+import androidx.activity.enableEdgeToEdge
+import com.vknxworks.proxctrl.ui.theme.isSystemDark
 import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -434,13 +436,31 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         }
     }
 
+    // The console is dark in light mode too, so its status and navigation bar icons stay light while it's open.
+    DisposableEffect(activity) {
+        val ca = activity as? androidx.activity.ComponentActivity
+        ca?.enableEdgeToEdge(
+            statusBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(true),
+            navigationBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(true),
+        )
+        onDispose {
+            if (ca != null) {
+                val dark = ca.isSystemDark()
+                ca.enableEdgeToEdge(
+                    statusBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(dark),
+                    navigationBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(dark),
+                )
+            }
+        }
+    }
+
     // Only show the page once it's connected, so the progress and error cards (drawn by the app,
     // underneath the page) stay visible until then.
     LaunchedEffect(state, webView) {
         webView?.visibility = if (state == ConsoleState.CONNECTED) View.VISIBLE else View.INVISIBLE
     }
 
-    Column(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF0D0F12)).imePadding()) {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).imePadding()) {
         // Compact bar: back, title, and tools.
         Row(
             Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 4.dp),

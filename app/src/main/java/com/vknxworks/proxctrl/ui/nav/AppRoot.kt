@@ -74,7 +74,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.toRoute
 import com.vknxworks.proxctrl.ui.components.LocalBottomClearance
-import com.vknxworks.proxctrl.ui.components.LocalHazeState
 import com.vknxworks.proxctrl.ui.components.rememberNotificationAccess
 import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.ui.guests.GuestScreen
@@ -85,8 +84,6 @@ import com.vknxworks.proxctrl.ui.settings.SettingsScreen
 import com.vknxworks.proxctrl.ui.settings.YouScreen
 import com.vknxworks.proxctrl.ui.storage.StorageScreen
 import com.vknxworks.proxctrl.ui.tasks.TasksScreen
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
 
 @Composable
 fun AppRoot() {
@@ -120,7 +117,7 @@ private fun MainScaffold() {
     val backStack by navController.currentBackStackEntryAsState()
     val dest = backStack?.destination
     val selectedIndex = topDestinations.indexOfFirst { top -> dest?.hierarchy?.any { it.hasRoute(top.route::class) } == true }
-    // Consoles get the whole screen and stay out of the glass effect, which they don't need.
+    // Consoles get the whole screen (no side rail).
     val inConsole = dest?.hasRoute(ConsoleRoute::class) == true
     val tabs = topDestinations.map { TabItem(stringResource(it.label), it.icon, it.selectedIcon) }
 
@@ -208,7 +205,6 @@ private fun MainScaffold() {
                     navController = navController,
                     tabs = tabs,
                     showTabs = selectedIndex >= 0,
-                    blurContent = !inConsole,
                     selectedIndex = selectedIndex,
                     onSelect = ::selectTab,
                 )
@@ -218,7 +214,7 @@ private fun MainScaffold() {
 }
 
 /**
- * Phones: content runs edge to edge and scrolls under a floating glass island.
+ * Phones: content runs edge to edge and scrolls under the floating tab bar.
  * The island shows on the main tabs; pushed screens get the full height.
  */
 @Composable
@@ -226,20 +222,17 @@ private fun PhoneLayout(
     navController: NavHostController,
     tabs: List<TabItem>,
     showTabs: Boolean,
-    blurContent: Boolean,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
 ) {
-    val hazeState = rememberHazeState()
     val density = LocalDensity.current
     var overlayHeight by remember { mutableStateOf(0.dp) }
 
     CompositionLocalProvider(
-        LocalHazeState provides hazeState,
         LocalBottomClearance provides if (showTabs) overlayHeight else 0.dp,
     ) {
         Box(Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize().then(if (blurContent) Modifier.hazeSource(hazeState) else Modifier)) {
+            Box(Modifier.fillMaxSize()) {
                 AppNavHost(navController)
             }
             Box(
@@ -300,7 +293,8 @@ private fun AppNavHost(navController: NavHostController) {
                 "lxc" -> ConsoleTarget.Container(r.node, r.vmid)
                 else -> ConsoleTarget.Vm(r.node, r.vmid, r.serial)
             }
-            ConsoleScreen(target, r.title)
+            // Terminals stay dark in light mode too (content first, like a media viewer).
+            com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme(darkTheme = true) { ConsoleScreen(target, r.title) }
         }
 
         composable<YouRoute> { YouScreen() }

@@ -8,19 +8,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionStartActivity
-import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -31,6 +28,8 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
+import androidx.glance.background
+import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -52,16 +51,12 @@ class PinnedGuestsWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         // Locked with sealed logins: no guest names or states, not even the last saved ones.
         if (context.container.backgroundBlocked()) {
-            provideContent { GlanceTheme { LockedWidgetContent() } }
+            provideContent { LockedWidgetContent() }
         }
         val appWidgetId = runCatching { GlanceAppWidgetManager(context).getAppWidgetId(id) }.getOrDefault(AppWidgetManager.INVALID_APPWIDGET_ID)
         val snapshot = WidgetStore.read(context)
         val pins = WidgetStore.pins(context, appWidgetId)
-        provideContent {
-            GlanceTheme {
-                PinnedContent(snapshot, pins, appWidgetId)
-            }
-        }
+        provideContent { PinnedContent(snapshot, pins, appWidgetId) }
     }
 }
 
@@ -69,27 +64,21 @@ class PinnedGuestsWidget : GlanceAppWidget() {
 private fun PinnedContent(s: WidgetSnapshot, pins: List<Int>, appWidgetId: Int) {
     val context = LocalContext.current
     val byId = s.guests.associateBy { it.vmid }
-    Column(
-        GlanceModifier
-            .fillMaxSize()
-            .appWidgetBackground()
-            .cornerRadius(20.dp)
-            .background(GlanceTheme.colors.widgetBackground)
-            .padding(12.dp),
-    ) {
+    SignalWidgetFrame(padding = 12) {
+    Column(GlanceModifier.fillMaxSize()) {
         Row(
             GlanceModifier.fillMaxWidth().clickable(actionStartActivity(configureIntent(context, appWidgetId))),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 s.serverName.ifBlank { context.getString(R.string.widget_pinned_title) },
-                style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 15.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(color = WidgetColors.text, fontSize = 15.sp, fontWeight = FontWeight.Bold),
                 maxLines = 1,
                 modifier = GlanceModifier.defaultWeight(),
             )
             Text(
                 updatedLabel(context, s.updatedAt, s.isStale),
-                style = TextStyle(color = if (s.isStale) GlanceTheme.colors.error else GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp),
+                style = TextStyle(color = if (s.isStale) WidgetColors.critical else WidgetColors.muted, fontSize = 11.sp, fontFamily = FontFamily.Monospace),
                 maxLines = 1,
             )
         }
@@ -101,7 +90,7 @@ private fun PinnedContent(s: WidgetSnapshot, pins: List<Int>, appWidgetId: Int) 
             ) {
                 Text(
                     context.getString(R.string.widget_pinned_empty),
-                    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 13.sp),
+                    style = TextStyle(color = WidgetColors.muted, fontSize = 13.sp),
                 )
             }
         } else {
@@ -111,6 +100,7 @@ private fun PinnedContent(s: WidgetSnapshot, pins: List<Int>, appWidgetId: Int) 
                 }
             }
         }
+    }
     }
 }
 
@@ -125,11 +115,11 @@ private fun GuestRow(s: WidgetSnapshot, vmid: Int, g: GuestSnapshot?) {
         Dot(if (s.isStale) WidgetColors.stopped else statusColor(status))
         Spacer(GlanceModifier.width(8.dp))
         Column(GlanceModifier.defaultWeight()) {
-            Text(
-                g?.let { "${it.vmid}  ${it.name}" } ?: "$vmid",
-                style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 14.sp),
-                maxLines = 1,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("$vmid", style = TextStyle(color = WidgetColors.muted, fontSize = 12.sp, fontFamily = FontFamily.Monospace), maxLines = 1)
+                Spacer(GlanceModifier.width(8.dp))
+                Text(g?.name.orEmpty(), style = TextStyle(color = WidgetColors.text, fontSize = 14.sp, fontWeight = FontWeight.Medium), maxLines = 1)
+            }
             Text(
                 when {
                     g == null -> context.getString(R.string.widget_guest_missing)
@@ -137,8 +127,8 @@ private fun GuestRow(s: WidgetSnapshot, vmid: Int, g: GuestSnapshot?) {
                     status == "stopped" -> context.getString(R.string.widget_status_stopped)
                     status == "paused" || status == "suspended" -> context.getString(R.string.widget_status_paused)
                     else -> context.getString(R.string.widget_status_unknown)
-                },
-                style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp),
+                }.uppercase(),
+                style = widgetLabel(if (s.isStale) WidgetColors.stopped else statusColor(status)),
                 maxLines = 1,
             )
         }
@@ -147,15 +137,15 @@ private fun GuestRow(s: WidgetSnapshot, vmid: Int, g: GuestSnapshot?) {
             val action = if (status == "running") WidgetActions.SHUTDOWN else WidgetActions.START
             Box(
                 GlanceModifier
-                    .cornerRadius(14.dp)
-                    .background(if (action == WidgetActions.START) GlanceTheme.colors.primaryContainer else GlanceTheme.colors.secondaryContainer)
+                    .cornerRadius(12.dp)
+                    .background(if (action == WidgetActions.START) WidgetColors.accent else WidgetColors.button)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
                     .clickable(actionStartActivity(confirmPowerIntent(context, serverId, vmid, action))),
             ) {
                 Text(
                     context.getString(if (action == WidgetActions.START) R.string.widget_start else R.string.widget_shutdown),
                     style = TextStyle(
-                        color = if (action == WidgetActions.START) GlanceTheme.colors.onPrimaryContainer else GlanceTheme.colors.onSecondaryContainer,
+                        color = if (action == WidgetActions.START) WidgetColors.onAccent else WidgetColors.text,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                     ),

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
@@ -23,6 +24,8 @@ import com.vknxworks.proxctrl.ui.theme.Health
  * Colour for a usage level: normal below [warnAt], warning from there, critical from 95 % (or 10
  * points above [warnAt] when that's lower). [normal] is used below the warning level.
  */
+@Composable
+@ReadOnlyComposable
 fun usageColor(fraction: Double?, warnAt: Int, normal: Color): Color {
     if (fraction == null) return normal
     val pct = fraction * 100

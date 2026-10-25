@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.widgets
 
+import com.vknxworks.proxctrl.ui.theme.isSystemDark
 import com.vknxworks.proxctrl.ui.components.CtrlButton
 import android.app.Activity
 import android.appwidget.AppWidgetManager
@@ -74,9 +75,10 @@ class PinnedGuestsConfigActivity : FragmentActivity() {
             return
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        val dark = isSystemDark()
         enableEdgeToEdge(
-            statusBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
-            navigationBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
+            statusBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(dark),
+            navigationBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(dark),
         )
         val c = container
         AppLock.attach(this, c)
@@ -84,6 +86,7 @@ class PinnedGuestsConfigActivity : FragmentActivity() {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
             val lockState by AppLock.state.collectAsStateWithLifecycle()
             WindowPrivacy(this, settings.hideScreenshots || lockState != AppLock.State.UNLOCKED, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
+            com.vknxworks.proxctrl.ui.theme.SignalSystemBars(this)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
                     if (lockState == AppLock.State.UNLOCKED) {

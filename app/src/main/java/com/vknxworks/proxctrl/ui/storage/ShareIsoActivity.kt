@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.storage
 
+import com.vknxworks.proxctrl.ui.theme.isSystemDark
 import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import android.content.Intent
@@ -70,9 +71,10 @@ class ShareIsoActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        val dark = isSystemDark()
         enableEdgeToEdge(
-            statusBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
-            navigationBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
+            statusBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(dark),
+            navigationBarStyle = com.vknxworks.proxctrl.ui.theme.signalBarStyle(dark),
         )
         val uri = sharedUri(intent)
         val c = container
@@ -84,6 +86,7 @@ class ShareIsoActivity : FragmentActivity() {
             val secure = settings.hideScreenshots || locked != AppLock.State.UNLOCKED || AppLock.confirm != null
             WindowPrivacy(this, secure, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
             val lockState by AppLock.state.collectAsStateWithLifecycle()
+            com.vknxworks.proxctrl.ui.theme.SignalSystemBars(this)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
                     if (lockState == AppLock.State.UNLOCKED) {
