@@ -22,7 +22,11 @@ import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.outlined.ViewHeadline
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Badge
+import androidx.compose.material3.FloatingActionButton
+import com.vknxworks.proxctrl.ui.theme.CtrlColors
+import com.vknxworks.proxctrl.ui.theme.CtrlShapes
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -189,7 +193,7 @@ fun GuestsScreen() {
                     )
                     else -> LazyColumn(
                         Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = LocalBottomClearance.current + 16.dp),
+                        contentPadding = PaddingValues(bottom = LocalBottomClearance.current + 88.dp),
                     ) {
                         item(key = "summary") {
                             SummaryLine(all, shown.size)
@@ -217,6 +221,17 @@ fun GuestsScreen() {
                         }
                     }
                 }
+            }
+        }
+        if (server != null && !server.readOnly && !selecting) {
+            FloatingActionButton(
+                onClick = { nav.navigate(CreateGuestRoute) },
+                containerColor = CtrlColors.Accent,
+                contentColor = CtrlColors.OnAccent,
+                shape = CtrlShapes.Button,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = Gutter, bottom = LocalBottomClearance.current + 12.dp),
+            ) {
+                Icon(Icons.Outlined.Add, stringResource(R.string.create_title))
             }
         }
         SnackbarHost(

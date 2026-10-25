@@ -67,6 +67,7 @@ import com.vknxworks.proxctrl.data.guests.Timeframe
 import com.vknxworks.proxctrl.data.guests.GuestDisk
 import com.vknxworks.proxctrl.data.guests.GuestResources
 import com.vknxworks.proxctrl.data.guests.ResourcesApi
+import com.vknxworks.proxctrl.data.guests.CreateApi
 import com.vknxworks.proxctrl.ui.components.TaskCard
 import com.vknxworks.proxctrl.ui.components.TypedConfirmDialog
 import com.vknxworks.proxctrl.ui.components.rememberTaskTracker
@@ -153,6 +154,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
     var editingResources by remember { mutableStateOf(false) }
     var editingTags by remember { mutableStateOf(false) }
     var growing by remember { mutableStateOf<GuestDisk?>(null) }
+    var moving by remember { mutableStateOf<GuestDisk?>(null) }
     var cloning by remember { mutableStateOf(false) }
     var templating by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
@@ -316,7 +318,21 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                         onEdit = { editingResources = true },
                         onTags = { editingTags = true },
                         onResize = { growing = it },
+                        // VMs move disks while running; containers must be stopped first.
+                        canMove = writable && !tracker.busy && c.sessions.canWrite(ref.aclPath, CreateApi.PRIV_DISK) &&
+                            (ref.type == GuestType.QEMU || guest?.isStopped == true),
+                        onMove = { moving = it },
                     )
+                    if (ref.type == GuestType.LXC && guest?.isRunning == true && writable &&
+                        c.sessions.canWrite(ref.aclPath, CreateApi.PRIV_DISK) && res.disks.any { it.movable() }
+                    ) {
+                        Text(
+                            stringResource(R.string.move_lxc_stop_first),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = Gutter + 4.dp),
+                        )
+                    }
                 }
 
                 Group {
@@ -424,6 +440,27 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                     val cl = client ?: return@GrowDiskDialog
                     tracker.run(context.getString(R.string.res_task_grow, disk.key, gib), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
                         ResourcesApi.growDisk(cl, ref, disk, gib, res.digest)
+                    }
+                },
+            )
+        }
+    }
+
+    resources?.let { res ->
+        moving?.let { disk ->
+            MoveDiskDialog(
+                ref = ref,
+                disk = disk,
+                hasSnapshots = (snapshotCount ?: 0) > 0,
+                onDismiss = { moving = null },
+                onMove = { choice ->
+                    moving = null
+                    val cl = client ?: return@MoveDiskDialog
+                    tracker.run(context.getString(R.string.move_task, disk.key, choice.storage), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
+                        when (ref.type) {
+                            GuestType.QEMU -> CreateApi.moveVmDisk(cl, ref, disk.key, choice.storage, choice.format, choice.deleteSource, choice.bwLimitMiB, res.digest)
+                            GuestType.LXC -> CreateApi.moveLxcVolume(cl, ref, disk.key, choice.storage, choice.deleteSource, choice.bwLimitMiB, res.digest)
+                        }
                     }
                 },
             )

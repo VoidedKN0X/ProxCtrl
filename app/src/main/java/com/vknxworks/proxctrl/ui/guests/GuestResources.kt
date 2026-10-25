@@ -73,6 +73,8 @@ internal fun ResourcesGroup(
     onEdit: () -> Unit,
     onTags: () -> Unit,
     onResize: (GuestDisk) -> Unit,
+    canMove: Boolean = false,
+    onMove: (GuestDisk) -> Unit = {},
 ) {
     Group(stringResource(R.string.group_resources)) {
         val cpu = if (type == GuestType.QEMU && res.sockets > 1) {
@@ -102,8 +104,13 @@ internal fun ResourcesGroup(
                 title = diskTitle(d),
                 subtitle = listOfNotNull(d.volume.takeIf { it.isNotBlank() }, d.size?.let(::formatBytes)).joinToString("\n"),
                 icon = Icons.Outlined.Inventory,
-                trailing = if (canResize && d.resizable) {
-                    { TextButton(onClick = { onResize(d) }) { Text(stringResource(R.string.res_grow)) } }
+                trailing = if ((canResize && d.resizable) || (canMove && d.movable())) {
+                    {
+                        Row {
+                            if (canMove && d.movable()) TextButton(onClick = { onMove(d) }) { Text(stringResource(R.string.move_button)) }
+                            if (canResize && d.resizable) TextButton(onClick = { onResize(d) }) { Text(stringResource(R.string.res_grow)) }
+                        }
+                    }
                 } else {
                     null
                 },

@@ -14,7 +14,9 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 
 - **Overview** of your node, with live CPU, memory and network graphs and an attention list for full disks, high memory, failed backups and more
 - **Guests**: all your containers and VMs with CPU, memory and disk use, tags, search, sorting, a compact view and bulk start/stop
+- **Create guests** from the + button on Guests: a new container (template, password or SSH key, unprivileged, nesting, disk, CPU, memory, network with DHCP or static IPv4/IPv6 and VLAN, DNS) or a new VM (ISO, SeaBIOS or UEFI with Secure Boot and TPM, q35 or i440fx, SCSI controller, disk, CPU, memory, ballooning, network, guest agent), or a full or linked clone of a template, with the task log right after
 - **Guest pages** with live status, graphs, power controls, IP addresses, notes, console, snapshots, backups and restore
+- **Move disks** of VMs (also while running) and containers to another storage, with format, delete-original and speed-limit options
 - **Node shell** from the node's card on the Overview
 - **Notifications**: background checks, plus instant push from Proxmox through [ntfy](https://f-droid.org/packages/io.heckel.ntfy/) and your own ntfy server
 - **Storage**: storages and their content, backup deletion, ISO upload (also from the share menu), container templates, disks with SMART health, ZFS pools, LVM and backup jobs
@@ -126,6 +128,9 @@ Even with this the token can't install updates (you run the upgrade in the node 
 | `VM.Config.Options` | Editing a guest's notes and tags |
 | `VM.Config.Disk` | Growing a disk |
 | `VM.Clone`, `VM.Allocate` | Cloning guests, cloning templates and converting a guest to a template |
+| `VM.Allocate`, `VM.Config.CPU`, `VM.Config.Memory`, `VM.Config.Disk`, `VM.Config.Network`, `VM.Config.Options`, `VM.Config.HWType` | Creating containers and VMs (`VM.Config.Options` and `VM.Config.HWType` for VMs only), plus `Datastore.AllocateSpace` on the disk's storage and `SDN.Use` on the bridge |
+| `SDN.Use` on `/sdn/zones/localnetwork` | Connecting new guests to a bridge such as `vmbr0` (or on `/sdn/zones/localnetwork/vmbr0/<tag>` for one VLAN only) |
+| `VM.Config.Disk`, `Datastore.AllocateSpace` | Moving a disk to another storage |
 | `Datastore.AllocateTemplate` | Uploading ISOs and downloading container templates |
 | `Datastore.Allocate` | Deleting backups without `VM.Backup` on the guest |
 | `Sys.PowerMgmt` | Rebooting and shutting down the node |
@@ -134,8 +139,18 @@ Even with this the token can't install updates (you run the upgrade in the node 
 To add all of them to the operator role at once (on the node, as root):
 
 ```bash
-pveum role modify ProxCtrl.Operator --append 1 --privs "VM.Config.CPU VM.Config.Memory VM.Config.Options VM.Config.Disk VM.Clone VM.Allocate Datastore.AllocateTemplate Sys.PowerMgmt"
+pveum role modify ProxCtrl.Operator --append 1 --privs "VM.Config.CPU VM.Config.Memory VM.Config.Options VM.Config.Disk VM.Config.Network VM.Config.HWType VM.Clone VM.Allocate Datastore.AllocateTemplate Sys.PowerMgmt"
 ```
+
+To create guests on a bridge, also allow the bridges (Proxmox calls them the `localnetwork` zone):
+
+```bash
+pveum role add ProxCtrl.Network --privs "SDN.Use"
+pveum acl modify /sdn/zones/localnetwork --users proxctrl@pve --roles ProxCtrl.Network
+pveum acl modify /sdn/zones/localnetwork --tokens 'proxctrl@pve!phone' --roles ProxCtrl.Network
+```
+
+Privileged containers can only be created with `Sys.Modify` on `/`, and only `root@pam` may set container features other than nesting.
 
 ProxCtrl checks what your token can do when it connects and greys out anything it isn't allowed to.
 

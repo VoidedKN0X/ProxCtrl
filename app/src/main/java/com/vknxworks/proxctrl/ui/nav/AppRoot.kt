@@ -57,6 +57,7 @@ import com.vknxworks.proxctrl.data.console.ConsoleTarget
 import com.vknxworks.proxctrl.ui.console.ConsoleScreen
 import com.vknxworks.proxctrl.ui.guests.BackupsScreen
 import com.vknxworks.proxctrl.ui.tasks.tasksDestinations
+import com.vknxworks.proxctrl.ui.guests.createDestinations
 import com.vknxworks.proxctrl.ui.node.nodeDestinations
 import com.vknxworks.proxctrl.ui.storage.storageDestinations
 import com.vknxworks.proxctrl.ui.guests.GuestOptionsRoute
@@ -260,6 +261,7 @@ private fun PhoneLayout(
 private fun AppNavHost(navController: NavHostController) {
     NavHost(navController, startDestination = OverviewRoute) {
         tasksDestinations()
+        createDestinations()
         nodeDestinations()
         storageDestinations()
         composable<OverviewRoute> { OverviewScreen() }
