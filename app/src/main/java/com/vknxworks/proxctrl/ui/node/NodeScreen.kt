@@ -196,7 +196,7 @@ fun NodeScreen() {
                 if (server != null) {
                     Box {
                         IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(if (wol == null) R.string.node_wol_setup else R.string.node_wol_wake)) },
                                 leadingIcon = { Icon(Icons.Outlined.PowerSettingsNew, null) },

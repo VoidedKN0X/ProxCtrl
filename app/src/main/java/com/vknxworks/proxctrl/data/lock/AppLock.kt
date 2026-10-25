@@ -21,6 +21,7 @@ import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.data.api.WriteGuard
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -236,9 +237,12 @@ object AppLock {
         onError: (String?) -> Unit = {},
         onSuccess: (Cipher) -> Unit,
     ) {
+        // Leaving or closing the app: no prompt (the system would refuse it, or it would outlive the screen).
+        if (activity.isFinishing || activity.isDestroyed) return
         // Replaces a prompt that is still marked as open; its late answer (if any) is ignored below.
         val generation = beginPrompt()
-        val prompt = BiometricPrompt(
+        val prompt = runCatching {
+            BiometricPrompt(
             activity,
             ContextCompat.getMainExecutor(activity),
             object : BiometricPrompt.AuthenticationCallback() {
@@ -259,7 +263,11 @@ object AppLock {
                 // A finger that didn't match: the prompt stays open for another try.
                 override fun onAuthenticationFailed() = Unit
             },
-        )
+            )
+        }.getOrElse {
+            if (endPrompt(generation)) onError(it.message)
+            return
+        }
         val info = BiometricPrompt.PromptInfo.Builder()
             .setTitle(title)
             .setSubtitle(subtitle)
@@ -275,8 +283,10 @@ object AppLock {
 
     /** The old unlock with the phone's screen lock, to prove it's you before choosing a PIN. */
     fun legacyAuthenticate(activity: FragmentActivity, onResult: (String?) -> Unit) {
+        if (activity.isFinishing || activity.isDestroyed) return
         val generation = beginPrompt()
-        val prompt = BiometricPrompt(
+        val prompt = runCatching {
+            BiometricPrompt(
             activity,
             ContextCompat.getMainExecutor(activity),
             object : BiometricPrompt.AuthenticationCallback() {
@@ -293,7 +303,11 @@ object AppLock {
 
                 override fun onAuthenticationFailed() = Unit
             },
-        )
+            )
+        }.getOrElse {
+            if (endPrompt(generation)) onResult(it.message)
+            return
+        }
         val info = BiometricPrompt.PromptInfo.Builder()
             .setTitle(activity.getString(R.string.lock_prompt_title))
             .setSubtitle(activity.getString(R.string.pin_legacy_prompt_subtitle))
@@ -316,8 +330,12 @@ object AppLock {
             if (!activity.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) return@withLock false
             val pending = CompletableDeferred<Boolean>()
             withContext(Dispatchers.Main) { confirm = pending }
-            val ok = pending.await()
-            withContext(Dispatchers.Main) { if (confirm === pending) confirm = null }
+            val ok = try {
+                pending.await()
+            } finally {
+                // Also when the screen that asked is closed meanwhile: don't leave a dead question on screen.
+                withContext(NonCancellable + Dispatchers.Main) { if (confirm === pending) confirm = null }
+            }
             if (ok) lastConfirmAt = SystemClock.elapsedRealtime()
             ok
         }

@@ -456,8 +456,11 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
 
     // Only show the page once it's connected, so the progress and error cards (drawn by the app,
     // underneath the page) stay visible until then.
-    LaunchedEffect(state, webView) {
-        webView?.visibility = if (state == ConsoleState.CONNECTED) View.VISIBLE else View.INVISIBLE
+    // The page is a view on top of the whole window, so it's also hidden while the lock screen or a PIN
+    // screen covers the app: a console must never show (or take typing) over the lock.
+    val covered = com.vknxworks.proxctrl.ui.components.LocalAppCovered.current
+    LaunchedEffect(state, webView, covered) {
+        webView?.visibility = if (state == ConsoleState.CONNECTED && !covered) View.VISIBLE else View.INVISIBLE
     }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).imePadding()) {

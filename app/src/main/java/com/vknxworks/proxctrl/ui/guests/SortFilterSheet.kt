@@ -38,6 +38,7 @@ fun SortFilterSheet(
     onSort: (GuestSort, Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    if (com.vknxworks.proxctrl.ui.components.LocalAppCovered.current) return
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainer, shape = com.vknxworks.proxctrl.ui.components.CtrlSheetShape) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 24.dp, vertical = 8.dp),

@@ -11,8 +11,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+
+/**
+ * True while the app is covered by the lock screen, or its activity is closing. Dialogs, bottom sheets
+ * and menus are windows of their own, drawn above everything in the activity, so while this is true they
+ * aren't shown: one left open would sit on top of the lock screen (and still take taps), and a new window
+ * can't be added to an activity that is closing.
+ */
+val LocalAppCovered = compositionLocalOf { false }
 
 /**
  * Screens that always get FLAG_SECURE, whatever "Hide in screenshots" says: server sign-in

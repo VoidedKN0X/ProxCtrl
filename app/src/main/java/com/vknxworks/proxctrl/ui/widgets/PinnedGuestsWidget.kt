@@ -38,6 +38,7 @@ import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.widgets.GuestSnapshot
 import com.vknxworks.proxctrl.data.widgets.WidgetSnapshot
 import com.vknxworks.proxctrl.data.widgets.WidgetStore
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -165,7 +166,7 @@ internal fun configureIntent(context: Context, appWidgetId: Int): Intent =
 
 class PinnedGuestsWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = PinnedGuestsWidget()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, _ -> })
 
     override fun onEnabled(context: Context) {
         super.onEnabled(context)

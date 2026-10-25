@@ -226,8 +226,15 @@ pvesh create /cluster/notifications/targets/proxctrl/test
  */
 class PushReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        // Exported: a broadcast whose extras can't be read is dropped instead of crashing ProxCtrl.
+        runCatching { handle(context, intent) }
+    }
+
+    private fun handle(context: Context, intent: Intent) {
         val token = intent.getStringExtra(UnifiedPush.EXTRA_TOKEN) ?: return
-        if (token != UnifiedPush.token(context)) return
+        // Nothing is accepted before ntfy gave a registration, and the token is compared in constant time.
+        val expected = UnifiedPush.token(context) ?: return
+        if (!java.security.MessageDigest.isEqual(token.toByteArray(), expected.toByteArray())) return
         if (Build.VERSION.SDK_INT >= 34) {
             // Only rejects senders that identify as another app; anonymous ones get through to the token check.
             val sender = sentFromPackage

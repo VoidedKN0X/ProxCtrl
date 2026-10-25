@@ -311,7 +311,7 @@ private fun SnapshotRow(
         if (!s.isCurrent && (canRollback || canDelete)) {
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.snapshot_rollback)) },
                         leadingIcon = { Icon(Icons.Outlined.History, null) },

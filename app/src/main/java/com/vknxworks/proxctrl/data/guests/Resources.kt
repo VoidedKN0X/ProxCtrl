@@ -1,6 +1,7 @@
 package com.vknxworks.proxctrl.data.guests
 
 import com.vknxworks.proxctrl.data.api.PveClient
+import com.vknxworks.proxctrl.data.api.PveError
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -210,9 +211,19 @@ object ResourcesApi {
 
     suspend fun nextId(client: PveClient): Int? = (client.get("/cluster/nextid") as? JsonPrimitive)?.content?.toIntOrNull()
 
-    /** Whether [vmid] is free: /cluster/nextid?vmid= answers with an error when it's taken. */
-    suspend fun isIdFree(client: PveClient, vmid: Int): Boolean =
-        runCatching { client.get("/cluster/nextid", mapOf("vmid" to vmid.toString())) }.isSuccess
+    /**
+     * Whether [vmid] is free: /cluster/nextid?vmid= answers with an error status when it's taken. A network
+     * hiccup doesn't count as taken (Proxmox still checks when creating), and a check that was replaced by
+     * a newer one (the ID was typed further) is cancelled instead of reporting "in use".
+     */
+    suspend fun isIdFree(client: PveClient, vmid: Int): Boolean = try {
+        client.get("/cluster/nextid", mapOf("vmid" to vmid.toString()))
+        true
+    } catch (e: PveError.Server) {
+        false
+    } catch (e: PveError) {
+        true
+    }
 
     suspend fun clone(client: PveClient, ref: GuestRef, newId: Int, name: String, full: Boolean, storage: String?): String? {
         val params = buildMap {

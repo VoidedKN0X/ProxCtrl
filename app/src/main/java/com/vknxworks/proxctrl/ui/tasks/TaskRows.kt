@@ -177,7 +177,7 @@ fun <T> FilterMenuChip(
             label = { Text(if (selected == null) label else nameOf(selected), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, null, Modifier.size(18.dp)) },
         )
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        DropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text(allLabel) }, onClick = { open = false; onSelect(null) })
             choices.forEach { choice ->
                 DropdownMenuItem(text = { Text(nameOf(choice)) }, onClick = { open = false; onSelect(choice) })

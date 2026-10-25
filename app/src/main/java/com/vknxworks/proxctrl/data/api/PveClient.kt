@@ -98,17 +98,24 @@ class PveClient(
                 .readTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .writeTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .build()
-            val response = try {
-                uploadHttp.newCall(request).execute()
+            try {
+                uploadHttp.newCall(request).execute().use { parse(it) }
             } catch (e: IOException) {
+                // Also a connection that breaks while the answer is read: always a PveError, never a crash.
                 throw PveError.fromIo(e)
             }
-            response.use { parse(it) }
         }
     }
 
-    suspend fun <T> get(path: String, strategy: DeserializationStrategy<T>, query: Map<String, String> = emptyMap()): T =
-        PveJson.decodeFromJsonElement(strategy, get(path, query))
+    suspend fun <T> get(path: String, strategy: DeserializationStrategy<T>, query: Map<String, String> = emptyMap()): T {
+        val data = get(path, query)
+        // An answer of an unexpected shape is an error the screens show, not a crash.
+        return try {
+            PveJson.decodeFromJsonElement(strategy, data)
+        } catch (e: IllegalArgumentException) {
+            throw PveError.NotProxmox(null)
+        }
+    }
 
     private suspend fun call(method: String, path: String, query: Map<String, String>, params: Map<String, String>): JsonElement {
         // Read-only mode is enforced here, for every request that could change something (power
@@ -131,12 +138,12 @@ class PveClient(
             val body = if (method == "GET" || method == "DELETE") null
             else FormBody.Builder().apply { params.forEach { (k, v) -> add(k, v) } }.build()
             val request = Request.Builder().url(url(path, query)).method(method, body).also { authorize(it, method) }.build()
-            val response = try {
-                http.newCall(request).execute()
+            try {
+                http.newCall(request).execute().use { parse(it) }
             } catch (e: IOException) {
+                // Also a connection that breaks while the answer is read: always a PveError, never a crash.
                 throw PveError.fromIo(e)
             }
-            response.use { parse(it) }
         }
 
     private fun authorize(b: Request.Builder, method: String) {

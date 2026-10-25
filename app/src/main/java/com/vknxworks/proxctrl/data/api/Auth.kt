@@ -50,7 +50,12 @@ object Auth {
             } catch (e: IOException) {
                 throw PveError.fromIo(e)
             }
-            PveJson.decodeFromJsonElement(TicketResponse.serializer(), data)
+            // SerializationException is an IllegalArgumentException: an odd answer is an error, not a crash.
+            try {
+                PveJson.decodeFromJsonElement(TicketResponse.serializer(), data)
+            } catch (e: IllegalArgumentException) {
+                throw PveError.NotProxmox(null)
+            }
         }
 
     fun totp(code: String) = "totp:${code.filter { it.isDigit() }}"

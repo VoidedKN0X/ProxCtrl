@@ -317,6 +317,7 @@ fun <T> ChoiceSheet(
     onDismiss: () -> Unit,
     onPick: (T) -> Unit,
 ) {
+    if (LocalAppCovered.current) return
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = CtrlColors.Surface, shape = CtrlSheetShape) {
         Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
         LazyColumn(Modifier.navigationBarsPadding(), contentPadding = PaddingValues(bottom = 16.dp)) {

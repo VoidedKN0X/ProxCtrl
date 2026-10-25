@@ -304,7 +304,7 @@ private fun BackupRow(
         if (showMenu) {
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.restore)) },
                         leadingIcon = { Icon(Icons.Outlined.Restore, null) },
@@ -353,7 +353,7 @@ private fun StoragePicker(
             supportingText = error?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
         )
-        ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        ExposedDropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
             if (noneLabel != null) {
                 DropdownMenuItem(text = { Text(noneLabel) }, onClick = { onSelect(null); open = false })
             }

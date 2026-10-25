@@ -75,6 +75,8 @@ internal fun ResourcesGroup(
     onResize: (GuestDisk) -> Unit,
     canMove: Boolean = false,
     onMove: (GuestDisk) -> Unit = {},
+    /** VMs: running now. Proxmox can't move a running VM's TPM state, so that disk gets no Move button then. */
+    running: Boolean = false,
 ) {
     Group(stringResource(R.string.group_resources)) {
         val cpu = if (type == GuestType.QEMU && res.sockets > 1) {
@@ -104,10 +106,10 @@ internal fun ResourcesGroup(
                 title = diskTitle(d),
                 subtitle = listOfNotNull(d.volume.takeIf { it.isNotBlank() }, d.size?.let(::formatBytes)).joinToString("\n"),
                 icon = Icons.Outlined.Inventory,
-                trailing = if ((canResize && d.resizable) || (canMove && d.movable())) {
+                trailing = if ((canResize && d.resizable) || (canMove && d.movable() && !(running && d.key.startsWith("tpmstate")))) {
                     {
                         Row {
-                            if (canMove && d.movable()) TextButton(onClick = { onMove(d) }) { Text(stringResource(R.string.move_button)) }
+                            if (canMove && d.movable() && !(running && d.key.startsWith("tpmstate"))) TextButton(onClick = { onMove(d) }) { Text(stringResource(R.string.move_button)) }
                             if (canResize && d.resizable) TextButton(onClick = { onResize(d) }) { Text(stringResource(R.string.res_grow)) }
                         }
                     }

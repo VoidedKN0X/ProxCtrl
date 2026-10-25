@@ -36,6 +36,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import com.vknxworks.proxctrl.ui.components.LocalAppCovered
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,11 +91,15 @@ class ShareIsoActivity : FragmentActivity() {
             com.vknxworks.proxctrl.ui.theme.SignalSystemBars(this)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
+                    val closing = isFinishing || isDestroyed
                     if (lockState == AppLock.State.UNLOCKED) {
-                        ShareIsoScreen(uri, onClose = { finish() })
-                        LockOverlays(this@ShareIsoActivity)
+                        // The storage menu waits while "Confirm changes" covers the screen.
+                        CompositionLocalProvider(LocalAppCovered provides (closing || AppLock.confirm != null || AppLock.request != null)) {
+                            ShareIsoScreen(uri, onClose = { finish() })
+                        }
+                        CompositionLocalProvider(LocalAppCovered provides closing) { LockOverlays(this@ShareIsoActivity) }
                     } else {
-                        LockScreen(this@ShareIsoActivity)
+                        CompositionLocalProvider(LocalAppCovered provides closing) { LockScreen(this@ShareIsoActivity) }
                     }
                 }
             }
@@ -102,7 +108,8 @@ class ShareIsoActivity : FragmentActivity() {
 
     private fun sharedUri(intent: Intent?): Uri? {
         if (intent?.action != Intent.ACTION_SEND) return null
-        val uri = intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java) ?: intent.data ?: return null
+        // Any app can share here: extras that can't be read mean "nothing shared", not a crash.
+        val uri = runCatching { intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java) }.getOrNull() ?: intent.data ?: return null
         // Only content:// from another app: a file:// address could point ProxCtrl at its own private files.
         return uri.takeIf { IsoUpload.isForeignContentUri(this, it) }
     }
@@ -216,7 +223,7 @@ private fun TargetPicker(targets: List<StorageInfo>?, selected: StorageInfo?, en
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) },
             modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
         )
-        ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+        ExposedDropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
             targets.orEmpty().forEach { s ->
                 DropdownMenuItem(
                     text = {
