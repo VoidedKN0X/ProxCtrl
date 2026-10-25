@@ -86,6 +86,12 @@ fun CreateLxcScreen() {
     // The password is never put in saved state.
     var password by remember { mutableStateOf("") }
     var password2 by remember { mutableStateOf("") }
+    // Only whether one was typed is saved: if Android closed ProxCtrl in the background meanwhile, the
+    // wizard goes back to Login to ask for it again instead of creating the container without it.
+    var passwordTyped by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (passwordTyped && password.isEmpty() && step > 2) step = 2
+    }
     var sshKeys by rememberSaveable { mutableStateOf("") }
     var diskStorage by rememberSaveable { mutableStateOf<String?>(null) }
     var diskGiB by rememberSaveable { mutableStateOf("8") }
@@ -187,7 +193,7 @@ fun CreateLxcScreen() {
         4 -> cpuOk
         5 -> netOk
         6 -> dnsOk
-        else -> spec() != null && server?.readOnly == false
+        else -> spec() != null && loginOk && server?.readOnly == false
     }
 
     WizardScaffold(
@@ -287,7 +293,7 @@ fun CreateLxcScreen() {
                 WizardHint(stringResource(R.string.create_login_hint))
                 WizardField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it; passwordTyped = it.isNotEmpty() },
                     label = stringResource(R.string.create_root_password),
                     isError = password.isNotEmpty() && password.length < 5,
                     supporting = stringResource(R.string.create_password_min),

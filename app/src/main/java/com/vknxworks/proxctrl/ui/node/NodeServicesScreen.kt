@@ -222,7 +222,7 @@ private fun ServiceRow(service: NodeService, showMenu: Boolean, enabled: Boolean
                 IconButton(onClick = { menu = true }, enabled = enabled && installed) {
                     Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions))
                 }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.node_service_start)) },
                         leadingIcon = { Icon(Icons.Outlined.PlayArrow, null) },

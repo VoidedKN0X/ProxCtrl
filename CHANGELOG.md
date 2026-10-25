@@ -4,6 +4,32 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.1 (2026-10-25)
+
+Crash fixes for closing and leaving the app, safer dialogs with the app lock, and fixes for creating containers and moving disks.
+
+### Fixed
+
+- **No crash when closing ProxCtrl with the app lock on.** With **Lock again** set to "As soon as you leave", pressing Back on the first screen or swiping ProxCtrl away from recent apps could crash it, because the lock screen (or a dialog) tried to open on a screen that was already closing. The app still locks; it just doesn't try to show anything while it closes, and opens locked next time.
+- **The fingerprint prompt can't crash ProxCtrl.** If Android refuses to show the fingerprint prompt (for example while you're leaving the app), the lock screen and Settings now show the usual error message instead of crashing, and the PIN keeps working.
+- **Dialogs no longer stay on top of the lock screen.** A dialog, menu or bottom sheet that was open when ProxCtrl locked (or when a PIN or **Confirm changes** screen came up) used to stay on top of the lock screen, where it could still be tapped. It now waits behind the lock and comes back, as it was, after you unlock.
+- **A console is hidden while ProxCtrl is locked.** An open console or node shell is now hidden behind the lock screen and the PIN screens too, and shows again after unlocking.
+- **Odd answers from a server or a proxy are an error message, not a crash.** A connection that breaks while an answer is being read, or an answer that isn't what Proxmox normally sends (for example from a reverse proxy), now shows the usual error card everywhere, including at sign-in.
+- **Background work can't crash the app.** A failure in work that runs on its own (refreshing the widgets and the tile, saving a setting, handling a push from ntfy, starting up) is now ignored until the next try instead of closing ProxCtrl, also while it's closing.
+- **Links from other apps can't crash ProxCtrl.** A link, widget button or shared file from another app whose contents can't be read is now ignored.
+- **New container: the root password isn't lost silently.** If Android closed ProxCtrl in the background while you were in the container wizard, the password you typed (which is never saved) was gone but the wizard still let you create the container without it. The wizard now goes back to **Login** to ask for it again, and **Create** stays off until the login step is complete.
+- **"ID already in use" only when it really is.** In the create wizards and the clone dialog, a network hiccup (or typing the ID quickly) could flag a free ID as already in use. Now only Proxmox's own answer that the ID is taken does.
+- **Moving a TPM disk.** Proxmox can't move a VM's TPM state while the VM is running, so its **Move** button now only shows while the VM is stopped. The format choice no longer shows for TPM state either, because it's always raw.
+
+### Security
+
+- **Push from ntfy is checked more strictly.** Nothing is accepted before ntfy has given ProxCtrl a push address, and the secret token in every push is compared in a way that doesn't leak how much of it was right.
+- **One unneeded component removed.** WorkManager's diagnostics receiver (only useful for developer dumps over USB) is no longer part of the app.
+
+### Changed
+
+- Internal cleanup: removed 19 unused texts.
+
 ## v1.4.0 (2026-10-25)
 
 ProxCtrl can now **create containers and VMs** and **move disks between storages**.

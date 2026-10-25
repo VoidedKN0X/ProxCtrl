@@ -17,7 +17,6 @@
     <string name="signal_state_run">Run</string>
     <string name="signal_state_stop">Stop</string>
     <string name="signal_state_pause">Pause</string>
-    <string name="signal_state_template">Tmpl</string>
     <string name="signal_details">Details</string>
 
     <!-- Tabs -->
@@ -33,11 +32,6 @@
     <string name="selected">Selected</string>
 
     <!-- What each tab shows -->
-    <string name="overview_empty_hint">Node health and anything that needs attention.</string>
-    <string name="guests_empty_hint">All your containers and virtual machines.</string>
-    <string name="storage_empty_hint">Storages, disks, ZFS, LVM and backups.</string>
-    <string name="tasks_empty_hint">Running and recent tasks with their logs.</string>
-    <string name="node_empty_hint">Node details, network, updates, services and shell.</string>
 
     <!-- You page (opened from the profile picture) -->
     <string name="you_title">You</string>
@@ -57,14 +51,10 @@
     <string name="group_about">About</string>
 
     <!-- Settings -->
-    <string name="group_appearance">Appearance</string>
-    <string name="theme">Theme</string>
     <string name="theme_system">Follow system</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>
     <string name="theme_black">Pure black</string>
-    <string name="dynamic_colour">Use wallpaper colours</string>
-    <string name="dynamic_colour_subtitle">Replaces the default colours with ones from your wallpaper</string>
 
     <!-- Server setup -->
     <string name="setup_title">Add your Proxmox server</string>
@@ -110,7 +100,6 @@
     <string name="cert_issued_to">Issued to: %1$s</string>
     <string name="cert_pin_note">From now on ProxCtrl only accepts this exact certificate from this server.</string>
     <string name="cert_trust">Trust</string>
-    <string name="cert_fetch_failed">Couldn\'t read the certificate from %1$s.</string>
 
     <!-- Two-factor -->
     <string name="tfa_title">Two-factor code</string>
@@ -120,7 +109,6 @@
     <string name="tfa_use_code">Use an authenticator code instead</string>
     <string name="tfa_recovery_body">Enter one of your Proxmox recovery keys. Each key works once.</string>
     <string name="tfa_recovery">Recovery key</string>
-    <string name="tfa_unsupported">This account only has a security key (WebAuthn) or Yubico OTP as its second factor. ProxCtrl supports authenticator codes and recovery keys; use an API token instead.</string>
     <string name="verify">Verify</string>
 
     <!-- Errors -->
@@ -232,13 +220,9 @@
     <string name="uptime_value">Up %1$s</string>
     <string name="locked">Locked: %1$s</string>
     <string name="ha_state">HA: %1$s</string>
-    <string name="cpu_of_cores">%1$d%% of %2$s cores</string>
-    <string name="disk_agent_hint">VM disk use comes from the QEMU guest agent</string>
 
     <!-- Freshness -->
     <string name="stale_banner">Showing what ProxCtrl last saw %1$s. %2$s</string>
-    <string name="never_updated">Not loaded yet.</string>
-    <string name="time_just_now">just now</string>
 
     <!-- Selection and bulk actions -->
     <string name="selected_count">%1$d selected</string>
@@ -261,7 +245,6 @@
     <string name="bulk_done">%1$s: %2$d of %3$d done</string>
     <string name="bulk_failed">%1$s failed for %2$s</string>
     <string name="not_allowed_action">Not allowed for this sign-in</string>
-    <string name="read_only_active">Read-only mode is on</string>
 
 
     <!-- Settings: warnings -->
@@ -529,11 +512,9 @@
     <string name="battery_footer">On ColorOS and other phones that close background apps aggressively: open ProxCtrl\'s app info, then under Battery choose Allow background activity (or Don\'t optimise), and allow Auto launch if your phone has it. Push from Proxmox keeps working as long as ntfy is allowed to run in the background.</string>
 
     <!-- Console and shell -->
-    <string name="console">Console</string>
     <string name="open_console">Open console</string>
     <string name="node_shell">Shell</string>
     <string name="node_shell_title">%1$s shell</string>
-    <string name="console_connecting">Connecting…</string>
     <string name="console_closed">The console closed.</string>
     <string name="console_failed">Couldn\'t open the console: %1$s</string>
     <string name="console_reconnect">Reconnect</string>

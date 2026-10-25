@@ -30,6 +30,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import com.vknxworks.proxctrl.ui.components.LocalAppCovered
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -89,12 +91,15 @@ class PinnedGuestsConfigActivity : FragmentActivity() {
             com.vknxworks.proxctrl.ui.theme.SignalSystemBars(this)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
                 Box(Modifier.fillMaxSize()) {
-                    if (lockState == AppLock.State.UNLOCKED) {
-                        Picker(appWidgetId, onDone = ::done, onCancel = ::finish)
-                        LockOverlays(this@PinnedGuestsConfigActivity)
-                    }
-                    if (lockState != AppLock.State.UNLOCKED) {
-                        LockScreen(this@PinnedGuestsConfigActivity)
+                    // Closing: no new windows (dialogs) from here on.
+                    CompositionLocalProvider(LocalAppCovered provides (isFinishing || isDestroyed)) {
+                        if (lockState == AppLock.State.UNLOCKED) {
+                            Picker(appWidgetId, onDone = ::done, onCancel = ::finish)
+                            LockOverlays(this@PinnedGuestsConfigActivity)
+                        }
+                        if (lockState != AppLock.State.UNLOCKED) {
+                            LockScreen(this@PinnedGuestsConfigActivity)
+                        }
                     }
                 }
             }

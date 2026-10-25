@@ -36,6 +36,7 @@ import com.vknxworks.proxctrl.data.widgets.WidgetStore
 import com.vknxworks.proxctrl.ui.components.formatBytes
 import com.vknxworks.proxctrl.ui.components.formatUptime
 import com.vknxworks.proxctrl.ui.components.percent
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -150,7 +151,7 @@ class NodeStatusWidgetReceiver : GlanceAppWidgetReceiver() {
 
 /** Starts or stops the background refresh from the widget receivers (which can't suspend). */
 internal object WidgetSchedule {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, _ -> })
 
     fun update(context: Context, refreshNow: Boolean) {
         val app = context.applicationContext

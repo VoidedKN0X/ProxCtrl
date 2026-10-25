@@ -76,7 +76,8 @@ internal fun MoveDiskDialog(
             .filter { it.id != disk.storage }
     }
     val targetInfo = storages?.firstOrNull { it.id == target }
-    val fileTarget = ref.type == GuestType.QEMU && targetInfo?.let(CreateApi::isFileStorage) == true
+    // TPM state is always raw, so its format can't be picked.
+    val fileTarget = ref.type == GuestType.QEMU && !disk.key.startsWith("tpmstate") && targetInfo?.let(CreateApi::isFileStorage) == true
     val limitVal = limit.toIntOrNull()?.takeIf { it > 0 }
     val limitOk = limit.isBlank() || limitVal != null
     val deleteBlocked = deleteSource && hasSnapshots
@@ -103,7 +104,7 @@ internal fun MoveDiskDialog(
                             val allowed = c.sessions.canWrite("/storage/${s.id}", CreateApi.PRIV_SPACE)
                             FilterChip(
                                 selected = target == s.id,
-                                onClick = { target = s.id; if (!(ref.type == GuestType.QEMU && CreateApi.isFileStorage(s))) format = null },
+                                onClick = { target = s.id; if (!(ref.type == GuestType.QEMU && !disk.key.startsWith("tpmstate") && CreateApi.isFileStorage(s))) format = null },
                                 enabled = allowed,
                                 label = { Text(stringResource(R.string.create_storage_free, s.id, formatBytes(s.avail))) },
                             )

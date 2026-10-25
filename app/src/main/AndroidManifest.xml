@@ -144,6 +144,10 @@
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true" />
+        <!-- WorkManager's diagnostics hook (only for adb dumps) isn't needed in the app. -->
+        <receiver
+            android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
+            tools:node="remove" />
         <!-- Don't let androidx.emoji2 look up a downloadable emoji font at start-up: emoji are drawn with the
              phone's own emoji font, and nothing is fetched. -->
         <provider

@@ -220,7 +220,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 if (g != null && server?.readOnly == false) {
                     Box {
                         IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.clone)) },
                                 leadingIcon = { Icon(Icons.Outlined.ContentCopy, null) },
@@ -322,6 +322,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                         canMove = writable && !tracker.busy && c.sessions.canWrite(ref.aclPath, CreateApi.PRIV_DISK) &&
                             (ref.type == GuestType.QEMU || guest?.isStopped == true),
                         onMove = { moving = it },
+                        running = ref.type == GuestType.QEMU && guest?.isRunning == true,
                     )
                     if (ref.type == GuestType.LXC && guest?.isRunning == true && writable &&
                         c.sessions.canWrite(ref.aclPath, CreateApi.PRIV_DISK) && res.disks.any { it.movable() }
@@ -587,7 +588,7 @@ private fun PowerRow(guest: Guest, runState: String?, allowed: Boolean, onAction
             if (guest.type == GuestType.QEMU) {
                 Box {
                     IconButton(onClick = { menu = true }, enabled = allowed) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
                         listOf(PowerAction.SUSPEND, PowerAction.RESUME, PowerAction.HIBERNATE).forEach { action ->
                             DropdownMenuItem(
                                 text = { Text(stringResource(action.label())) },

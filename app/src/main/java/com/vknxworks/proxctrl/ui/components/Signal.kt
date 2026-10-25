@@ -460,6 +460,8 @@ fun CtrlDialog(
     text: @Composable (() -> Unit)? = null,
     properties: DialogProperties = DialogProperties(),
 ) {
+    // Not over the lock screen, and not on an activity that is closing (see LocalAppCovered).
+    if (LocalAppCovered.current) return
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = confirmButton,

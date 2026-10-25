@@ -12,6 +12,7 @@ import com.vknxworks.proxctrl.data.overview.OverviewRepository
 import com.vknxworks.proxctrl.data.server.ServerStore
 import com.vknxworks.proxctrl.data.server.Sessions
 import com.vknxworks.proxctrl.data.settings.SettingsRepository
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,7 +23,12 @@ import java.util.concurrent.TimeUnit
 
 /** Manual dependency container; one per process. */
 class AppContainer(val context: Context) {
-    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    /**
+     * Work that outlives a screen (saving settings, refreshes, push, widgets). A failure in one of these
+     * (a server that went away, storage that can't be read right now) must never take the app down, also
+     * not while it's closing: the next refresh tries again.
+     */
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, _ -> })
 
     val settings = SettingsRepository(context, appScope)
 
