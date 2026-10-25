@@ -30,6 +30,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +58,7 @@ import com.vknxworks.proxctrl.data.api.Realm
 import com.vknxworks.proxctrl.data.api.TicketResponse
 import com.vknxworks.proxctrl.data.api.httpFor
 import com.vknxworks.proxctrl.data.server.AuthMethod
+import com.vknxworks.proxctrl.data.server.CleartextPolicy
 import com.vknxworks.proxctrl.data.server.Server
 import com.vknxworks.proxctrl.data.server.ServerAddress
 import com.vknxworks.proxctrl.data.server.ServerSecrets
@@ -68,6 +70,7 @@ import com.vknxworks.proxctrl.ui.components.PillButton
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import com.vknxworks.proxctrl.ui.components.SecureScreen
 import com.vknxworks.proxctrl.ui.components.errorMessage
+import com.vknxworks.proxctrl.ui.theme.CtrlColors
 import com.vknxworks.proxctrl.ui.theme.Gutter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -129,10 +132,12 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
     var pinnedHost by remember { mutableStateOf(existing?.host) }
     var pin by remember { mutableStateOf(existing?.certPin.orEmpty()) }
 
+    // Plain HTTP (a reverse proxy on the home network) is only used after the user said yes to it.
+    var httpPrompt by remember { mutableStateOf<HttpUrl?>(null) }
+
     val resolved: HttpUrl? = ServerAddress.normalize(address)
     val addressError = when {
         address.isBlank() -> null
-        ServerAddress.isPlainHttp(address) -> stringResource(R.string.address_http)
         resolved == null -> stringResource(R.string.address_invalid)
         else -> null
     }
@@ -147,7 +152,8 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
         AuthMethod.TICKET -> username.isNotBlank() && password.isNotEmpty()
     }
 
-    fun pinFor(url: HttpUrl): String = if (pinnedHost.equals(url.host, ignoreCase = true)) pin else ""
+    // A certificate pin only means something over HTTPS; an http:// address never keeps one.
+    fun pinFor(url: HttpUrl): String = if (url.isHttps && pinnedHost.equals(url.host, ignoreCase = true)) pin else ""
 
     fun fullUsername(): String = username.trim().let { if (it.contains('@')) it else "$it@$realm" }
 
@@ -155,6 +161,8 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
     LaunchedEffect(resolved, method) {
         val url = resolved ?: return@LaunchedEffect
         if (method != AuthMethod.TICKET) return@LaunchedEffect
+        // Not even the realm list goes to an http:// address before the user accepted plain HTTP.
+        if (!CleartextPolicy.isAllowed(url)) return@LaunchedEffect
         delay(600)
         runCatching { Auth.realms(httpFor(c.http, url.host, pinFor(url)), ServerAddress.base(url)) }
             .onSuccess { list -> realms = list }
@@ -207,6 +215,12 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
     fun connect() {
         val url = resolved ?: return
         val base = ServerAddress.base(url)
+        // Nothing (not even the realm list) goes to an http:// address before the user accepts it.
+        if (!url.isHttps && !CleartextPolicy.isAllowed(url)) {
+            error = null
+            httpPrompt = url
+            return
+        }
         busy = true
         error = null
         scope.launch {
@@ -301,6 +315,11 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
     // Token secrets, passwords and two-factor codes are typed here: never in screenshots or Recents.
     SecureScreen()
 
+    // An http:// address accepted here but not saved is forgotten on leaving; a saved one stays allowed.
+    DisposableEffect(Unit) {
+        onDispose { CleartextPolicy.clearPending() }
+    }
+
     val result = connected
     Column(Modifier.fillMaxSize()) {
         if (onCancel != null) {
@@ -337,6 +356,11 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                         supportingText = {
                             when {
                                 addressError != null -> Text(addressError)
+                                resolved != null && !resolved.isHttps -> Text(
+                                    stringResource(R.string.address_resolves, ServerAddress.base(resolved)) + "\n" +
+                                        stringResource(R.string.address_http_warning),
+                                    color = CtrlColors.Warn,
+                                )
                                 resolved != null -> Text(stringResource(R.string.address_resolves, ServerAddress.base(resolved)))
                             }
                         },
@@ -486,6 +510,17 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                 connect()
             },
             onCancel = { certPrompt = null },
+        )
+    }
+    httpPrompt?.let { url ->
+        HttpWarningDialog(
+            host = url.host,
+            onUseHttp = {
+                httpPrompt = null
+                CleartextPolicy.allow(url)
+                connect()
+            },
+            onCancel = { httpPrompt = null },
         )
     }
     tfaPrompt?.let {

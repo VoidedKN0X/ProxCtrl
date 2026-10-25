@@ -71,7 +71,12 @@ fun ServersScreen() {
                         listOfNotNull(
                             authSummary(server),
                             server.pveVersion.takeIf { it.isNotBlank() }?.let { stringResource(R.string.pve_version, it) },
-                            stringResource(if (server.certPin.isNotBlank()) R.string.cert_pinned else R.string.cert_system),
+                            // The login travels unencrypted: say so where the server is shown.
+                            if (server.isPlainHttp) {
+                                stringResource(R.string.server_not_encrypted)
+                            } else {
+                                stringResource(if (server.certPin.isNotBlank()) R.string.cert_pinned else R.string.cert_system)
+                            },
                         ).joinToString("  ·  "),
                         icon = Icons.Outlined.Dns,
                         trailing = if (isActive) {

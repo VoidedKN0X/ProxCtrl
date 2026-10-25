@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -71,6 +72,22 @@ fun CertTrustDialog(cert: CertInfo, changed: Boolean, onTrust: () -> Unit, onCan
             }
         },
         confirmButton = { TextButton(onTrust) { Text(stringResource(R.string.cert_trust)) } },
+        dismissButton = { TextButton(onCancel) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+/**
+ * Asks before ProxCtrl talks to [host] over plain HTTP (a reverse proxy on the home network). Nothing,
+ * not even the realm list, is sent to the address before the user taps **Use HTTP**.
+ */
+@Composable
+fun HttpWarningDialog(host: String, onUseHttp: () -> Unit, onCancel: () -> Unit) {
+    CtrlDialog(
+        onDismissRequest = onCancel,
+        icon = { Icon(Icons.Outlined.Warning, null) },
+        title = { Text(stringResource(R.string.http_title)) },
+        text = { Text(stringResource(R.string.http_body, host)) },
+        confirmButton = { TextButton(onUseHttp) { Text(stringResource(R.string.http_use)) } },
         dismissButton = { TextButton(onCancel) { Text(stringResource(R.string.cancel)) } },
     )
 }

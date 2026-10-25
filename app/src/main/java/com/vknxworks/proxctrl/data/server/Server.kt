@@ -38,6 +38,9 @@ data class Server(
     /** The user this server's API calls run as (the token ID for tokens). */
     val authId: String get() = if (auth == AuthMethod.TOKEN) tokenId else username
 
+    /** Plain HTTP (a reverse proxy on the home network): the login and everything else travel unencrypted. */
+    val isPlainHttp: Boolean get() = url.startsWith("http://", ignoreCase = true)
+
     /** First letter shown in the profile picture. */
     val initial: String get() = name.ifBlank { host }.take(1)
 }
@@ -60,25 +63,30 @@ object ServerAddress {
 
     /**
      * Turns what the user typed into a base URL. No scheme and no port means a Proxmox node on
-     * its usual port 8006 ("192.168.1.10" → https://192.168.1.10:8006). An explicit https:// address
-     * without a port keeps the standard port 443, which is what a reverse proxy like Nginx Proxy
-     * Manager uses. Paths are dropped. Returns null for anything that isn't a usable https address.
+     * its usual port 8006 ("192.168.1.10" → https://192.168.1.10:8006): leaving the scheme out is
+     * always HTTPS. An explicit https:// address without a port keeps the standard port 443, which is
+     * what a reverse proxy like Nginx Proxy Manager uses. An explicit http:// address (a reverse proxy
+     * on the home network) is kept as typed, port 80 by default; the app only connects to it after
+     * the "unencrypted connection" warning (see [CleartextPolicy]). Paths are dropped. Returns null
+     * for anything that isn't a usable address.
      */
     fun normalize(input: String): HttpUrl? {
         val text = input.trim().trimEnd('/')
         if (text.isEmpty()) return null
-        if (text.startsWith("http://", ignoreCase = true)) return null
-        val hasScheme = text.startsWith("https://", ignoreCase = true)
+        val http = isPlainHttp(text)
+        val hasScheme = http || text.startsWith("https://", ignoreCase = true)
+        if (!hasScheme && text.contains("://")) return null
         val withScheme = if (hasScheme) text else "https://$text"
         val parsed = withScheme.toHttpUrlOrNull() ?: return null
         val authority = withScheme.substringAfter("://").substringBefore('/')
         val typedPort = authority.substringAfterLast(']', authority).contains(':')
         val port = when {
             typedPort -> parsed.port
+            http -> 80
             hasScheme -> 443
             else -> DEFAULT_PORT
         }
-        return HttpUrl.Builder().scheme("https").host(parsed.host).port(port).build()
+        return HttpUrl.Builder().scheme(if (http) "http" else "https").host(parsed.host).port(port).build()
     }
 
     /** The base URL as stored: no trailing slash. */

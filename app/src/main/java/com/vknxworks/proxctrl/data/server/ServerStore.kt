@@ -31,7 +31,7 @@ class ServerStore(
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val listSerializer = ListSerializer(Server.serializer())
 
-    private val _servers = MutableStateFlow(load())
+    private val _servers = MutableStateFlow(load().also(CleartextPolicy::syncSaved))
     val servers: StateFlow<List<Server>> = _servers.asStateFlow()
 
     private val _activeId = MutableStateFlow(sp.getString(KEY_ACTIVE, null)?.takeIf { id -> _servers.value.any { it.id == id } }
@@ -49,6 +49,7 @@ class ServerStore(
         val list = _servers.value.filterNot { it.id == server.id } + server
         val sorted = list.sortedBy { s -> _servers.value.indexOfFirst { it.id == s.id }.let { if (it < 0) Int.MAX_VALUE else it } }
         sp.edit().putString(KEY_SERVERS, json.encodeToString(listSerializer, sorted)).apply()
+        CleartextPolicy.syncSaved(sorted)
         _servers.value = sorted
     }
 
@@ -66,6 +67,7 @@ class ServerStore(
             .remove(secretKey(id, "token")).remove(secretKey(id, "password"))
             .remove(secretKey(id, "ticket")).remove(secretKey(id, "csrf")).remove(secretKey(id, "ticket_at"))
             .apply()
+        CleartextPolicy.syncSaved(list)
         _servers.value = list
         if (_activeId.value == id) setActive(list.firstOrNull()?.id)
     }
@@ -122,6 +124,7 @@ class ServerStore(
     @Synchronized
     fun removeAll() {
         sp.edit().clear().commit()
+        CleartextPolicy.syncSaved(emptyList())
         _servers.value = emptyList()
         _activeId.value = null
     }
