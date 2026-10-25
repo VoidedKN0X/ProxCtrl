@@ -27,7 +27,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, **Hide in screenshots** and **Hide in recent apps** switches, sign-in and consoles always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in and consoles always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore
 
 ## Screenshots
 
@@ -57,7 +57,7 @@ If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X
 ## Getting started
 
 1. [Create an API token](#create-an-api-token-for-proxctrl) for ProxCtrl on your Proxmox node.
-2. Open ProxCtrl and enter your node's address, like `192.168.1.10`. Without `https://` and a port, ProxCtrl uses port 8006. For a reverse proxy, enter the full address, like `https://pve.example.com`.
+2. Open ProxCtrl and enter your node's address, like `192.168.1.10`. Without `https://` and a port, ProxCtrl uses port 8006. For a reverse proxy, enter the full address, like `https://pve.example.com`. A reverse proxy that only speaks plain HTTP on your home network works too (`http://pve.lan`), after a warning that your login and everything else travel unencrypted.
 3. Choose **API token** and enter the token ID and secret, or choose **Password** to sign in with a Proxmox user (two-factor codes work too).
 4. If your node uses the self-signed certificate Proxmox created on install, compare the fingerprint ProxCtrl shows with the one under Datacenter › your node › System › Certificates (or `pvenode cert info`), then tap **Trust**.
 5. ProxCtrl shows what your sign-in is allowed to do. Tap **Continue**.
@@ -296,6 +296,7 @@ Signing in to a server, consoles, the node shell and the lock and PIN screens ar
 
 **Telemetry-free.** ProxCtrl has no analytics, crash reporting, usage stats or tracking of any kind. It only talks to the servers you add.
 
+- **Encryption:** HTTPS by default; plain HTTP only for your own server after a warning. Leaving the scheme out always means HTTPS. ProxCtrl only uses HTTP for an `http://` address you typed and accepted with **Use HTTP**, never switches an HTTPS server to HTTP, and refuses any other unencrypted connection. Such a server is marked **Not encrypted (HTTP)** under **Servers** and on the **You** page.
 - **Servers:** your own Proxmox servers. Push notifications come through the ntfy app and your own ntfy server. The consoles are bundled in the app and can't load anything from the internet, and links in a guest's notes open in your browser only when you tap them.
 - **Consoles:** the built-in web view for the consoles and node shell has Safe Browsing and WebView usage reports turned off, so page addresses never leave the phone.
 - **Wake-on-LAN** sends its packet only on your own network, to the node's MAC address and the broadcast address you entered.

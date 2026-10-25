@@ -9,6 +9,7 @@ import com.vknxworks.proxctrl.data.notify.CheckStore
 import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.data.notify.NotifySettingsRepository
 import com.vknxworks.proxctrl.data.overview.OverviewRepository
+import com.vknxworks.proxctrl.data.server.CleartextPolicy
 import com.vknxworks.proxctrl.data.server.ServerStore
 import com.vknxworks.proxctrl.data.server.Sessions
 import com.vknxworks.proxctrl.data.settings.SettingsRepository
@@ -36,7 +37,8 @@ class AppContainer(val context: Context) {
      * Shared HTTP client. Each server gets a copy with its own certificate pin (see httpFor), so a
      * pinned certificate is only ever accepted for the server it belongs to. Redirects are not
      * followed: the Proxmox API never redirects, and following one could send the token or ticket
-     * to another host.
+     * to another host. Plain HTTP only goes to server addresses the user accepted it for
+     * ([CleartextPolicy]), checked on every request, console and upload.
      */
     val http: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -44,6 +46,9 @@ class AppContainer(val context: Context) {
         .writeTimeout(30, TimeUnit.SECONDS)
         .followRedirects(false)
         .followSslRedirects(false)
+        // Both: WebSocket upgrades (consoles) skip network interceptors, and network interceptors see every hop.
+        .addInterceptor(CleartextPolicy.interceptor)
+        .addNetworkInterceptor(CleartextPolicy.interceptor)
         .addInterceptor { chain ->
             chain.proceed(
                 chain.request().newBuilder()

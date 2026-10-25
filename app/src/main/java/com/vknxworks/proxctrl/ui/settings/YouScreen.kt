@@ -125,6 +125,9 @@ fun YouScreen() {
                     )
                     if (server != null) {
                         Text(server.host, style = CtrlType.Mono, color = CtrlColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (server.isPlainHttp) {
+                            Text(stringResource(R.string.server_not_encrypted), style = MaterialTheme.typography.bodySmall, color = CtrlColors.Warn)
+                        }
                     }
                     Text(
                         if (server == null) {

@@ -22,6 +22,12 @@ sealed class PveError(val detail: String? = null, cause: Throwable? = null) : IO
     /** The server now presents a different certificate from the pinned one. */
     class PinMismatch(cause: Throwable?) : PveError(cause?.message, cause)
 
+    /**
+     * ProxCtrl refused to send a request over plain HTTP to [host]: only server addresses the user
+     * chose after the "unencrypted connection" warning may use HTTP. Nothing was sent.
+     */
+    class CleartextBlocked(val host: String) : PveError(null)
+
     /** 401: wrong token or password, or the session ended. */
     class Unauthorized(detail: String?) : PveError(detail)
 

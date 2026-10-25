@@ -66,7 +66,11 @@
     <string name="field_address_hint">192.168.1.10 or https://pve.example.com</string>
     <string name="address_resolves">Connects to %1$s</string>
     <string name="address_invalid">Enter the address of your Proxmox node, like 192.168.1.10 or https://pve.example.com</string>
-    <string name="address_http">Proxmox VE only uses HTTPS. Use https:// or leave the scheme out.</string>
+    <string name="address_http_warning">Not encrypted (HTTP). Fine on your home network or a VPN, risky anywhere else. Leave the scheme out or use https:// for an encrypted connection.</string>
+    <string name="http_title">Use an unencrypted connection?</string>
+    <string name="http_body">%1$s is an http:// address. Then your API token or password, your session and everything ProxCtrl shows and changes (consoles and uploads too) are sent unencrypted, and anyone on the network can read them. That\'s fine on your home network or a VPN, but risky anywhere else. ProxCtrl only uses HTTP for this address.</string>
+    <string name="http_use">Use HTTP</string>
+    <string name="server_not_encrypted">Not encrypted (HTTP)</string>
     <string name="auth_method">Sign in with</string>
     <string name="auth_token">API token</string>
     <string name="auth_password">Password</string>
@@ -125,6 +129,7 @@
     <string name="error_with_detail">%1$s\n\n%2$s</string>
     <string name="error_generic">Something went wrong.</string>
     <string name="error_read_only">This server is in read-only mode, so nothing was changed. Turn read-only mode off to make changes.</string>
+    <string name="error_cleartext_blocked">Blocked an unencrypted (HTTP) connection to %1$s. ProxCtrl only uses HTTP for a server address you chose it for.</string>
     <string name="error_cancelled">Cancelled: the change wasn\'t confirmed with your fingerprint or app PIN.</string>
 
     <!-- Connection result and access -->

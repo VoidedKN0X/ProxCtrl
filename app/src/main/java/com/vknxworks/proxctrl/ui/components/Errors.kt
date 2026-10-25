@@ -21,6 +21,7 @@ fun errorMessage(context: Context, e: Throwable, host: String, auth: AuthMethod?
         is PveError.Server -> context.getString(R.string.error_server, e.code)
         is PveError.ReadOnly -> context.getString(R.string.error_read_only)
         is PveError.Cancelled -> context.getString(R.string.error_cancelled)
+        is PveError.CleartextBlocked -> context.getString(R.string.error_cleartext_blocked, e.host)
         else -> context.getString(R.string.error_generic)
     }
     // Proxmox's own wording helps for permission and server errors; network errors' detail is noise.
