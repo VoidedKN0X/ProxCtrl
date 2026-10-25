@@ -6,23 +6,7 @@ To publish a new version: bump `versionCode` and `versionName` in `app/build.gra
 
 ## v1.4.2 (2026-10-25)
 
-Plain HTTP for a Proxmox server behind a reverse proxy on your home network, after a warning.
-
-### Changed
-
-- **http:// addresses are accepted.** Proxmox itself always uses HTTPS, but if you reach it through a reverse proxy that only speaks plain HTTP on your home network, you can now enter an address like `http://pve.lan` (port 80 unless you type another one) instead of getting "Proxmox VE only uses HTTPS". Leaving the scheme out still means HTTPS on port 8006, and `https://` addresses work as before, including trusting a self-signed certificate by its fingerprint.
-- **A warning before the first unencrypted connection.** When you tap **Connect** for an `http://` address, ProxCtrl first asks **Use an unencrypted connection?**: your API token or password, your session and everything you see and change (consoles and ISO uploads too) would travel unencrypted, which is fine on your home network or a VPN but risky anywhere else. Nothing, not even the sign-in options, is sent to the address until you tap **Use HTTP**. Your answer is remembered for that server, so editing it later doesn't ask again.
-- **"Not encrypted (HTTP)" label.** A server with an `http://` address shows **Not encrypted (HTTP)** under **Settings › Servers** and under the server on the **You** page, and the address field says so while you type one.
-- **Consoles, uploads, widgets and notifications work with an HTTP server.** Container and VM consoles and the node shell connect without encryption to such a server, and ISO uploads (also when sharing an ISO to ProxCtrl), the widgets, the Quick Settings tile and the background checks for notifications use it as well.
-
-### Security
-
-- **HTTP only where you chose it.** ProxCtrl checks every connection, including consoles, uploads and background checks: plain HTTP only goes to a server address you accepted it for, an HTTPS server is never switched to HTTP, and nothing that started over HTTPS can end up on HTTP. Anything else is refused with "Blocked an unencrypted (HTTP) connection" and nothing is sent.
-- **Logins never follow a changed address.** As before, a saved token secret is only sent to the exact address it was saved for: changing a server from `https://` to `http://` (or the other way round) needs the secret typed again, and a pinned certificate is dropped for an `http://` address, where it can't apply.
-
-## v1.4.1 (2026-10-25)
-
-Crash fixes for closing and leaving the app, safer dialogs with the app lock, and fixes for creating containers and moving disks.
+Crash fixes for closing and leaving the app, safer dialogs with the app lock, fixes for creating containers and moving disks, and plain HTTP for a Proxmox server behind a reverse proxy on your home network, after a warning. (These changes were prepared as 1.4.1 and 1.4.2; 1.4.1 was never released on its own.)
 
 ### Fixed
 
@@ -37,14 +21,20 @@ Crash fixes for closing and leaving the app, safer dialogs with the app lock, an
 - **"ID already in use" only when it really is.** In the create wizards and the clone dialog, a network hiccup (or typing the ID quickly) could flag a free ID as already in use. Now only Proxmox's own answer that the ID is taken does.
 - **Moving a TPM disk.** Proxmox can't move a VM's TPM state while the VM is running, so its **Move** button now only shows while the VM is stopped. The format choice no longer shows for TPM state either, because it's always raw.
 
+### Changed
+
+- Internal cleanup: removed 19 unused texts.
+- **http:// addresses are accepted.** Proxmox itself always uses HTTPS, but if you reach it through a reverse proxy that only speaks plain HTTP on your home network, you can now enter an address like `http://pve.lan` (port 80 unless you type another one) instead of getting "Proxmox VE only uses HTTPS". Leaving the scheme out still means HTTPS on port 8006, and `https://` addresses work as before, including trusting a self-signed certificate by its fingerprint.
+- **A warning before the first unencrypted connection.** When you tap **Connect** for an `http://` address, ProxCtrl first asks **Use an unencrypted connection?**: your API token or password, your session and everything you see and change (consoles and ISO uploads too) would travel unencrypted, which is fine on your home network or a VPN but risky anywhere else. Nothing, not even the sign-in options, is sent to the address until you tap **Use HTTP**. Your answer is remembered for that server, so editing it later doesn't ask again.
+- **"Not encrypted (HTTP)" label.** A server with an `http://` address shows **Not encrypted (HTTP)** under **Settings › Servers** and under the server on the **You** page, and the address field says so while you type one.
+- **Consoles, uploads, widgets and notifications work with an HTTP server.** Container and VM consoles and the node shell connect without encryption to such a server, and ISO uploads (also when sharing an ISO to ProxCtrl), the widgets, the Quick Settings tile and the background checks for notifications use it as well.
+
 ### Security
 
 - **Push from ntfy is checked more strictly.** Nothing is accepted before ntfy has given ProxCtrl a push address, and the secret token in every push is compared in a way that doesn't leak how much of it was right.
 - **One unneeded component removed.** WorkManager's diagnostics receiver (only useful for developer dumps over USB) is no longer part of the app.
-
-### Changed
-
-- Internal cleanup: removed 19 unused texts.
+- **HTTP only where you chose it.** ProxCtrl checks every connection, including consoles, uploads and background checks: plain HTTP only goes to a server address you accepted it for, an HTTPS server is never switched to HTTP, and nothing that started over HTTPS can end up on HTTP. Anything else is refused with "Blocked an unencrypted (HTTP) connection" and nothing is sent.
+- **Logins never follow a changed address.** As before, a saved token secret is only sent to the exact address it was saved for: changing a server from `https://` to `http://` (or the other way round) needs the secret typed again, and a pinned certificate is dropped for an `http://` address, where it can't apply.
 
 ## v1.4.0 (2026-10-25)
 
