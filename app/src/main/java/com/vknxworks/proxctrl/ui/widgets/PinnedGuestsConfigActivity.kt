@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.widgets
 
+import com.vknxworks.proxctrl.ui.components.CtrlButton
 import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Intent
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -74,7 +74,10 @@ class PinnedGuestsConfigActivity : FragmentActivity() {
             return
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
+            navigationBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
+        )
         val c = container
         AppLock.attach(this, c)
         setContent {
@@ -172,7 +175,7 @@ private fun Picker(appWidgetId: Int, onDone: (List<Int>) -> Unit, onCancel: () -
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
             ) {
                 TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) }
-                Button(onClick = { onDone(selected.toList()) }, enabled = active != null) {
+                CtrlButton(onClick = { onDone(selected.toList()) }, enabled = active != null) {
                     Text(stringResource(R.string.widget_config_save))
                 }
             }

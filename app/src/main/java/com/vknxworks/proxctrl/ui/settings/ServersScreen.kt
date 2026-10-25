@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.settings
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -7,14 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Dns
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -73,26 +73,26 @@ fun ServersScreen() {
                             server.pveVersion.takeIf { it.isNotBlank() }?.let { stringResource(R.string.pve_version, it) },
                             stringResource(if (server.certPin.isNotBlank()) R.string.cert_pinned else R.string.cert_system),
                         ).joinToString("  ·  "),
-                        icon = Icons.Filled.Dns,
+                        icon = Icons.Outlined.Dns,
                         trailing = if (isActive) {
-                            { Icon(Icons.Filled.CheckCircle, stringResource(R.string.active_server), tint = Health.ok) }
+                            { Icon(Icons.Outlined.CheckCircle, stringResource(R.string.active_server), tint = Health.ok) }
                         } else {
                             null
                         },
                     )
                     if (!isActive) {
-                        GroupRow(stringResource(R.string.switch_to), icon = Icons.Filled.SwapHoriz, onClick = { c.sessions.switchTo(server.id) })
+                        GroupRow(stringResource(R.string.switch_to), icon = Icons.Outlined.SwapHoriz, onClick = { c.sessions.switchTo(server.id) })
                     }
                     GroupSwitch(
                         stringResource(R.string.read_only_mode),
                         stringResource(R.string.read_only_mode_subtitle),
                         checked = server.readOnly,
-                        icon = Icons.Filled.Visibility,
+                        icon = Icons.Outlined.Visibility,
                     ) { c.sessions.setReadOnly(server.id, it) }
-                    GroupRow(stringResource(R.string.edit_server), icon = Icons.Filled.Edit, showChevron = true, onClick = { nav.navigate(EditServerRoute(server.id)) })
+                    GroupRow(stringResource(R.string.edit_server), icon = Icons.Outlined.Edit, showChevron = true, onClick = { nav.navigate(EditServerRoute(server.id)) })
                     GroupRow(
                         stringResource(R.string.remove_server),
-                        icon = Icons.Filled.Delete,
+                        icon = Icons.Outlined.Delete,
                         iconTint = MaterialTheme.colorScheme.error,
                         titleColor = MaterialTheme.colorScheme.error,
                         onClick = { removing = server },
@@ -100,13 +100,13 @@ fun ServersScreen() {
                 }
             }
             Group {
-                GroupRow(stringResource(R.string.add_server), icon = Icons.Filled.Add, showChevron = true, onClick = { nav.navigate(AddServerRoute) })
+                GroupRow(stringResource(R.string.add_server), icon = Icons.Outlined.Add, showChevron = true, onClick = { nav.navigate(AddServerRoute) })
             }
         }
     }
 
     removing?.let { server ->
-        AlertDialog(
+        CtrlDialog(
             onDismissRequest = { removing = null },
             title = { Text(stringResource(R.string.remove_server_title, server.name)) },
             text = { Text(stringResource(R.string.remove_server_body)) },

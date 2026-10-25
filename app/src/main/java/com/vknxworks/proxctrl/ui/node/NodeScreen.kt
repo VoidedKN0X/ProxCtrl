@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.node
 
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -18,18 +19,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Hub
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SystemUpdate
-import androidx.compose.material.icons.filled.Terminal
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.PowerSettingsNew
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material.icons.outlined.Terminal
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -195,17 +195,17 @@ fun NodeScreen() {
             trailing = {
                 if (server != null) {
                     Box {
-                        IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_actions)) }
+                        IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(if (wol == null) R.string.node_wol_setup else R.string.node_wol_wake)) },
-                                leadingIcon = { Icon(Icons.Filled.PowerSettingsNew, null) },
+                                leadingIcon = { Icon(Icons.Outlined.PowerSettingsNew, null) },
                                 onClick = { menu = false; if (wol == null) editingWol = true else wake() },
                             )
                             if (wol != null) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.node_wol_settings)) },
-                                    leadingIcon = { Icon(Icons.Filled.Settings, null) },
+                                    leadingIcon = { Icon(Icons.Outlined.Settings, null) },
                                     onClick = { menu = false; editingWol = true },
                                 )
                             }
@@ -273,7 +273,7 @@ fun NodeScreen() {
                         GroupRow(
                             title = stringResource(R.string.node_shell),
                             subtitle = stringResource(R.string.node_shell_subtitle),
-                            icon = Icons.Filled.Terminal,
+                            icon = Icons.Outlined.Terminal,
                             showChevron = true,
                             onClick = { nav.navigate(ConsoleRoute(kind = "node", node = node, title = context.getString(R.string.node_shell_title, node))) },
                         )
@@ -282,7 +282,7 @@ fun NodeScreen() {
                         GroupRow(
                             title = stringResource(R.string.node_services),
                             subtitle = stringResource(R.string.node_services_subtitle),
-                            icon = Icons.Filled.Tune,
+                            icon = Icons.Outlined.Tune,
                             showChevron = true,
                             onClick = { nav.navigate(NodeServicesRoute(node)) },
                         )
@@ -299,7 +299,7 @@ fun NodeScreen() {
                                 },
                                 kernelNote?.let { stringResource(R.string.node_reboot_required_short) },
                             ).joinToString(" · "),
-                            icon = Icons.Filled.SystemUpdate,
+                            icon = Icons.Outlined.SystemUpdate,
                             iconTint = if (kernelNote != null) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                             showChevron = true,
                             onClick = { nav.navigate(NodeUpdatesRoute(node)) },
@@ -308,7 +308,7 @@ fun NodeScreen() {
                     GroupRow(
                         title = stringResource(R.string.node_network),
                         subtitle = stringResource(R.string.node_network_subtitle),
-                        icon = Icons.Filled.Hub,
+                        icon = Icons.Outlined.Hub,
                         showChevron = true,
                         onClick = { nav.navigate(NodeNetworkRoute(node)) },
                     )
@@ -321,14 +321,14 @@ fun NodeScreen() {
                         GroupRow(
                             title = stringResource(R.string.node_reboot),
                             subtitle = stringResource(R.string.node_reboot_subtitle),
-                            icon = Icons.Filled.RestartAlt,
+                            icon = Icons.Outlined.RestartAlt,
                             iconTint = MaterialTheme.colorScheme.error,
                             onClick = if (canPower && online && !tracker.busy) ({ powerAction = true }) else null,
                         )
                         GroupRow(
                             title = stringResource(R.string.node_shutdown),
                             subtitle = stringResource(R.string.node_shutdown_subtitle),
-                            icon = Icons.Filled.PowerSettingsNew,
+                            icon = Icons.Outlined.PowerSettingsNew,
                             iconTint = MaterialTheme.colorScheme.error,
                             onClick = if (canPower && online && !tracker.busy) ({ powerAction = false }) else null,
                         )
@@ -366,7 +366,7 @@ fun NodeScreen() {
             },
             expected = n,
             confirmLabel = stringResource(if (reboot) R.string.node_reboot else R.string.node_shutdown),
-            icon = if (reboot) Icons.Filled.RestartAlt else Icons.Filled.PowerSettingsNew,
+            icon = if (reboot) Icons.Outlined.RestartAlt else Icons.Outlined.PowerSettingsNew,
             onDismiss = { powerAction = null },
             onConfirm = {
                 powerAction = null
@@ -388,11 +388,12 @@ private fun WakeCard(name: String, configured: Boolean, onWake: () -> Unit, onSe
         color = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
         modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.PowerSettingsNew, null, Modifier.size(22.dp))
+                Icon(Icons.Outlined.PowerSettingsNew, null, Modifier.size(22.dp))
                 Spacer(Modifier.width(12.dp))
                 Text(stringResource(R.string.node_unreachable_title, name), style = MaterialTheme.typography.titleMedium)
             }
@@ -402,8 +403,8 @@ private fun WakeCard(name: String, configured: Boolean, onWake: () -> Unit, onSe
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(10.dp))
-            FilledTonalButton(onClick = if (configured) onWake else onSetUp) {
-                Icon(Icons.Filled.PowerSettingsNew, null, Modifier.size(18.dp))
+            CtrlSecondaryButton(onClick = if (configured) onWake else onSetUp) {
+                Icon(Icons.Outlined.PowerSettingsNew, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(if (configured) R.string.node_wol_wake else R.string.node_wol_setup))
             }
@@ -600,12 +601,13 @@ private fun RrdCharts(rrd: List<RrdPoint>) {
 private fun ChartCard(title: String, content: @Composable () -> Unit) {
     Surface(
         shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
+            com.vknxworks.proxctrl.ui.components.CtrlSectionLabel(title)
+            Spacer(Modifier.height(10.dp))
             content()
         }
     }

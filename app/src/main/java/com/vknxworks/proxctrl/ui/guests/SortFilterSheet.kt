@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +38,7 @@ fun SortFilterSheet(
     onSort: (GuestSort, Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainer, shape = com.vknxworks.proxctrl.ui.components.CtrlSheetShape) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -54,13 +54,13 @@ fun SortFilterSheet(
                     selected = !descending,
                     onClick = { onSort(sort, false) },
                     label = { Text(stringResource(R.string.sort_ascending)) },
-                    leadingIcon = { Icon(Icons.Filled.ArrowUpward, null) },
+                    leadingIcon = { Icon(Icons.Outlined.ArrowUpward, null) },
                 )
                 FilterChip(
                     selected = descending,
                     onClick = { onSort(sort, true) },
                     label = { Text(stringResource(R.string.sort_descending)) },
-                    leadingIcon = { Icon(Icons.Filled.ArrowDownward, null) },
+                    leadingIcon = { Icon(Icons.Outlined.ArrowDownward, null) },
                 )
             }
 

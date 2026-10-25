@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,10 +14,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SelectAll
+import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.ViewAgenda
@@ -26,7 +27,6 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -123,7 +123,7 @@ fun GuestsScreen() {
             } else {
                 TabTitle(stringResource(R.string.tab_guests)) {
                     IconButton(onClick = { searching = !searching; if (!searching) filter = filter.copy(query = "") }) {
-                        Icon(if (searching) Icons.Filled.Close else Icons.Filled.Search, stringResource(if (searching) R.string.close_search else R.string.search))
+                        Icon(if (searching) Icons.Outlined.Close else Icons.Outlined.Search, stringResource(if (searching) R.string.close_search else R.string.search))
                     }
                     IconButton(onClick = { c.appScope.launch { c.settings.update { it.copy(guestCompact = !it.guestCompact) } } }) {
                         Icon(
@@ -133,17 +133,17 @@ fun GuestsScreen() {
                     }
                     IconButton(onClick = { sheetOpen = true }) {
                         BadgedBox(badge = { if (filter.isActive) Badge() }) {
-                            Icon(Icons.AutoMirrored.Filled.Sort, stringResource(R.string.sort_and_filter))
+                            Icon(Icons.AutoMirrored.Outlined.Sort, stringResource(R.string.sort_and_filter))
                         }
                     }
                 }
             }
             if (searching && !selecting) {
-                OutlinedTextField(
+                CtrlTextField(
                     value = filter.query,
                     onValueChange = { filter = filter.copy(query = it) },
                     placeholder = { Text(stringResource(R.string.search_guests)) },
-                    leadingIcon = { Icon(Icons.Filled.Search, null) },
+                    leadingIcon = { Icon(Icons.Outlined.Search, null) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 4.dp),
@@ -278,9 +278,9 @@ private fun SummaryLine(all: List<Guest>, shown: Int) {
 private fun SelectionBar(count: Int, onClose: () -> Unit, onSelectAll: () -> Unit, onAction: (PowerAction) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onClose) { Icon(Icons.Filled.Close, stringResource(R.string.clear_selection)) }
+            IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, stringResource(R.string.clear_selection)) }
             Text(stringResource(R.string.selected_count, count), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-            IconButton(onClick = onSelectAll) { Icon(Icons.Filled.SelectAll, stringResource(R.string.select_all)) }
+            IconButton(onClick = onSelectAll) { Icon(Icons.Outlined.SelectAll, stringResource(R.string.select_all)) }
         }
         BulkActionRow(onAction)
     }

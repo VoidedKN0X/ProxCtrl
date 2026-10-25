@@ -6,8 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,6 +16,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.vknxworks.proxctrl.ui.theme.CtrlColors
 import com.vknxworks.proxctrl.ui.theme.Health
 
 /**
@@ -34,10 +34,10 @@ fun usageColor(fraction: Double?, warnAt: Int, normal: Color): Color {
     }
 }
 
-/** A thin rounded usage bar. Null [fraction] draws an empty track (unknown). */
+/** A Signal usage bar (6dp, fully rounded ends, dark track). Null [fraction] draws an empty track (unknown). */
 @Composable
-fun UsageBar(fraction: Double?, color: Color, modifier: Modifier = Modifier, height: Dp = 4.dp) {
-    val track = MaterialTheme.colorScheme.surfaceContainerHighest
+fun UsageBar(fraction: Double?, color: Color, modifier: Modifier = Modifier, height: Dp = 6.dp) {
+    val track = CtrlColors.ProgressTrack
     Canvas(modifier.fillMaxWidth().height(height)) {
         val r = CornerRadius(size.height / 2, size.height / 2)
         drawRoundRect(track, Offset.Zero, size, r)
@@ -46,14 +46,14 @@ fun UsageBar(fraction: Double?, color: Color, modifier: Modifier = Modifier, hei
     }
 }
 
-/** A guest's or node's status as a coloured dot. */
+/** A guest's or node's status as a small coloured square (accent when running, grey when stopped). */
 @Composable
-fun StatusDot(status: String, modifier: Modifier = Modifier, size: Dp = 10.dp) {
+fun StatusDot(status: String, modifier: Modifier = Modifier, size: Dp = 8.dp) {
     val color = when (status) {
         "running", "online" -> Health.ok
         "paused", "suspended" -> Health.warn
         "stopped", "offline" -> Health.idle
         else -> Health.critical
     }
-    Box(modifier.size(size).clip(CircleShape).background(color))
+    Box(modifier.size(size).clip(RoundedCornerShape(size * 0.25f)).background(color))
 }

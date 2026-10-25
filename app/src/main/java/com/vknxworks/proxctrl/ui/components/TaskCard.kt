@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -132,15 +132,16 @@ fun TaskCard(tracker: TaskTracker, modifier: Modifier = Modifier) {
             color = color,
             contentColor = onColor,
             shape = MaterialTheme.shapes.large,
+            border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
             modifier = Modifier.fillMaxWidth().padding(horizontal = com.vknxworks.proxctrl.ui.theme.Gutter, vertical = 6.dp),
         ) {
             Column(Modifier.padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     when {
                         task.running -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = onColor)
-                        task.ok && !task.warnings -> Icon(Icons.Filled.CheckCircle, null, Modifier.size(20.dp))
-                        task.ok -> Icon(Icons.Filled.Warning, null, Modifier.size(20.dp))
-                        else -> Icon(Icons.Filled.Error, null, Modifier.size(20.dp))
+                        task.ok && !task.warnings -> Icon(Icons.Outlined.CheckCircle, null, Modifier.size(20.dp))
+                        task.ok -> Icon(Icons.Outlined.Warning, null, Modifier.size(20.dp))
+                        else -> Icon(Icons.Outlined.Error, null, Modifier.size(20.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Text(
@@ -154,7 +155,7 @@ fun TaskCard(tracker: TaskTracker, modifier: Modifier = Modifier) {
                         modifier = Modifier.weight(1f),
                     )
                     if (!task.running) {
-                        IconButton(onClick = tracker::dismiss) { Icon(Icons.Filled.Close, stringResource(R.string.dismiss)) }
+                        IconButton(onClick = tracker::dismiss) { Icon(Icons.Outlined.Close, stringResource(R.string.dismiss)) }
                     } else {
                         Spacer(Modifier.size(48.dp))
                     }

@@ -1,5 +1,8 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlSwitch
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,14 +20,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddAPhoto
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -32,8 +34,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -138,7 +138,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
                     PillButton(
                         text = stringResource(R.string.snapshot_take),
                         onClick = { taking = true },
-                        icon = Icons.Filled.AddAPhoto,
+                        icon = Icons.Outlined.AddAPhoto,
                         enabled = canSnapshot && !tracker.busy && guest?.lock.isNullOrEmpty(),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
                     )
@@ -161,7 +161,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
                         modifier = Modifier.padding(Gutter),
                     )
                     snaps != null && snaps.none { !it.isCurrent } -> EmptyState(
-                        icon = Icons.Filled.PhotoCamera,
+                        icon = Icons.Outlined.PhotoCamera,
                         title = stringResource(R.string.snapshots_empty),
                         body = stringResource(R.string.snapshots_empty_hint),
                         modifier = Modifier.heightIn(min = 320.dp),
@@ -211,12 +211,12 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
             },
             expected = vmid.toString(),
             confirmLabel = stringResource(R.string.snapshot_rollback),
-            icon = Icons.Filled.History,
+            icon = Icons.Outlined.History,
             extra = if (!snap.withRam) {
                 {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.start_afterwards), modifier = Modifier.weight(1f))
-                        Switch(checked = start, onCheckedChange = { start = it })
+                        CtrlSwitch(checked = start, onCheckedChange = { start = it })
                     }
                 }
             } else {
@@ -239,7 +239,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
             body = stringResource(R.string.snapshot_delete_body),
             expected = vmid.toString(),
             confirmLabel = stringResource(R.string.delete),
-            icon = Icons.Filled.Delete,
+            icon = Icons.Outlined.Delete,
             onDismiss = { deleting = null },
             onConfirm = {
                 deleting = null
@@ -278,7 +278,7 @@ private fun SnapshotRow(
             }
         }
         Icon(
-            if (s.isCurrent) Icons.Filled.PlayArrow else Icons.Filled.PhotoCamera,
+            if (s.isCurrent) Icons.Outlined.PlayArrow else Icons.Outlined.PhotoCamera,
             null,
             Modifier.size(20.dp),
             tint = if (s.isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -303,24 +303,24 @@ private fun SnapshotRow(
                 AssistChip(
                     onClick = {},
                     label = { Text(stringResource(R.string.snapshot_with_ram)) },
-                    leadingIcon = { Icon(Icons.Filled.Memory, null, Modifier.size(16.dp)) },
+                    leadingIcon = { Icon(Icons.Outlined.Memory, null, Modifier.size(16.dp)) },
                     modifier = Modifier.height(28.dp).padding(top = 4.dp),
                 )
             }
         }
         if (!s.isCurrent && (canRollback || canDelete)) {
             Box {
-                IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_actions)) }
+                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.snapshot_rollback)) },
-                        leadingIcon = { Icon(Icons.Filled.History, null) },
+                        leadingIcon = { Icon(Icons.Outlined.History, null) },
                         enabled = canRollback,
                         onClick = { menu = false; onRollback() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) },
-                        leadingIcon = { Icon(Icons.Filled.Delete, null, tint = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error) },
                         enabled = canDelete,
                         onClick = { menu = false; onDelete() },
                     )
@@ -348,13 +348,13 @@ private fun TakeSnapshotDialog(
     var withRam by remember { mutableStateOf(false) }
     val valid = SnapshotApi.isValidName(name)
     val taken = name in existing
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Filled.AddAPhoto, null) },
+        icon = { Icon(Icons.Outlined.AddAPhoto, null) },
         title = { Text(stringResource(R.string.snapshot_take)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
+                CtrlTextField(
                     value = name,
                     onValueChange = { name = it.trim() },
                     singleLine = true,
@@ -366,7 +366,7 @@ private fun TakeSnapshotDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
+                CtrlTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text(stringResource(R.string.snapshot_description)) },
@@ -386,7 +386,7 @@ private fun TakeSnapshotDialog(
                             )
                         }
                         Spacer(Modifier.width(8.dp))
-                        Switch(checked = withRam, onCheckedChange = { withRam = it })
+                        CtrlSwitch(checked = withRam, onCheckedChange = { withRam = it })
                     }
                 }
             }

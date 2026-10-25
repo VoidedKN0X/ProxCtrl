@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.tasks
 
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -15,7 +16,6 @@ import androidx.compose.material.icons.outlined.Task
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -245,7 +245,7 @@ fun TaskListContent(
                             if (list.size >= limit) {
                                 item(key = "more") {
                                     Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                        OutlinedButton(onClick = { limit += PAGE }) { Text(stringResource(R.string.tasks_load_more)) }
+                                        CtrlSecondaryButton(onClick = { limit += PAGE }) { Text(stringResource(R.string.tasks_load_more)) }
                                     }
                                 }
                             }

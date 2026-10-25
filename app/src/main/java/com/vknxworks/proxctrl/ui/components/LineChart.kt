@@ -46,7 +46,8 @@ import java.util.Date
  * A single-series chart uses the first one.
  */
 object ChartColors {
-    val darkSeries = listOf(Color(0xFFC8702A), Color(0xFF3A9BD4))
+    // Signal: the accent and off-white, so two series are always told apart.
+    val darkSeries = listOf(com.vknxworks.proxctrl.ui.theme.CtrlColors.Accent, com.vknxworks.proxctrl.ui.theme.CtrlColors.Text)
     val lightSeries = listOf(Color(0xFFB85C14), Color(0xFF1F78B4))
 
     @Composable

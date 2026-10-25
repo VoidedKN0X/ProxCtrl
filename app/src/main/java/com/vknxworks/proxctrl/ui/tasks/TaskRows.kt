@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.tasks
 
+import com.vknxworks.proxctrl.ui.components.CtrlProgressBar
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -14,18 +16,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,9 +54,9 @@ import com.vknxworks.proxctrl.ui.theme.Gutter
 fun TaskStatusIcon(task: ProxTask, modifier: Modifier = Modifier) {
     when {
         task.isRunning -> CircularProgressIndicator(modifier.size(20.dp), strokeWidth = 2.dp)
-        task.isOk -> Icon(Icons.Filled.CheckCircle, stringResource(R.string.tasks_status_ok), modifier.size(20.dp), tint = Health.ok)
-        task.hasWarnings -> Icon(Icons.Filled.Warning, stringResource(R.string.tasks_status_warnings), modifier.size(20.dp), tint = Health.warn)
-        else -> Icon(Icons.Filled.Error, stringResource(R.string.tasks_status_error), modifier.size(20.dp), tint = Health.critical)
+        task.isOk -> Icon(Icons.Outlined.CheckCircle, stringResource(R.string.tasks_status_ok), modifier.size(20.dp), tint = Health.ok)
+        task.hasWarnings -> Icon(Icons.Outlined.Warning, stringResource(R.string.tasks_status_warnings), modifier.size(20.dp), tint = Health.warn)
+        else -> Icon(Icons.Outlined.Error, stringResource(R.string.tasks_status_error), modifier.size(20.dp), tint = Health.critical)
     }
 }
 
@@ -115,6 +115,7 @@ fun RunningTaskCard(task: ProxTask, guestName: String?, lastLine: String?, canSt
     val context = LocalContext.current
     Surface(
         shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
         color = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 6.dp).clickable(onClick = onClick),
@@ -130,8 +131,8 @@ fun RunningTaskCard(task: ProxTask, guestName: String?, lastLine: String?, canSt
                 }
                 if (canStop) {
                     Spacer(Modifier.width(8.dp))
-                    FilledTonalButton(onClick = onStop) {
-                        Icon(Icons.Filled.Stop, null, Modifier.size(18.dp))
+                    CtrlSecondaryButton(onClick = onStop) {
+                        Icon(Icons.Outlined.Stop, null, Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(stringResource(R.string.tasks_stop))
                     }
@@ -140,9 +141,9 @@ fun RunningTaskCard(task: ProxTask, guestName: String?, lastLine: String?, canSt
             Spacer(Modifier.size(10.dp))
             val progress = progressOf(lastLine)
             if (progress != null) {
-                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                CtrlProgressBar(progress = { progress }, modifier = Modifier.fillMaxWidth())
             } else {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                CtrlProgressBar(modifier = Modifier.fillMaxWidth())
             }
             if (!lastLine.isNullOrBlank()) {
                 Spacer(Modifier.size(6.dp))
@@ -174,7 +175,7 @@ fun <T> FilterMenuChip(
             selected = selected != null,
             onClick = { open = true },
             label = { Text(if (selected == null) label else nameOf(selected), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, null, Modifier.size(18.dp)) },
+            trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, null, Modifier.size(18.dp)) },
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text(allLabel) }, onClick = { open = false; onSelect(null) })

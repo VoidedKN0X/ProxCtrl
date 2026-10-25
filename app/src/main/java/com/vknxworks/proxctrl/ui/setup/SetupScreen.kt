@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.setup
 
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,15 +16,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Dns
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -319,7 +319,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
             if (result == null) {
                 if (onCancel == null) {
                     Column(Modifier.padding(horizontal = Gutter, vertical = 16.dp)) {
-                        Icon(Icons.Filled.Dns, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Outlined.Dns, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.height(16.dp))
                         Text(stringResource(R.string.setup_title), style = MaterialTheme.typography.headlineMedium)
                         Spacer(Modifier.height(8.dp))
@@ -327,7 +327,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                     }
                 }
                 Column(Modifier.padding(horizontal = Gutter), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
+                    CtrlTextField(
                         value = address,
                         onValueChange = { address = it.trim() },
                         label = { Text(stringResource(R.string.field_address)) },
@@ -343,7 +343,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Next),
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    OutlinedTextField(
+                    CtrlTextField(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text(stringResource(R.string.field_name)) },
@@ -370,7 +370,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                     val secretToggle: @Composable () -> Unit = {
                         IconButton(onClick = { showSecret = !showSecret }) {
                             Icon(
-                                if (showSecret) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                if (showSecret) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
                                 stringResource(if (showSecret) R.string.hide_secret else R.string.show_secret),
                             )
                         }
@@ -379,7 +379,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
 
                     when (method) {
                         AuthMethod.TOKEN -> {
-                            OutlinedTextField(
+                            CtrlTextField(
                                 value = tokenId,
                                 onValueChange = { tokenId = it.trim() },
                                 label = { Text(stringResource(R.string.field_token_id)) },
@@ -394,7 +394,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next, autoCorrectEnabled = false),
                                 modifier = Modifier.fillMaxWidth(),
                             )
-                            OutlinedTextField(
+                            CtrlTextField(
                                 value = tokenSecret,
                                 onValueChange = { tokenSecret = it },
                                 label = { Text(stringResource(R.string.field_token_secret)) },
@@ -416,7 +416,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                             )
                         }
                         AuthMethod.TICKET -> {
-                            OutlinedTextField(
+                            CtrlTextField(
                                 value = username,
                                 onValueChange = { username = it.trim() },
                                 label = { Text(stringResource(R.string.field_username)) },
@@ -436,10 +436,10 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
                                     color = MaterialTheme.colorScheme.surfaceContainer,
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    GroupRow(stringResource(R.string.field_realm), realmLabel, icon = Icons.Filled.Lock, showChevron = true, onClick = { realmSheet = true })
+                                    GroupRow(stringResource(R.string.field_realm), realmLabel, icon = Icons.Outlined.Lock, showChevron = true, onClick = { realmSheet = true })
                                 }
                             }
-                            OutlinedTextField(
+                            CtrlTextField(
                                 value = password,
                                 onValueChange = { password = it },
                                 label = { Text(stringResource(R.string.field_password)) },
@@ -530,7 +530,7 @@ private suspend fun askToTrust(
 private fun ConnectedSummary(result: Connected, readOnly: Boolean, onReadOnly: (Boolean) -> Unit) {
     val server = result.server
     Column(Modifier.padding(horizontal = Gutter, vertical = 16.dp)) {
-        Icon(Icons.Filled.Dns, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+        Icon(Icons.Outlined.Dns, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.connected_to, server.name), style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(4.dp))

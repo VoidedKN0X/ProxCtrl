@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.setup
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,10 +12,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.VerifiedUser
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,7 +46,7 @@ suspend fun fetchCertInfo(url: HttpUrl): CertInfo = withContext(Dispatchers.IO) 
 @Composable
 fun CertTrustDialog(cert: CertInfo, changed: Boolean, onTrust: () -> Unit, onCancel: () -> Unit) {
     val cs = MaterialTheme.colorScheme
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onCancel,
         icon = { Icon(Icons.Outlined.VerifiedUser, null) },
         title = { Text(stringResource(if (changed) R.string.cert_changed_title else R.string.cert_title)) },
@@ -87,14 +87,14 @@ fun TfaDialog(error: String?, busy: Boolean, onSubmit: (String) -> Unit, onCance
     fun submit() {
         if (canSubmit) onSubmit(if (recovery) com.vknxworks.proxctrl.data.api.Auth.recovery(value) else com.vknxworks.proxctrl.data.api.Auth.totp(value))
     }
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onCancel,
         icon = { Icon(Icons.Outlined.Password, null) },
         title = { Text(stringResource(R.string.tfa_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(stringResource(if (recovery) R.string.tfa_recovery_body else R.string.tfa_body))
-                OutlinedTextField(
+                CtrlTextField(
                     value = value,
                     onValueChange = { v -> value = if (recovery) v else v.filter { it.isDigit() }.take(6) },
                     label = { Text(stringResource(if (recovery) R.string.tfa_recovery else R.string.tfa_code)) },

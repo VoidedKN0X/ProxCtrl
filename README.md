@@ -339,6 +339,6 @@ Native Android apps for self-hosted services and everyday tools, all with the sa
 
 ProxCtrl is licensed under the [GNU General Public License v3.0](LICENSE). © VKNXWorks
 
-The Manrope font is licensed under the SIL Open Font License; see `FONT-LICENSE-Manrope.txt`.
+The [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) fonts are bundled in the app and licensed under the SIL Open Font License 1.1; see `FONT-LICENSE-SpaceGrotesk.txt` and `FONT-LICENSE-JetBrainsMono.txt` (also in the app at `assets/licenses/`).
 
 The consoles use [noVNC](https://github.com/novnc/noVNC) (MPL-2.0, with [pako](https://github.com/nodeca/pako) under MIT) and [xterm.js](https://github.com/xtermjs/xterm.js) (MIT), bundled unchanged in `app/src/main/assets` with their licence files.

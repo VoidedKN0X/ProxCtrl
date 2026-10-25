@@ -47,6 +47,7 @@ fun ConnectionBanner(modifier: Modifier = Modifier) {
         error is PveError.Unauthorized || error is PveError.UntrustedCertificate
     Surface(
         shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
         color = MaterialTheme.colorScheme.errorContainer,
         modifier = modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
     ) {

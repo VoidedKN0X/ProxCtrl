@@ -14,9 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.sp
+import com.vknxworks.proxctrl.ui.theme.CtrlColors
+import com.vknxworks.proxctrl.ui.theme.CtrlType
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.Inventory2
@@ -69,14 +73,14 @@ private fun GuestBadge(g: Guest, selecting: Boolean, selected: Boolean, size: In
     Box(Modifier.size(size.dp)) {
         if (selecting) {
             Icon(
-                if (selected) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                if (selected) Icons.Outlined.CheckCircle else Icons.Outlined.Circle,
                 null,
                 Modifier.size(size.dp),
                 tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
             Box(
-                Modifier.size(size.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                Modifier.size(size.dp).clip(RoundedCornerShape((size * 0.3f).dp)).background(CtrlColors.Surface).border(1.dp, CtrlColors.Outline, RoundedCornerShape((size * 0.3f).dp)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(guestIcon(g), null, Modifier.size((size * 0.55f).dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -99,9 +103,8 @@ private fun GuestTitle(g: Guest, modifier: Modifier = Modifier) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Text(
             g.vmid.toString(),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium,
+            style = CtrlType.Mono.copy(fontSize = 13.sp),
+            color = CtrlColors.Muted,
         )
         Spacer(Modifier.width(8.dp))
         Text(

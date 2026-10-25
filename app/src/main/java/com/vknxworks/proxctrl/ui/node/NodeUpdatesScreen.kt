@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.node
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,16 +18,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Terminal
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -118,9 +117,9 @@ fun NodeUpdatesScreen(node: String) {
 
                 Row(Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp)) {
                     if (server?.readOnly == false) {
-                        FilledTonalButton(
+                        CtrlSecondaryButton(
                             onClick = {
-                                val cl = client ?: return@FilledTonalButton
+                                val cl = client ?: return@CtrlSecondaryButton
                                 tracker.run(
                                     context.getString(R.string.node_updates_task_refresh),
                                     cl,
@@ -132,18 +131,18 @@ fun NodeUpdatesScreen(node: String) {
                             enabled = canRefresh && !tracker.busy,
                             modifier = Modifier.weight(1f),
                         ) {
-                            Icon(Icons.Filled.Refresh, null, Modifier.size(18.dp))
+                            Icon(Icons.Outlined.Refresh, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.node_updates_refresh))
                         }
                     }
                     if (canShell) {
                         if (server?.readOnly == false) Spacer(Modifier.width(8.dp))
-                        OutlinedButton(
+                        CtrlSecondaryButton(
                             onClick = { nav.navigate(ConsoleRoute(kind = "node", node = node, title = context.getString(R.string.node_shell_title, node))) },
                             modifier = Modifier.weight(1f),
                         ) {
-                            Icon(Icons.Filled.Terminal, null, Modifier.size(18.dp))
+                            Icon(Icons.Outlined.Terminal, null, Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.node_shell))
                         }
@@ -166,7 +165,7 @@ fun NodeUpdatesScreen(node: String) {
                         modifier = Modifier.padding(Gutter),
                     )
                     list != null && list.isEmpty() -> EmptyState(
-                        icon = Icons.Filled.CheckCircle,
+                        icon = Icons.Outlined.CheckCircle,
                         title = stringResource(R.string.node_updates_none),
                         body = stringResource(R.string.node_updates_none_hint),
                         modifier = Modifier.heightIn(min = 280.dp),
@@ -193,10 +192,11 @@ private fun RebootCard(k: KernelState) {
         color = MaterialTheme.colorScheme.tertiaryContainer,
         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
         shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
         modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 6.dp),
     ) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.RestartAlt, null, Modifier.size(22.dp))
+            Icon(Icons.Outlined.RestartAlt, null, Modifier.size(22.dp))
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(stringResource(R.string.node_reboot_required), style = MaterialTheme.typography.titleSmall)
@@ -245,7 +245,7 @@ private fun ChangelogDialog(node: String, u: PackageUpdate, onDismiss: () -> Uni
             failed = errorMessage(context, e, server?.host.orEmpty(), server?.auth)
         }
     }
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.node_changelog_title, u.name)) },
         text = {

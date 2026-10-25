@@ -1,5 +1,8 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlSwitch
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,15 +20,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Restore
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -36,9 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -146,7 +146,7 @@ fun BackupsScreen(node: String, type: String, vmid: Int, name: String) {
                     PillButton(
                         text = stringResource(R.string.backup_now),
                         onClick = { backingUp = true },
-                        icon = Icons.Filled.Backup,
+                        icon = Icons.Outlined.Backup,
                         enabled = canBackup && !tracker.busy && guest?.lock.isNullOrEmpty(),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
                     )
@@ -177,7 +177,7 @@ fun BackupsScreen(node: String, type: String, vmid: Int, name: String) {
                         modifier = Modifier.padding(Gutter),
                     )
                     data != null && data.backups.isEmpty() -> EmptyState(
-                        icon = Icons.Filled.Inventory2,
+                        icon = Icons.Outlined.Inventory2,
                         title = stringResource(R.string.backups_empty),
                         body = stringResource(R.string.backups_empty_hint),
                         modifier = Modifier.heightIn(min = 320.dp),
@@ -242,7 +242,7 @@ fun BackupsScreen(node: String, type: String, vmid: Int, name: String) {
             title = stringResource(R.string.backup_delete_title),
             body = stringResource(R.string.backup_delete_body, formatDateTime(b.time), b.storage, formatBytes(b.size)),
             confirmLabel = stringResource(R.string.delete),
-            icon = Icons.Filled.Delete,
+            icon = Icons.Outlined.Delete,
             onDismiss = { deleting = null },
             onConfirm = {
                 deleting = null
@@ -269,23 +269,23 @@ private fun BackupRow(
         Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(Icons.Filled.Inventory2, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Icon(Icons.Outlined.Inventory2, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(formatDateTime(backup.time), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
                 if (backup.isProtected) {
                     Spacer(Modifier.width(6.dp))
-                    Icon(Icons.Filled.Lock, stringResource(R.string.backup_protected), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Outlined.Lock, stringResource(R.string.backup_protected), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                 }
                 when (backup.verification) {
                     "ok" -> {
                         Spacer(Modifier.width(6.dp))
-                        Icon(Icons.Filled.CheckCircle, stringResource(R.string.backup_verified), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Outlined.CheckCircle, stringResource(R.string.backup_verified), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                     }
                     "failed" -> {
                         Spacer(Modifier.width(6.dp))
-                        Icon(Icons.Filled.Error, stringResource(R.string.backup_verify_failed), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.Outlined.Error, stringResource(R.string.backup_verify_failed), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -303,17 +303,17 @@ private fun BackupRow(
         }
         if (showMenu) {
             Box {
-                IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_actions)) }
+                IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.restore)) },
-                        leadingIcon = { Icon(Icons.Filled.Restore, null) },
+                        leadingIcon = { Icon(Icons.Outlined.Restore, null) },
                         enabled = canRestore,
                         onClick = { menu = false; onRestore() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(if (backup.isProtected) R.string.backup_delete_protected else R.string.delete)) },
-                        leadingIcon = { Icon(Icons.Filled.Delete, null) },
+                        leadingIcon = { Icon(Icons.Outlined.Delete, null) },
                         enabled = canDelete,
                         onClick = { menu = false; onDelete() },
                     )
@@ -343,7 +343,7 @@ private fun StoragePicker(
         } ?: selected
     }
     ExposedDropdownMenuBox(expanded = open, onExpandedChange = { if (storages != null) open = it }) {
-        OutlinedTextField(
+        CtrlTextField(
             value = text,
             onValueChange = {},
             readOnly = true,
@@ -409,9 +409,9 @@ private fun BackupNowDialog(
     }
     val storage = storages?.firstOrNull { it.id == storageId }
 
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Filled.Backup, null) },
+        icon = { Icon(Icons.Outlined.Backup, null) },
         title = { Text(stringResource(R.string.backup_now)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -449,7 +449,7 @@ private fun BackupNowDialog(
                     }
                 }
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
+                CtrlTextField(
                     value = notes,
                     onValueChange = { notes = it },
                     label = { Text(stringResource(R.string.backup_notes)) },
@@ -462,7 +462,7 @@ private fun BackupNowDialog(
                         Text(stringResource(R.string.backup_protect))
                         Text(stringResource(R.string.backup_protect_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Switch(checked = protect, onCheckedChange = { protect = it })
+                    CtrlSwitch(checked = protect, onCheckedChange = { protect = it })
                 }
             }
         },
@@ -505,9 +505,9 @@ private fun RestoreDialog(
 
     // A running or protected guest can't be restored over: say so instead of asking for confirmation.
     if (running || guestProtected) {
-        AlertDialog(
+        CtrlDialog(
             onDismissRequest = onDismiss,
-            icon = { Icon(Icons.Filled.Restore, null) },
+            icon = { Icon(Icons.Outlined.Restore, null) },
             title = { Text(stringResource(R.string.restore_title)) },
             text = { Text(stringResource(if (running) R.string.restore_needs_stopped else R.string.restore_protected)) },
             confirmButton = { TextButton(onDismiss) { Text(stringResource(R.string.done)) } },
@@ -520,7 +520,7 @@ private fun RestoreDialog(
         body = stringResource(R.string.restore_body, ref.vmid.toString(), formatDateTime(backup.time), backup.storage),
         expected = ref.vmid.toString(),
         confirmLabel = stringResource(R.string.restore),
-        icon = Icons.Filled.Restore,
+        icon = Icons.Outlined.Restore,
         extra = {
             Column {
                 Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.medium) {
@@ -542,7 +542,7 @@ private fun RestoreDialog(
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.start_afterwards), modifier = Modifier.weight(1f))
-                    Switch(checked = start, onCheckedChange = { start = it })
+                    CtrlSwitch(checked = start, onCheckedChange = { start = it })
                 }
             }
         },

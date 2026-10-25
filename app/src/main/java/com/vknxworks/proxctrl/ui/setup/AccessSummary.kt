@@ -2,7 +2,7 @@ package com.vknxworks.proxctrl.ui.setup
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +47,7 @@ fun AccessSummary(permissions: Permissions, pveMajor: Int) {
                 subtitle = "${stringResource(if (ok) R.string.allowed else R.string.not_allowed)}  ·  ${cap.priv}",
                 titleColor = if (ok) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                 trailing = {
-                    if (ok) Icon(Icons.Filled.CheckCircle, null, tint = Health.ok)
+                    if (ok) Icon(Icons.Outlined.CheckCircle, null, tint = Health.ok)
                     else Icon(Icons.Outlined.Block, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
             )

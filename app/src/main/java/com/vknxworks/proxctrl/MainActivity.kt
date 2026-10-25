@@ -1,13 +1,11 @@
 package com.vknxworks.proxctrl
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
@@ -26,11 +24,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vknxworks.proxctrl.data.DeepLinks
-import com.vknxworks.proxctrl.data.settings.ThemeChoice
 import com.vknxworks.proxctrl.ui.components.ScreenPrivacy
 import com.vknxworks.proxctrl.ui.nav.AppRoot
 import com.vknxworks.proxctrl.ui.theme.ProxCtrlTheme
 import com.vknxworks.proxctrl.ui.components.WindowPrivacy
+
+/** The Signal background (#08080A) as an ARGB int, for the system bars. */
+private val SIGNAL_BACKGROUND: Int = 0xFF08080A.toInt()
 
 /** A FragmentActivity (not just a ComponentActivity) because the fingerprint prompt needs one. */
 class MainActivity : FragmentActivity() {
@@ -39,7 +39,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         // Secure from the first frame (the lock is still being checked); lifted below once it's known.
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        enableEdgeToEdge()
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(SIGNAL_BACKGROUND), navigationBarStyle = SystemBarStyle.dark(SIGNAL_BACKGROUND))
         // A link like proxctrl://guest/103; not again when the activity is recreated (rotation).
         if (savedInstanceState == null) {
             DeepLinks.handle(intent?.data)
@@ -62,16 +62,10 @@ class MainActivity : FragmentActivity() {
             // shows a blank card (a preview there would show your servers without the PIN).
             val secure = settings.hideScreenshots || covered || ScreenPrivacy.forced > 0
             WindowPrivacy(this, secure, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
-            val dark = when (settings.theme) {
-                ThemeChoice.SYSTEM -> isSystemInDarkTheme()
-                ThemeChoice.LIGHT -> false
-                ThemeChoice.DARK, ThemeChoice.BLACK -> true
-            }
-            // Keep status and navigation bar icons readable when the app theme differs from the system's.
-            DisposableEffect(dark) {
-                val style = if (dark) SystemBarStyle.dark(Color.TRANSPARENT)
-                else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
-                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+            // Ctrl / Signal is dark only: system bars show the background colour with light icons.
+            DisposableEffect(Unit) {
+                val bars = SystemBarStyle.dark(SIGNAL_BACKGROUND)
+                enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
                 onDispose { }
             }
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
