@@ -13,11 +13,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -155,7 +155,7 @@ fun NodeServicesScreen(node: String) {
             body = body,
             confirmLabel = stringResource(action.label()),
             danger = action != ServiceAction.START,
-            icon = if (s.carriesConnection && action != ServiceAction.START) Icons.Filled.Warning else action.icon(),
+            icon = if (s.carriesConnection && action != ServiceAction.START) Icons.Outlined.Warning else action.icon(),
             onDismiss = { pending = null },
             onConfirm = {
                 pending = null
@@ -179,9 +179,9 @@ private fun ServiceAction.label(): Int = when (this) {
 }
 
 private fun ServiceAction.icon() = when (this) {
-    ServiceAction.START -> Icons.Filled.PlayArrow
-    ServiceAction.STOP -> Icons.Filled.Stop
-    ServiceAction.RESTART -> Icons.Filled.RestartAlt
+    ServiceAction.START -> Icons.Outlined.PlayArrow
+    ServiceAction.STOP -> Icons.Outlined.Stop
+    ServiceAction.RESTART -> Icons.Outlined.RestartAlt
 }
 
 @Composable
@@ -220,25 +220,25 @@ private fun ServiceRow(service: NodeService, showMenu: Boolean, enabled: Boolean
             val installed = service.unitState != "not-found" && service.unitState != "masked"
             Box {
                 IconButton(onClick = { menu = true }, enabled = enabled && installed) {
-                    Icon(Icons.Filled.MoreVert, stringResource(R.string.more_actions))
+                    Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions))
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.node_service_start)) },
-                        leadingIcon = { Icon(Icons.Filled.PlayArrow, null) },
+                        leadingIcon = { Icon(Icons.Outlined.PlayArrow, null) },
                         enabled = !service.isRunning,
                         onClick = { menu = false; onAction(ServiceAction.START) },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.node_service_restart)) },
-                        leadingIcon = { Icon(Icons.Filled.RestartAlt, null) },
+                        leadingIcon = { Icon(Icons.Outlined.RestartAlt, null) },
                         onClick = { menu = false; onAction(ServiceAction.RESTART) },
                     )
                     DropdownMenuItem(
                         text = {
                             Text(stringResource(if (service.isEssential) R.string.node_service_stop_essential else R.string.node_service_stop))
                         },
-                        leadingIcon = { Icon(Icons.Filled.Stop, null) },
+                        leadingIcon = { Icon(Icons.Outlined.Stop, null) },
                         // Proxmox refuses to stop pveproxy, pvedaemon and pve-cluster.
                         enabled = service.isRunning && !service.isEssential,
                         onClick = { menu = false; onAction(ServiceAction.STOP) },

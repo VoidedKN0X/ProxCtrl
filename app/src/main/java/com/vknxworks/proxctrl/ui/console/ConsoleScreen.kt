@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.console
 
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ClipboardManager
@@ -40,20 +41,18 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.ScreenRotation
-import androidx.compose.material.icons.filled.TextDecrease
-import androidx.compose.material.icons.filled.TextIncrease
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.ContentPaste
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.ScreenRotation
+import androidx.compose.material.icons.outlined.TextDecrease
+import androidx.compose.material.icons.outlined.TextIncrease
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -447,7 +446,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = nav::back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = androidx.compose.ui.graphics.Color.White) }
+            IconButton(onClick = nav::back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.back), tint = androidx.compose.ui.graphics.Color.White) }
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium,
@@ -458,10 +457,10 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             )
             if (!target.isScreen) {
                 IconButton(onClick = { fontSize = (fontSize - 1).coerceAtLeast(8); js("pcFontSize($fontSize)") }) {
-                    Icon(Icons.Filled.TextDecrease, stringResource(R.string.console_font_smaller), tint = androidx.compose.ui.graphics.Color.White)
+                    Icon(Icons.Outlined.TextDecrease, stringResource(R.string.console_font_smaller), tint = androidx.compose.ui.graphics.Color.White)
                 }
                 IconButton(onClick = { fontSize = (fontSize + 1).coerceAtMost(28); js("pcFontSize($fontSize)") }) {
-                    Icon(Icons.Filled.TextIncrease, stringResource(R.string.console_font_bigger), tint = androidx.compose.ui.graphics.Color.White)
+                    Icon(Icons.Outlined.TextIncrease, stringResource(R.string.console_font_bigger), tint = androidx.compose.ui.graphics.Color.White)
                 }
             }
             IconButton(onClick = {
@@ -472,7 +471,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                 if (BuildConfig.DEBUG) runCatching { WebView.setWebContentsDebuggingEnabled(showDiag) }
             }) {
                 Icon(
-                    Icons.Filled.BugReport,
+                    Icons.Outlined.BugReport,
                     stringResource(R.string.console_diagnostics),
                     tint = if (showDiag) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.White,
                 )
@@ -480,7 +479,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             IconButton(onClick = {
                 landscape = !landscape
                 activity?.requestedOrientation = if (landscape) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            }) { Icon(Icons.Filled.ScreenRotation, stringResource(R.string.console_rotate), tint = androidx.compose.ui.graphics.Color.White) }
+            }) { Icon(Icons.Outlined.ScreenRotation, stringResource(R.string.console_rotate), tint = androidx.compose.ui.graphics.Color.White) }
         }
 
         if (showLoginNote) {
@@ -549,13 +548,14 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                 ConsoleState.CONNECTING -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 ConsoleState.CLOSED, ConsoleState.FAILED -> Surface(
                     shape = MaterialTheme.shapes.large,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
                 ) {
                     Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(error ?: stringResource(R.string.console_closed), style = MaterialTheme.typography.bodyMedium)
                         Spacer(Modifier.padding(top = 12.dp))
-                        FilledTonalButton(onClick = ::reconnect) { Text(stringResource(R.string.console_reconnect)) }
+                        CtrlSecondaryButton(onClick = ::reconnect) { Text(stringResource(R.string.console_reconnect)) }
                     }
                 }
                 ConsoleState.CONNECTED -> Unit
@@ -627,7 +627,7 @@ private fun ExtraKeys(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onKeyboard) {
-                Icon(Icons.Filled.Keyboard, stringResource(R.string.console_keyboard), tint = if (keyboardShown) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+                Icon(Icons.Outlined.Keyboard, stringResource(R.string.console_keyboard), tint = if (keyboardShown) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
             }
             keys.forEach { (label, name, seq) -> Key(stringResource(label)) { onKey(name, seq) } }
             FilterChip(selected = ctrl, onClick = onCtrl, label = { Text(stringResource(R.string.key_ctrl)) })
@@ -637,7 +637,7 @@ private fun ExtraKeys(
             if (!screen) listOf("/", "-", "|", "~").forEach { ch -> Key(ch) { onKey(ch, ch) } }
             nav.forEach { (label, name, seq) -> Key(stringResource(label)) { onKey(name, seq) } }
             if (screen) Key(stringResource(R.string.key_cad), onCtrlAltDel)
-            IconButton(onClick = onPaste) { Icon(Icons.Filled.ContentPaste, stringResource(R.string.console_paste)) }
+            IconButton(onClick = onPaste) { Icon(Icons.Outlined.ContentPaste, stringResource(R.string.console_paste)) }
             Spacer(Modifier.width(4.dp))
         }
     }
@@ -645,7 +645,7 @@ private fun ExtraKeys(
 
 @Composable
 private fun Key(label: String, onClick: () -> Unit) {
-    OutlinedButton(
+    CtrlSecondaryButton(
         onClick = onClick,
         modifier = Modifier.heightIn(min = 40.dp),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 6.dp),

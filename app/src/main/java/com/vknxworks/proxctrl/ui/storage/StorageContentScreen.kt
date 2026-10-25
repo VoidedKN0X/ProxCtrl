@@ -20,12 +20,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Inventory2
@@ -139,12 +139,12 @@ fun StorageContentScreen(node: String, storage: String) {
             actions = {
                 if (writable && holdsTemplates) {
                     IconButton(onClick = { nav.navigate(StorageTemplatesRoute(node, storage)) }, enabled = canTemplates) {
-                        Icon(Icons.Filled.Download, stringResource(R.string.storage_templates_download))
+                        Icon(Icons.Outlined.Download, stringResource(R.string.storage_templates_download))
                     }
                 }
                 if (writable && holdsIso) {
                     IconButton(onClick = { com.vknxworks.proxctrl.data.lock.AppLock.expectReturn(); pickIso.launch(arrayOf("*/*")) }, enabled = canTemplates && !uploader.busy) {
-                        Icon(Icons.Filled.Upload, stringResource(R.string.storage_upload_iso))
+                        Icon(Icons.Outlined.Upload, stringResource(R.string.storage_upload_iso))
                     }
                 }
             },
@@ -225,7 +225,7 @@ fun StorageContentScreen(node: String, storage: String) {
                 formatBytes(item.size),
             ),
             confirmLabel = stringResource(R.string.delete),
-            icon = Icons.Filled.Delete,
+            icon = Icons.Outlined.Delete,
             onDismiss = { deleting = null },
             onConfirm = {
                 deleting = null
@@ -304,16 +304,16 @@ private fun ContentRow(item: ContentItem, showDelete: Boolean, canDelete: Boolea
                 Text(item.name, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
                 if (item.isProtected) {
                     Spacer(Modifier.width(6.dp))
-                    Icon(Icons.Filled.Lock, stringResource(R.string.storage_protected), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Outlined.Lock, stringResource(R.string.storage_protected), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                 }
                 when (item.verification) {
                     "ok" -> {
                         Spacer(Modifier.width(6.dp))
-                        Icon(Icons.Filled.CheckCircle, stringResource(R.string.storage_verified), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Outlined.CheckCircle, stringResource(R.string.storage_verified), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                     }
                     "failed" -> {
                         Spacer(Modifier.width(6.dp))
-                        Icon(Icons.Filled.Error, stringResource(R.string.storage_verify_failed), Modifier.size(16.dp), tint = Health.critical)
+                        Icon(Icons.Outlined.Error, stringResource(R.string.storage_verify_failed), Modifier.size(16.dp), tint = Health.critical)
                     }
                 }
             }
@@ -334,7 +334,7 @@ private fun ContentRow(item: ContentItem, showDelete: Boolean, canDelete: Boolea
             Box {
                 IconButton(onClick = onDelete, enabled = canDelete) {
                     Icon(
-                        Icons.Filled.Delete,
+                        Icons.Outlined.Delete,
                         stringResource(if (item.isProtected) R.string.storage_delete_protected else R.string.delete),
                         tint = if (canDelete) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                     )

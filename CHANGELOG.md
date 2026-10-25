@@ -4,6 +4,39 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.2.0 (2026-10-25)
+
+ProxCtrl gets the new **Ctrl / Signal** look shared by every Ctrl app: near-black, one violet accent, square-cornered shapes and two new fonts. Only the look changed. Every screen, feature, setting and button works as before.
+
+### Changed
+
+- **New colours**: a near-black background (#08080A), dark grey cards (#141417) with a thin border, off-white text, and one violet accent (#B48CFF) for whatever matters most: the selected tab, switches that are on, main buttons, running guests and healthy nodes. Warnings stay yellow and failures red, so problems still stand out. Stopped guests and offline items are grey.
+- **New fonts**: Space Grotesk for all text and headings, and JetBrains Mono for numbers, IDs, states, section labels and the PROX/CTRL wordmark. Both are bundled in the app (nothing is downloaded, no Google Fonts). They replace Manrope.
+- **Top of every tab**: the PROX/CTRL wordmark on the left (with a violet slash) and your profile picture on the right as a rounded square with your server's initial, with a small violet square while ProxCtrl is connected. Tapping it still opens the You page with your servers, Settings and About. Tab titles are bigger and bolder below it.
+- **Overview**: each node now starts with its status ("NODE · ONLINE") and its name in large type, with the Proxmox VE version and uptime below. CPU load is a big violet card with the percentage in large numbers, the thread count and a bar chart of the last CPU readings. Memory and root disk are two cards side by side with used / total and a bar. Kernel, IO delay, load, swap and the CPU, memory and network trends are in a Details card below. The node shell button sits next to the node's name.
+- **Overview guests list**: under "Needs attention", a Guests list shows your first guests by ID, each with its name and a RUN / STOP / PAUSE state with a small square (violet when running). Tap a guest to open it, or the heading ("3 / 4 RUNNING") to open the Guests tab.
+- **Tab bar**: a floating dark bar with rounded corners, a bit higher above the bottom of the screen. The selected tab is a violet block with its icon and name; the other tabs show their icon only. On tablets and in landscape the side rail uses the same colours.
+- **Pushed screens** (guest, node pages, storage, tasks, settings and so on) have a square back button and the title next to it, instead of the Material top bar.
+- **Cards and settings groups**: rounded cards (22dp corners) with a thin border, section headings in small upper-case mono type ("PRIVACY", "NOTIFICATIONS"), and thin lines between rows. Icons in rows are plain outlined icons instead of coloured circles.
+- **Switches**: new rounded-square switches. On is a violet track with a dark knob, off is a dark track with a grey knob. The whole row is still one switch for TalkBack.
+- **Buttons**: main buttons are violet with dark text and rounded corners (Support, Unlock, Done). Secondary buttons (Stop, Run now, Refresh, Copy, Load more and so on) are dark with a thin border.
+- **Text fields**: dark fill with a thin border and rounded corners; the border and cursor turn violet while you type.
+- **Progress and usage bars**: 6dp bars with rounded ends on a dark track (CPU, memory, disk, uploads, running tasks).
+- **Status dots** are now small squares instead of circles.
+- **Dialogs and bottom sheets**: dark cards with large rounded corners and a thin border.
+- **Charts** draw in violet and off-white.
+- **Lock screen**: a violet rounded square with a lock, "VKNXWORKS · CTRL" and "Locked" in large type, and the PIN shown as small squares that fill in violet. The keypad uses large rounded keys in mono type, three across. When fingerprint unlock is on, the fingerprint key sits bottom left on the keypad (outlined in violet) instead of a "Use fingerprint" button below; delete is bottom right. For PINs that aren't checked automatically, the bottom-left key turns into a violet OK key once enough digits are entered. "Confirm changes" and choosing or changing your PIN use the same keypad. How the lock works hasn't changed.
+- **You page**: a close button and "PROFILE" at the top, then a violet avatar with your server's initial, its name and its address in mono type. **Support ProxCtrl** is now a violet button at the bottom instead of a row in About, with the version and "GOOGLE-FREE · TELEMETRY-FREE · ARM64" below it.
+- **Status and navigation bars** always show the app's background with light icons.
+
+### Removed
+
+- **Theme and wallpaper colours**: the Signal look is dark only, so the **Appearance** section in Settings (Theme: Follow system / Dark / Light / Pure black, and Use wallpaper colours) is gone. ProxCtrl no longer follows the system's light mode or your wallpaper colours. Your old choice is kept in the settings file but no longer does anything.
+
+### Licences
+
+- Space Grotesk and JetBrains Mono are licensed under the SIL Open Font License 1.1. Their licence texts are in the repository (`FONT-LICENSE-SpaceGrotesk.txt`, `FONT-LICENSE-JetBrainsMono.txt`) and inside the app (`assets/licenses/`). The Manrope font and its licence were removed.
+
 ## v1.1.10 (2026-10-22)
 
 ### Fixed

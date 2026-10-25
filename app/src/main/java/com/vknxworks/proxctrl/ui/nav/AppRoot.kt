@@ -18,11 +18,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Computer
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.Dns
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.Task
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Dns
@@ -32,6 +27,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
+import com.vknxworks.proxctrl.ui.theme.CtrlColors
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -109,11 +106,11 @@ private data class TopDest(val route: Any, @StringRes val label: Int, val icon: 
 
 /** The five tabs. Overview is the only summary screen; account and settings open from the profile picture. */
 private val topDestinations = listOf(
-    TopDest(OverviewRoute, R.string.tab_overview, Icons.Outlined.Dashboard, Icons.Filled.Dashboard),
-    TopDest(GuestsRoute, R.string.tab_guests, Icons.Outlined.Computer, Icons.Filled.Computer),
-    TopDest(StorageRoute, R.string.tab_storage, Icons.Outlined.Storage, Icons.Filled.Storage),
-    TopDest(TasksRoute, R.string.tab_tasks, Icons.Outlined.Task, Icons.Filled.Task),
-    TopDest(NodeRoute, R.string.tab_node, Icons.Outlined.Dns, Icons.Filled.Dns),
+    TopDest(OverviewRoute, R.string.tab_overview, Icons.Outlined.Dashboard, Icons.Outlined.Dashboard),
+    TopDest(GuestsRoute, R.string.tab_guests, Icons.Outlined.Computer, Icons.Outlined.Computer),
+    TopDest(StorageRoute, R.string.tab_storage, Icons.Outlined.Storage, Icons.Outlined.Storage),
+    TopDest(TasksRoute, R.string.tab_tasks, Icons.Outlined.Task, Icons.Outlined.Task),
+    TopDest(NodeRoute, R.string.tab_node, Icons.Outlined.Dns, Icons.Outlined.Dns),
 )
 
 @Composable
@@ -182,7 +179,7 @@ private fun MainScaffold() {
                 // Tablets, unfolded foldables and landscape: a side rail.
                 Row(Modifier.fillMaxSize()) {
                     if (!inConsole) NavigationRail(
-                        containerColor = MaterialTheme.colorScheme.background,
+                        containerColor = CtrlColors.Background,
                         modifier = Modifier.fillMaxHeight().statusBarsPadding(),
                     ) {
                         Spacer(Modifier.weight(1f))
@@ -191,8 +188,15 @@ private fun MainScaffold() {
                             NavigationRailItem(
                                 selected = selected,
                                 onClick = { selectTab(i) },
-                                icon = { Icon(if (selected) tab.selectedIcon else tab.icon, contentDescription = tab.label) },
+                                icon = { Icon(tab.icon, contentDescription = tab.label) },
                                 label = { Text(tab.label) },
+                                colors = NavigationRailItemDefaults.colors(
+                                    selectedIconColor = CtrlColors.OnAccent,
+                                    selectedTextColor = CtrlColors.Text,
+                                    indicatorColor = CtrlColors.Accent,
+                                    unselectedIconColor = CtrlColors.Muted,
+                                    unselectedTextColor = CtrlColors.Muted,
+                                ),
                             )
                         }
                         Spacer(Modifier.weight(1f))
@@ -244,7 +248,7 @@ private fun PhoneLayout(
                     .fillMaxWidth()
                     .onSizeChanged { overlayHeight = with(density) { it.height.toDp() } }
                     .navigationBarsPadding()
-                    .padding(bottom = 12.dp),
+                    .padding(start = 20.dp, end = 20.dp, bottom = 28.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 AnimatedVisibility(
@@ -252,7 +256,7 @@ private fun PhoneLayout(
                     enter = fadeIn() + slideInVertically { it / 2 },
                     exit = fadeOut() + slideOutVertically { it / 2 },
                 ) {
-                    GlassTabBar(items = tabs, selectedIndex = selectedIndex, onSelect = onSelect)
+                    CtrlBottomBar(items = tabs, selectedIndex = selectedIndex, onSelect = onSelect)
                 }
             }
         }

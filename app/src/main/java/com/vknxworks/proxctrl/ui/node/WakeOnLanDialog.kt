@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.node
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,11 +12,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,9 +47,9 @@ internal fun WakeOnLanDialog(
     val broadcastOk = broadcast.isNotBlank() && broadcast.trim().none { it.isWhitespace() }
     val valid = normalized != null && portOk && broadcastOk
 
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Filled.PowerSettingsNew, null) },
+        icon = { Icon(Icons.Outlined.PowerSettingsNew, null) },
         title = { Text(stringResource(R.string.node_wol_setup_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -59,7 +59,7 @@ internal fun WakeOnLanDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
+                CtrlTextField(
                     value = mac,
                     onValueChange = { mac = it },
                     singleLine = true,
@@ -71,7 +71,7 @@ internal fun WakeOnLanDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row {
-                    OutlinedTextField(
+                    CtrlTextField(
                         value = broadcast,
                         onValueChange = { broadcast = it },
                         singleLine = true,
@@ -81,7 +81,7 @@ internal fun WakeOnLanDialog(
                         modifier = Modifier.weight(1f),
                     )
                     Spacer(Modifier.width(8.dp))
-                    OutlinedTextField(
+                    CtrlTextField(
                         value = port,
                         onValueChange = { v -> port = v.filter(Char::isDigit).take(5) },
                         singleLine = true,

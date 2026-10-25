@@ -13,10 +13,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.SdStorage
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.SdStorage
 import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -153,8 +152,7 @@ fun StorageScreen() {
                                         GroupRow(stringResource(R.string.storage_node_offline, n.node))
                                     }
                                     n.storages.forEachIndexed { i, s ->
-                                        if (i > 0) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                                        StorageRow(s, settings.diskWarnPercent) { nav.navigate(StorageContentRoute(s.node, s.id)) }
+                                                    StorageRow(s, settings.diskWarnPercent) { nav.navigate(StorageContentRoute(s.node, s.id)) }
                                     }
                                 }
                             }
@@ -166,7 +164,7 @@ fun StorageScreen() {
                                         GroupRow(
                                             title = stringResource(R.string.storage_disks),
                                             subtitle = stringResource(R.string.storage_disks_subtitle),
-                                            icon = Icons.Filled.SdStorage,
+                                            icon = Icons.Outlined.SdStorage,
                                             showChevron = true,
                                             onClick = { nav.navigate(StorageDisksRoute(n.node)) },
                                         )
@@ -195,7 +193,7 @@ fun StorageScreen() {
                                 GroupRow(
                                     title = stringResource(R.string.storage_backup_jobs),
                                     subtitle = stringResource(R.string.storage_backup_jobs_subtitle),
-                                    icon = Icons.Filled.Schedule,
+                                    icon = Icons.Outlined.Schedule,
                                     showChevron = true,
                                     onClick = { nav.navigate(StorageBackupJobsRoute) },
                                 )

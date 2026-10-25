@@ -1,5 +1,8 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlSwitch
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -14,19 +17,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Inventory
-import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Inventory
+import androidx.compose.material.icons.outlined.OpenInFull
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -92,7 +92,7 @@ internal fun ResourcesGroup(
         GroupRow(stringResource(R.string.label_mem), memLines.joinToString("\n"))
         if (canEditHardware) {
             TextButton(onClick = onEdit, modifier = Modifier.padding(start = 8.dp)) {
-                Icon(Icons.Filled.Edit, null, Modifier.size(18.dp))
+                Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.res_edit_cpu_memory))
             }
@@ -101,7 +101,7 @@ internal fun ResourcesGroup(
             GroupRow(
                 title = diskTitle(d),
                 subtitle = listOfNotNull(d.volume.takeIf { it.isNotBlank() }, d.size?.let(::formatBytes)).joinToString("\n"),
-                icon = Icons.Filled.Inventory,
+                icon = Icons.Outlined.Inventory,
                 trailing = if (canResize && d.resizable) {
                     { TextButton(onClick = { onResize(d) }) { Text(stringResource(R.string.res_grow)) } }
                 } else {
@@ -122,7 +122,7 @@ internal fun ResourcesGroup(
         }
         if (canEditTags) {
             TextButton(onClick = onTags, modifier = Modifier.padding(start = 8.dp)) {
-                Icon(Icons.Filled.Edit, null, Modifier.size(18.dp))
+                Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(if (res.tags.isEmpty()) R.string.res_tags_add else R.string.res_tags_edit))
             }
@@ -162,12 +162,12 @@ internal fun EditResourcesDialog(
     val memOk = m != null && m >= 16
     val swapOk = type != GuestType.LXC || (s != null && s >= 0)
     val changed = c != res.cores || m != res.memoryMiB || (type == GuestType.LXC && s != res.swapMiB)
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.res_edit_cpu_memory)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
+                CtrlTextField(
                     value = cores,
                     onValueChange = { cores = it.filter(Char::isDigit).take(3) },
                     label = { Text(stringResource(if (type == GuestType.QEMU && res.sockets > 1) R.string.res_cores_per_socket else R.string.res_cores_label)) },
@@ -178,7 +178,7 @@ internal fun EditResourcesDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
+                CtrlTextField(
                     value = memory,
                     onValueChange = { memory = it.filter(Char::isDigit).take(8) },
                     label = { Text(stringResource(R.string.res_memory_mib)) },
@@ -201,7 +201,7 @@ internal fun EditResourcesDialog(
                 }
                 if (type == GuestType.LXC) {
                     Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
+                    CtrlTextField(
                         value = swap,
                         onValueChange = { swap = it.filter(Char::isDigit).take(8) },
                         label = { Text(stringResource(R.string.res_swap_mib)) },
@@ -240,7 +240,7 @@ internal fun TagsDialog(initial: List<String>, colors: TagColors, onDismiss: () 
         if (t.isNotEmpty() && ResourcesApi.TAG.matches(t) && t !in tags) tags = tags + t
         draft = ""
     }
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.res_tags_title)) },
         text = {
@@ -254,14 +254,14 @@ internal fun TagsDialog(initial: List<String>, colors: TagColors, onDismiss: () 
                                 selected = false,
                                 onClick = { tags = tags - t },
                                 label = { TagChip(t, colors) },
-                                trailingIcon = { Icon(Icons.Filled.Close, stringResource(R.string.res_tag_remove), Modifier.size(16.dp)) },
+                                trailingIcon = { Icon(Icons.Outlined.Close, stringResource(R.string.res_tag_remove), Modifier.size(16.dp)) },
                             )
                         }
                     }
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
+                    CtrlTextField(
                         value = draft,
                         onValueChange = { draft = it.replace(" ", "").take(64) },
                         label = { Text(stringResource(R.string.res_tag_new)) },
@@ -272,7 +272,7 @@ internal fun TagsDialog(initial: List<String>, colors: TagColors, onDismiss: () 
                         modifier = Modifier.weight(1f),
                     )
                     androidx.compose.material3.IconButton(onClick = ::addDraft, enabled = draft.isNotBlank() && draftOk) {
-                        Icon(Icons.Filled.Add, stringResource(R.string.res_tag_add))
+                        Icon(Icons.Outlined.Add, stringResource(R.string.res_tag_add))
                     }
                 }
             }
@@ -295,10 +295,10 @@ internal fun GrowDiskDialog(vmid: Int, disk: GuestDisk, onDismiss: () -> Unit, o
         body = stringResource(R.string.res_grow_body, formatBytes(disk.size ?: 0L)),
         expected = vmid.toString(),
         confirmLabel = stringResource(R.string.res_grow),
-        icon = Icons.Filled.OpenInFull,
+        icon = Icons.Outlined.OpenInFull,
         extra = {
             Column {
-                OutlinedTextField(
+                CtrlTextField(
                     value = add,
                     onValueChange = { add = it.filter(Char::isDigit).take(5) },
                     label = { Text(stringResource(R.string.res_grow_by)) },
@@ -348,13 +348,13 @@ internal fun CloneDialog(
     val idOk = id != null && id in 100..999_999_999 && !idTaken
     val nameOk = name.isBlank() || Regex("^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$").matches(name.trim())
 
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Filled.ContentCopy, null) },
+        icon = { Icon(Icons.Outlined.ContentCopy, null) },
         title = { Text(stringResource(R.string.clone_title, ref.vmid.toString())) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
+                CtrlTextField(
                     value = newId,
                     onValueChange = { newId = it.filter(Char::isDigit).take(9) },
                     label = { Text(stringResource(R.string.clone_new_id)) },
@@ -365,7 +365,7 @@ internal fun CloneDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
+                CtrlTextField(
                     value = name,
                     onValueChange = { name = it.take(63) },
                     label = { Text(stringResource(if (ref.type == GuestType.LXC) R.string.clone_hostname else R.string.clone_name)) },
@@ -386,7 +386,7 @@ internal fun CloneDialog(
                         )
                     }
                     // Only templates can be cloned linked; normal guests are always copied in full.
-                    Switch(checked = full, onCheckedChange = { full = it }, enabled = isTemplate)
+                    CtrlSwitch(checked = full, onCheckedChange = { full = it }, enabled = isTemplate)
                 }
                 if (full) {
                     Spacer(Modifier.height(8.dp))

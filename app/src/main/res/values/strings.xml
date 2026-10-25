@@ -2,6 +2,23 @@
 <resources>
     <string name="app_name">ProxCtrl</string>
     <string name="vendor">VKNXWorks</string>
+    <!-- Ctrl / Signal: the part before "/CTRL" in the wordmark at the top of every tab. -->
+    <string name="wordmark_name" translatable="false">PROX</string>
+    <string name="signal_lock_label" translatable="false">VKNXWORKS · CTRL</string>
+    <string name="signal_footer" translatable="false">GOOGLE-FREE · TELEMETRY-FREE · ARM64</string>
+    <string name="signal_locked">Locked</string>
+    <string name="signal_profile">Profile</string>
+    <string name="signal_node_label">Node · %1$s</string>
+    <string name="signal_cpu_load">CPU load</string>
+    <string name="signal_threads">%1$d threads</string>
+    <string name="signal_memory">Memory</string>
+    <string name="signal_root_disk">Root disk</string>
+    <string name="signal_guests_running">%1$d / %2$d running</string>
+    <string name="signal_state_run">Run</string>
+    <string name="signal_state_stop">Stop</string>
+    <string name="signal_state_pause">Pause</string>
+    <string name="signal_state_template">Tmpl</string>
+    <string name="signal_details">Details</string>
 
     <!-- Tabs -->
     <string name="tab_overview">Overview</string>

@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,16 +11,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bedtime
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.PowerSettingsNew
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,13 +41,13 @@ import com.vknxworks.proxctrl.data.guests.power
 import com.vknxworks.proxctrl.ui.theme.Gutter
 
 fun PowerAction.icon(): ImageVector = when (this) {
-    PowerAction.START -> Icons.Filled.PlayArrow
-    PowerAction.SHUTDOWN -> Icons.Filled.PowerSettingsNew
-    PowerAction.REBOOT -> Icons.Filled.RestartAlt
-    PowerAction.STOP -> Icons.Filled.Stop
-    PowerAction.SUSPEND -> Icons.Filled.Pause
-    PowerAction.RESUME -> Icons.Filled.PlayArrow
-    PowerAction.HIBERNATE -> Icons.Filled.Bedtime
+    PowerAction.START -> Icons.Outlined.PlayArrow
+    PowerAction.SHUTDOWN -> Icons.Outlined.PowerSettingsNew
+    PowerAction.REBOOT -> Icons.Outlined.RestartAlt
+    PowerAction.STOP -> Icons.Outlined.Stop
+    PowerAction.SUSPEND -> Icons.Outlined.Pause
+    PowerAction.RESUME -> Icons.Outlined.PlayArrow
+    PowerAction.HIBERNATE -> Icons.Outlined.Bedtime
 }
 
 fun PowerAction.label(): Int = when (this) {
@@ -75,7 +75,7 @@ fun BulkActionRow(onAction: (PowerAction) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         PowerAction.BULK.forEach { action ->
-            FilledTonalButton(
+            CtrlSecondaryButton(
                 onClick = { onAction(action) },
                 modifier = Modifier.weight(1f),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 6.dp, vertical = 8.dp),
@@ -106,7 +106,7 @@ fun BulkPowerDialog(
     val skipped = selected.size - targets.size
     var stopUnderstood by remember { mutableStateOf(false) }
     val isStop = action == PowerAction.STOP
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(if (isStop) Icons.Outlined.Warning else action.icon(), null, tint = if (isStop) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) },
         title = { Text(stringResource(action.confirmTitle(), targets.size)) },

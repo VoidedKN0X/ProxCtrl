@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.components
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,11 +10,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,12 +40,12 @@ fun TypedConfirmDialog(
     confirmLabel: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    icon: ImageVector = Icons.Filled.Warning,
+    icon: ImageVector = Icons.Outlined.Warning,
     extra: (@Composable () -> Unit)? = null,
 ) {
     var typed by remember { mutableStateOf("") }
     val matches = typed.trim() == expected
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(icon, null, tint = MaterialTheme.colorScheme.error) },
         title = { Text(title) },
@@ -57,7 +57,7 @@ fun TypedConfirmDialog(
                     extra()
                 }
                 Spacer(Modifier.height(16.dp))
-                OutlinedTextField(
+                CtrlTextField(
                     value = typed,
                     onValueChange = { typed = it },
                     singleLine = true,
@@ -92,7 +92,7 @@ fun ConfirmDialog(
     danger: Boolean = true,
     icon: ImageVector? = null,
 ) {
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         icon = if (icon != null) {
             { Icon(icon, null, tint = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) }

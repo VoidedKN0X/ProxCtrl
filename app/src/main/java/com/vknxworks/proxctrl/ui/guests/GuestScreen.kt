@@ -1,5 +1,8 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,19 +21,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Terminal
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
@@ -71,17 +71,17 @@ import com.vknxworks.proxctrl.ui.components.TaskCard
 import com.vknxworks.proxctrl.ui.components.TypedConfirmDialog
 import com.vknxworks.proxctrl.ui.components.rememberTaskTracker
 import com.vknxworks.proxctrl.ui.tasks.GuestTasksRoute
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Tune
 import com.vknxworks.proxctrl.data.guests.BackupApi
 import com.vknxworks.proxctrl.data.guests.SnapshotApi
 import com.vknxworks.proxctrl.ui.nav.BackupsRoute
 import com.vknxworks.proxctrl.ui.nav.SnapshotsRoute
 import com.vknxworks.proxctrl.ui.components.relativeTime
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.PhotoCamera
 import com.vknxworks.proxctrl.data.guests.power
 import com.vknxworks.proxctrl.ui.components.ChartSeries
 import com.vknxworks.proxctrl.ui.components.ConnectionBanner
@@ -217,18 +217,18 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 val g = guest
                 if (g != null && server?.readOnly == false) {
                     Box {
-                        IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_actions)) }
+                        IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.clone)) },
-                                leadingIcon = { Icon(Icons.Filled.ContentCopy, null) },
+                                leadingIcon = { Icon(Icons.Outlined.ContentCopy, null) },
                                 enabled = !tracker.busy && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_CLONE),
                                 onClick = { menu = false; cloning = true },
                             )
                             if (!g.isTemplate) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.template_convert)) },
-                                    leadingIcon = { Icon(Icons.Filled.Description, null) },
+                                    leadingIcon = { Icon(Icons.Outlined.Description, null) },
                                     enabled = !tracker.busy && g.isStopped && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_ALLOCATE),
                                     onClick = { menu = false; templating = true },
                                 )
@@ -270,7 +270,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                         onAction = { pending = it },
                     )
                     if (status?.status == "running" && c.sessions.canWrite(ref.aclPath, "VM.Console")) {
-                        FilledTonalButton(
+                        CtrlSecondaryButton(
                             onClick = {
                                 nav.navigate(
                                     ConsoleRoute(
@@ -284,7 +284,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                             },
                             modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter),
                         ) {
-                            Icon(Icons.Filled.Terminal, null, Modifier.size(20.dp))
+                            Icon(Icons.Outlined.Terminal, null, Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.open_console))
                         }
@@ -322,13 +322,13 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 Group {
                     GroupRow(
                         title = stringResource(R.string.options_title_short),
-                        icon = Icons.Filled.Tune,
+                        icon = Icons.Outlined.Tune,
                         showChevron = true,
                         onClick = { nav.navigate(GuestOptionsRoute(ref.node, ref.type.api, ref.vmid, guest?.name.orEmpty())) },
                     )
                     GroupRow(
                         title = stringResource(R.string.guest_task_history),
-                        icon = Icons.Filled.History,
+                        icon = Icons.Outlined.History,
                         showChevron = true,
                         onClick = { nav.navigate(GuestTasksRoute(ref.node, ref.vmid, guest?.name.orEmpty())) },
                     )
@@ -453,7 +453,7 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
             body = stringResource(R.string.template_convert_body),
             expected = vmid.toString(),
             confirmLabel = stringResource(R.string.template_convert),
-            icon = Icons.Filled.Description,
+            icon = Icons.Outlined.Description,
             onDismiss = { templating = false },
             onConfirm = {
                 templating = false
@@ -535,7 +535,7 @@ private fun PowerRow(guest: Guest, runState: String?, allowed: Boolean, onAction
     Column(Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             PowerAction.BULK.forEach { action ->
-                FilledTonalButton(
+                CtrlSecondaryButton(
                     onClick = { onAction(action) },
                     enabled = allowed && action.appliesTo(guest, runState),
                     modifier = Modifier.weight(1f).heightIn(min = 56.dp),
@@ -549,7 +549,7 @@ private fun PowerRow(guest: Guest, runState: String?, allowed: Boolean, onAction
             }
             if (guest.type == GuestType.QEMU) {
                 Box {
-                    IconButton(onClick = { menu = true }, enabled = allowed) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_actions)) }
+                    IconButton(onClick = { menu = true }, enabled = allowed) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                         listOf(PowerAction.SUSPEND, PowerAction.RESUME, PowerAction.HIBERNATE).forEach { action ->
                             DropdownMenuItem(
@@ -678,7 +678,7 @@ private fun ProtectionGroup(
                     0 -> stringResource(R.string.snapshots_none)
                     else -> pluralStringResource(R.plurals.snapshots_count, snapshots, snapshots)
                 },
-                icon = Icons.Filled.PhotoCamera,
+                icon = Icons.Outlined.PhotoCamera,
                 showChevron = true,
                 onClick = onSnapshots,
             )
@@ -690,7 +690,7 @@ private fun ProtectionGroup(
                 0L -> stringResource(R.string.backups_none)
                 else -> stringResource(R.string.backups_last, relativeTime(lastBackup * 1000))
             },
-            icon = Icons.Filled.Inventory2,
+            icon = Icons.Outlined.Inventory2,
             showChevron = true,
             onClick = onBackups,
         )
@@ -708,7 +708,7 @@ private fun NotesGroup(notes: String, canEdit: Boolean, onEdit: () -> Unit) {
             }
             if (canEdit) {
                 TextButton(onClick = onEdit, modifier = Modifier.align(Alignment.End)) {
-                    Icon(Icons.Filled.Edit, null, Modifier.size(18.dp))
+                    Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(if (notes.isBlank()) R.string.notes_add else R.string.notes_edit))
                 }
@@ -721,11 +721,11 @@ private fun NotesGroup(notes: String, canEdit: Boolean, onEdit: () -> Unit) {
 private fun NotesDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
     var text by remember { mutableStateOf(initial) }
     var saving by remember { mutableStateOf(false) }
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.notes_edit)) },
         text = {
-            OutlinedTextField(
+            CtrlTextField(
                 value = text,
                 onValueChange = { text = it },
                 minLines = 6,
@@ -753,7 +753,7 @@ private fun PowerConfirmDialog(action: PowerAction, name: String, onDismiss: () 
         PowerAction.HIBERNATE -> R.string.confirm_hibernate_title to R.string.confirm_hibernate_body
     }
     val danger = action == PowerAction.STOP
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(action.icon(), null, tint = if (danger) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) },
         title = { Text(stringResource(title, name)) },
@@ -830,12 +830,13 @@ private fun GraphsGroup(rrd: List<RrdPoint>, timeframe: Timeframe, onTimeframe: 
 private fun ChartCard(title: String, content: @Composable () -> Unit) {
     Surface(
         shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(title, style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
+            com.vknxworks.proxctrl.ui.components.CtrlSectionLabel(title)
+            Spacer(Modifier.height(10.dp))
             content()
         }
     }

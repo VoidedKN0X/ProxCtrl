@@ -1,9 +1,9 @@
 package com.vknxworks.proxctrl.ui.widgets
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -108,7 +108,7 @@ fun WidgetActionConfirm() {
 
     // The widget was set up for another server than the active one: say so instead of acting there.
     if (server == null || server.id != r.serverId) {
-        AlertDialog(
+        CtrlDialog(
             onDismissRequest = WidgetActions::dismiss,
             title = { Text(stringResource(R.string.widget_confirm_other_server_title)) },
             text = { Text(stringResource(R.string.widget_confirm_other_server_body)) },
@@ -117,7 +117,7 @@ fun WidgetActionConfirm() {
         return
     }
     if (server.readOnly) {
-        AlertDialog(
+        CtrlDialog(
             onDismissRequest = WidgetActions::dismiss,
             title = { Text(stringResource(R.string.widget_confirm_read_only_title)) },
             text = { Text(stringResource(R.string.error_read_only)) },
@@ -132,7 +132,7 @@ fun WidgetActionConfirm() {
     val applies = guest != null && action.appliesTo(guest)
     val allowed = c.sessions.canWrite("/vms/${r.vmid}", PowerAction.PRIV)
 
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = { if (!running) WidgetActions.dismiss() },
         title = {
             Text(

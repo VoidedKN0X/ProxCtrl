@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.tasks
 
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
@@ -21,12 +22,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.automirrored.filled.WrapText
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.outlined.Stop
+import androidx.compose.material.icons.automirrored.outlined.WrapText
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -165,7 +165,7 @@ fun TaskDetailScreen(upid: String) {
             ScreenTopBar(title) {
                 IconButton(onClick = { wrap = !wrap }) {
                     Icon(
-                        Icons.AutoMirrored.Filled.WrapText,
+                        Icons.AutoMirrored.Outlined.WrapText,
                         stringResource(R.string.tasks_wrap),
                         tint = if (wrap) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -174,7 +174,7 @@ fun TaskDetailScreen(upid: String) {
                     copySensitive(context, "ProxCtrl task log", lines.joinToString("\n") { it.text })
                     Toast.makeText(context, context.getString(R.string.tasks_log_copied), Toast.LENGTH_SHORT).show()
                 }, enabled = lines.isNotEmpty()) {
-                    Icon(Icons.Filled.ContentCopy, stringResource(R.string.tasks_copy_log))
+                    Icon(Icons.Outlined.ContentCopy, stringResource(R.string.tasks_copy_log))
                 }
             }
             if (access.error != null) ConnectionBanner()
@@ -243,7 +243,7 @@ fun TaskDetailScreen(upid: String) {
             SmallFloatingActionButton(
                 onClick = { scope.launch { listState.animateScrollToItem((listState.layoutInfo.totalItemsCount - 1).coerceAtLeast(0)) } },
                 modifier = Modifier.align(Alignment.BottomEnd).navigationBarsPadding().padding(16.dp),
-            ) { Icon(Icons.Filled.KeyboardDoubleArrowDown, stringResource(R.string.tasks_jump_end)) }
+            ) { Icon(Icons.Outlined.KeyboardDoubleArrowDown, stringResource(R.string.tasks_jump_end)) }
         }
     }
 
@@ -308,6 +308,7 @@ private fun Summary(
         color = bg,
         contentColor = fg,
         shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline),
         modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
     ) {
         Column(Modifier.padding(16.dp)) {
@@ -326,8 +327,8 @@ private fun Summary(
                     modifier = Modifier.weight(1f),
                 )
                 if (canStop) {
-                    FilledTonalButton(onClick = onStop) {
-                        Icon(Icons.Filled.Stop, null, Modifier.size(18.dp))
+                    CtrlSecondaryButton(onClick = onStop) {
+                        Icon(Icons.Outlined.Stop, null, Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(stringResource(R.string.tasks_stop))
                     }

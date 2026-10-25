@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.storage
 
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,13 +16,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,11 +92,11 @@ fun TemplatesScreen(node: String, storage: String) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
             if (access.error != null) ConnectionBanner()
             TaskCard(tracker)
-            OutlinedTextField(
+            CtrlTextField(
                 value = query,
                 onValueChange = { query = it },
                 singleLine = true,
-                leadingIcon = { Icon(Icons.Filled.Search, null) },
+                leadingIcon = { Icon(Icons.Outlined.Search, null) },
                 placeholder = { Text(stringResource(R.string.storage_templates_search)) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
@@ -150,7 +150,7 @@ fun TemplatesScreen(node: String, storage: String) {
             body = stringResource(R.string.storage_templates_confirm_body, a.template, storage),
             confirmLabel = stringResource(R.string.storage_templates_download_short),
             danger = false,
-            icon = Icons.Filled.Download,
+            icon = Icons.Outlined.Download,
             onDismiss = { downloading = null },
             onConfirm = {
                 downloading = null
@@ -185,10 +185,10 @@ private fun TemplateRow(a: Appliance, downloaded: Boolean, enabled: Boolean, onD
         }
         Spacer(Modifier.width(8.dp))
         if (downloaded) {
-            Icon(Icons.Filled.CheckCircle, stringResource(R.string.storage_templates_have), Modifier.size(22.dp), tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Outlined.CheckCircle, stringResource(R.string.storage_templates_have), Modifier.size(22.dp), tint = MaterialTheme.colorScheme.primary)
         } else {
             Icon(
-                Icons.Filled.Download,
+                Icons.Outlined.Download,
                 stringResource(R.string.storage_templates_download_short),
                 Modifier.size(22.dp),
                 tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),

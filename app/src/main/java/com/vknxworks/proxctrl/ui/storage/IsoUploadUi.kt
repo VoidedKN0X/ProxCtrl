@@ -1,5 +1,8 @@
 package com.vknxworks.proxctrl.ui.storage
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlProgressBar
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,12 +11,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Upload
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -107,7 +107,7 @@ fun IsoUploadBody(file: PickedFile, fileName: String, onFileName: (String) -> Un
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(12.dp))
-        OutlinedTextField(
+        CtrlTextField(
             value = fileName,
             onValueChange = onFileName,
             singleLine = true,
@@ -121,20 +121,20 @@ fun IsoUploadBody(file: PickedFile, fileName: String, onFileName: (String) -> Un
             is UploadState.Sending -> {
                 Spacer(Modifier.height(8.dp))
                 if (state.total > 0) {
-                    LinearProgressIndicator(progress = { (state.sent.toFloat() / state.total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+                    CtrlProgressBar(progress = { (state.sent.toFloat() / state.total).coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
                     Text(
                         stringResource(R.string.storage_upload_progress, formatBytes(state.sent), formatBytes(state.total)),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 } else {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    CtrlProgressBar(modifier = Modifier.fillMaxWidth())
                     Text(stringResource(R.string.storage_upload_progress_unknown, formatBytes(state.sent)), style = MaterialTheme.typography.bodySmall)
                 }
                 Text(stringResource(R.string.storage_upload_keep_open), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             UploadState.Finishing -> {
                 Spacer(Modifier.height(8.dp))
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                CtrlProgressBar(modifier = Modifier.fillMaxWidth())
                 Text(stringResource(R.string.storage_upload_finishing), style = MaterialTheme.typography.bodySmall)
             }
             UploadState.Done -> {
@@ -167,10 +167,10 @@ fun IsoUploadDialog(
 ) {
     var name by remember(file) { mutableStateOf(file.name) }
     val state = uploader.state
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = { if (!uploader.busy) onDismiss() },
         properties = DialogProperties(dismissOnBackPress = !uploader.busy, dismissOnClickOutside = !uploader.busy),
-        icon = { Icon(Icons.Filled.Upload, null) },
+        icon = { Icon(Icons.Outlined.Upload, null) },
         title = { Text(stringResource(R.string.storage_upload_to, storage)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {

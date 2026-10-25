@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.storage
 
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,14 +14,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -114,14 +113,13 @@ fun BackupJobsScreen() {
                     list == null && err != null -> ErrorText(err)
                     list == null -> LoadingBox()
                     list.isEmpty() -> EmptyState(
-                        icon = Icons.Filled.Schedule,
+                        icon = Icons.Outlined.Schedule,
                         title = stringResource(R.string.storage_jobs_empty),
                         body = stringResource(R.string.storage_jobs_empty_hint),
                         modifier = Modifier.heightIn(min = 320.dp),
                     )
                     else -> Group(footer = stringResource(R.string.storage_jobs_footer)) {
                         list.forEachIndexed { i, job ->
-                            if (i > 0) HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                             JobRow(
                                 job = job,
                                 lastRun = lastRuns?.get(job.id),
@@ -143,7 +141,7 @@ fun BackupJobsScreen() {
             body = stringResource(R.string.storage_job_run_body, jobTitle(job)),
             confirmLabel = stringResource(R.string.storage_job_run),
             danger = false,
-            icon = Icons.Filled.PlayArrow,
+            icon = Icons.Outlined.PlayArrow,
             onDismiss = { running = null },
             onConfirm = {
                 running = null
@@ -213,10 +211,10 @@ private fun JobRow(job: BackupJob, lastRun: JobRun?, lastRunLoading: Boolean, sh
                 lastRun == null -> Text(stringResource(R.string.storage_job_last_unknown), style = small, color = muted)
                 else -> {
                     val (icon, tint, label) = when {
-                        lastRun.running -> Triple(Icons.Filled.Schedule, MaterialTheme.colorScheme.primary, stringResource(R.string.storage_job_last_running))
-                        lastRun.ok -> Triple(Icons.Filled.CheckCircle, Health.ok, stringResource(R.string.storage_job_last_ok))
-                        lastRun.warnings -> Triple(Icons.Filled.Warning, Health.warn, lastRun.status)
-                        else -> Triple(Icons.Filled.Error, Health.critical, lastRun.status.ifBlank { stringResource(R.string.storage_job_last_failed) })
+                        lastRun.running -> Triple(Icons.Outlined.Schedule, MaterialTheme.colorScheme.primary, stringResource(R.string.storage_job_last_running))
+                        lastRun.ok -> Triple(Icons.Outlined.CheckCircle, Health.ok, stringResource(R.string.storage_job_last_ok))
+                        lastRun.warnings -> Triple(Icons.Outlined.Warning, Health.warn, lastRun.status)
+                        else -> Triple(Icons.Outlined.Error, Health.critical, lastRun.status.ifBlank { stringResource(R.string.storage_job_last_failed) })
                     }
                     Icon(icon, null, Modifier.size(16.dp), tint = tint)
                     Spacer(Modifier.width(6.dp))
@@ -230,8 +228,8 @@ private fun JobRow(job: BackupJob, lastRun: JobRun?, lastRunLoading: Boolean, sh
             }
         }
         if (showRun) {
-            FilledTonalButton(onClick = onRun, enabled = canRun, modifier = Modifier.padding(top = 8.dp)) {
-                Icon(Icons.Filled.PlayArrow, null, Modifier.size(18.dp))
+            CtrlSecondaryButton(onClick = onRun, enabled = canRun, modifier = Modifier.padding(top = 8.dp)) {
+                Icon(Icons.Outlined.PlayArrow, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.storage_job_run))
             }

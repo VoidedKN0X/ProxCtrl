@@ -1,5 +1,6 @@
 package com.vknxworks.proxctrl.ui.storage
 
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -16,11 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Help
 import androidx.compose.material.icons.outlined.SdStorage
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -204,9 +204,9 @@ private fun DiskRow(d: DiskInfo, onClick: () -> Unit) {
         val healthy = d.healthy
         Icon(
             when (healthy) {
-                true -> Icons.Filled.CheckCircle
-                false -> Icons.Filled.Error
-                null -> Icons.Filled.Help
+                true -> Icons.Outlined.CheckCircle
+                false -> Icons.Outlined.Error
+                null -> Icons.Outlined.Help
             },
             null,
             Modifier.size(22.dp),
@@ -252,7 +252,7 @@ private fun SmartDialog(node: String, disk: DiskInfo, onDismiss: () -> Unit) {
         val cl = client ?: return@LaunchedEffect
         smart = runCatching { DiskApi.smart(cl, node, disk.devpath) }
     }
-    AlertDialog(
+    CtrlDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Outlined.SdStorage, null) },
         title = { Text(stringResource(R.string.storage_smart_title, disk.devpath)) },

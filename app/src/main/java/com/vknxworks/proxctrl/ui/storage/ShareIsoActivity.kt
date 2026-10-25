@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.storage
 
+import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -25,14 +27,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Upload
+import androidx.compose.material.icons.outlined.Upload
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,7 +70,10 @@ class ShareIsoActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
+            navigationBarStyle = androidx.activity.SystemBarStyle.dark(0xFF08080A.toInt()),
+        )
         val uri = sharedUri(intent)
         val c = container
         // Same app lock as the rest of ProxCtrl: locked on open if set, and "Confirm changes" for the upload.
@@ -167,7 +170,7 @@ private fun ShareIsoScreen(uri: Uri?, onClose: () -> Unit) {
                     PillButton(
                         text = stringResource(if (uploader.state is UploadState.Failed) R.string.retry else R.string.storage_upload),
                         onClick = { if (target != null) uploader.start(client, target.node, target.id, file, name) },
-                        icon = Icons.Filled.Upload,
+                        icon = Icons.Outlined.Upload,
                         enabled = target != null && !uploader.busy && IsoUpload.isIsoName(name),
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -176,7 +179,7 @@ private fun ShareIsoScreen(uri: Uri?, onClose: () -> Unit) {
         }
         if (!uploader.busy && uploader.state !is UploadState.Done) {
             Spacer(Modifier.height(8.dp))
-            OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.cancel)) }
+            CtrlSecondaryButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.cancel)) }
         }
         if (file != null && file.size >= 0) {
             Spacer(Modifier.height(4.dp))
@@ -201,7 +204,7 @@ private fun TargetPicker(targets: List<StorageInfo>?, selected: StorageInfo?, en
         else -> label(selected)
     }
     ExposedDropdownMenuBox(expanded = open, onExpandedChange = { if (enabled && !targets.isNullOrEmpty()) open = it }) {
-        OutlinedTextField(
+        CtrlTextField(
             value = text,
             onValueChange = {},
             readOnly = true,

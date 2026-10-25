@@ -9,11 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -117,9 +117,9 @@ private fun detail(item: AttentionItem): String? = when (item) {
 @Composable
 private fun SeverityIcon(severity: Severity) {
     val (icon, tint, label) = when (severity) {
-        Severity.CRITICAL -> Triple(Icons.Filled.Error, Health.critical, R.string.sev_critical)
-        Severity.WARNING -> Triple(Icons.Filled.Warning, Health.warn, R.string.sev_warning)
-        Severity.INFO -> Triple(Icons.Filled.Info, MaterialTheme.colorScheme.onSurfaceVariant, R.string.sev_info)
+        Severity.CRITICAL -> Triple(Icons.Outlined.Error, Health.critical, R.string.sev_critical)
+        Severity.WARNING -> Triple(Icons.Outlined.Warning, Health.warn, R.string.sev_warning)
+        Severity.INFO -> Triple(Icons.Outlined.Info, MaterialTheme.colorScheme.onSurfaceVariant, R.string.sev_info)
     }
     Icon(icon, stringResource(label), Modifier.size(22.dp), tint = tint)
 }
@@ -129,16 +129,14 @@ private fun SeverityIcon(severity: Severity) {
 fun AttentionCard(items: List<AttentionItem>, serverName: String, onOpen: (AttentionTarget) -> Unit) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp)) {
-        Text(
+        com.vknxworks.proxctrl.ui.components.CtrlSectionLabel(
             stringResource(R.string.attention_title),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+            Modifier.padding(start = 4.dp, bottom = 8.dp),
         )
-        Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+        Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer, border = androidx.compose.foundation.BorderStroke(1.dp, com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline), modifier = Modifier.fillMaxWidth()) {
             if (items.isEmpty()) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.CheckCircle, null, Modifier.size(22.dp), tint = Health.ok)
+                    Icon(Icons.Outlined.CheckCircle, null, Modifier.size(22.dp), tint = Health.ok)
                     Spacer(Modifier.width(14.dp))
                     Column {
                         Text(stringResource(R.string.attention_all_good), style = MaterialTheme.typography.bodyLarge)
@@ -153,7 +151,7 @@ fun AttentionCard(items: List<AttentionItem>, serverName: String, onOpen: (Atten
                 Column(Modifier.padding(vertical = 4.dp)) {
                     val shown = if (expanded) items else items.take(COLLAPSED_COUNT)
                     shown.forEachIndexed { i, item ->
-                        if (i > 0) HorizontalDivider(Modifier.padding(start = 52.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                        if (i > 0) HorizontalDivider(color = com.vknxworks.proxctrl.ui.theme.CtrlColors.Outline)
                         AttentionRow(item, onOpen)
                     }
                     if (items.size > COLLAPSED_COUNT) {
@@ -185,6 +183,6 @@ private fun AttentionRow(item: AttentionItem, onOpen: (AttentionTarget) -> Unit)
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis)
             }
         }
-        if (target != null) Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (target != null) Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
