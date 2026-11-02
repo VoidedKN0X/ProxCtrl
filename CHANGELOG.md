@@ -9,7 +9,7 @@ To publish a new version: bump `versionCode` and `versionName` in `app/build.gra
 ### Fixed
 
 - **Popup menus no longer show a grey box**: the menus behind the ⋮ buttons and the drop-down lists still used Material's default shadow, which was drawn as a grey, square-ish edge around them (most visible in light mode). Every popup menu now has the Signal look: a flat card in the surface colour (dark grey in dark mode, white in light mode), 16dp rounded corners, a thin border and no shadow. Menu text is in the normal text colour, icons in grey, and options you can't use right now are greyed out. What the menus do hasn't changed.
-- The menus this covers: the Node tab's ⋮ menu (Wake-on-LAN), each service's ⋮ menu on the node's Services page, the guest page's ⋮ menu at the top and the ⋮ menu next to its power buttons, the ⋮ menu on each backup and each snapshot, the filter drop-downs on the Tasks list, the choice list in the backup dialogs, and the storage list in Share → ProxCtrl.
+- The menus this covers: the Node tab's ⋮ menu (Wake-on-LAN), each service's ⋮ menu on the node's Services page, the guest page's ⋮ menu at the top and the ⋮ menu next to its power buttons, the ⋮ menu on each backup and each snapshot, the filter drop-downs on the Tasks list, the storage list when restoring a backup, and the storage list in Share → ProxCtrl.
 
 ## v1.4.2 (2026-10-25)
 
