@@ -1,5 +1,8 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlMenuItem
+import com.vknxworks.proxctrl.ui.components.CtrlDropdownMenu
+import com.vknxworks.proxctrl.ui.components.CtrlExposedDropdownMenu
 import com.vknxworks.proxctrl.ui.components.CtrlDialog
 import com.vknxworks.proxctrl.ui.components.CtrlSwitch
 import com.vknxworks.proxctrl.ui.components.CtrlTextField
@@ -29,8 +32,6 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
@@ -304,14 +305,14 @@ private fun BackupRow(
         if (showMenu) {
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(
+                CtrlDropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
+                    CtrlMenuItem(
                         text = { Text(stringResource(R.string.restore)) },
                         leadingIcon = { Icon(Icons.Outlined.Restore, null) },
                         enabled = canRestore,
                         onClick = { menu = false; onRestore() },
                     )
-                    DropdownMenuItem(
+                    CtrlMenuItem(
                         text = { Text(stringResource(if (backup.isProtected) R.string.backup_delete_protected else R.string.delete)) },
                         leadingIcon = { Icon(Icons.Outlined.Delete, null) },
                         enabled = canDelete,
@@ -353,12 +354,12 @@ private fun StoragePicker(
             supportingText = error?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
         )
-        ExposedDropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
+        CtrlExposedDropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
             if (noneLabel != null) {
-                DropdownMenuItem(text = { Text(noneLabel) }, onClick = { onSelect(null); open = false })
+                CtrlMenuItem(text = { Text(noneLabel) }, onClick = { onSelect(null); open = false })
             }
             storages.orEmpty().forEach { s ->
-                DropdownMenuItem(
+                CtrlMenuItem(
                     text = {
                         Column {
                             Text(s.id)

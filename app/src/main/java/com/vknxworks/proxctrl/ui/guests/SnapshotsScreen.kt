@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlMenuItem
+import com.vknxworks.proxctrl.ui.components.CtrlDropdownMenu
 import com.vknxworks.proxctrl.ui.components.CtrlDialog
 import com.vknxworks.proxctrl.ui.components.CtrlSwitch
 import com.vknxworks.proxctrl.ui.components.CtrlTextField
@@ -29,8 +31,6 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -311,14 +311,14 @@ private fun SnapshotRow(
         if (!s.isCurrent && (canRollback || canDelete)) {
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(
+                CtrlDropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
+                    CtrlMenuItem(
                         text = { Text(stringResource(R.string.snapshot_rollback)) },
                         leadingIcon = { Icon(Icons.Outlined.History, null) },
                         enabled = canRollback,
                         onClick = { menu = false; onRollback() },
                     )
-                    DropdownMenuItem(
+                    CtrlMenuItem(
                         text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) },
                         leadingIcon = { Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error) },
                         enabled = canDelete,

@@ -4,6 +4,13 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.3 (2026-11-02)
+
+### Fixed
+
+- **Popup menus no longer show a grey box**: the menus behind the ⋮ buttons and the drop-down lists still used Material's default shadow, which was drawn as a grey, square-ish edge around them (most visible in light mode). Every popup menu now has the Signal look: a flat card in the surface colour (dark grey in dark mode, white in light mode), 16dp rounded corners, a thin border and no shadow. Menu text is in the normal text colour, icons in grey, and options you can't use right now are greyed out. What the menus do hasn't changed.
+- The menus this covers: the Node tab's ⋮ menu (Wake-on-LAN), each service's ⋮ menu on the node's Services page, the guest page's ⋮ menu at the top and the ⋮ menu next to its power buttons, the ⋮ menu on each backup and each snapshot, the filter drop-downs on the Tasks list, the choice list in the backup dialogs, and the storage list in Share → ProxCtrl.
+
 ## v1.4.2 (2026-10-25)
 
 Crash fixes for closing and leaving the app, safer dialogs with the app lock, fixes for creating containers and moving disks, and plain HTTP for a Proxmox server behind a reverse proxy on your home network, after a warning. (These changes were prepared as 1.4.1 and 1.4.2; 1.4.1 was never released on its own.)

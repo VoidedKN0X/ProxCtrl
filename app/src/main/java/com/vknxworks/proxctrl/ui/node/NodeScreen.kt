@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.node
 
+import com.vknxworks.proxctrl.ui.components.CtrlMenuItem
+import com.vknxworks.proxctrl.ui.components.CtrlDropdownMenu
 import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import android.widget.Toast
 import androidx.compose.foundation.horizontalScroll
@@ -28,8 +30,6 @@ import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -196,14 +196,14 @@ fun NodeScreen() {
                 if (server != null) {
                     Box {
                         IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                        DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
-                            DropdownMenuItem(
+                        CtrlDropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
+                            CtrlMenuItem(
                                 text = { Text(stringResource(if (wol == null) R.string.node_wol_setup else R.string.node_wol_wake)) },
                                 leadingIcon = { Icon(Icons.Outlined.PowerSettingsNew, null) },
                                 onClick = { menu = false; if (wol == null) editingWol = true else wake() },
                             )
                             if (wol != null) {
-                                DropdownMenuItem(
+                                CtrlMenuItem(
                                     text = { Text(stringResource(R.string.node_wol_settings)) },
                                     leadingIcon = { Icon(Icons.Outlined.Settings, null) },
                                     onClick = { menu = false; editingWol = true },

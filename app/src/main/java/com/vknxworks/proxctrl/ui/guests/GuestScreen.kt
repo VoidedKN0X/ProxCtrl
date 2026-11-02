@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.guests
 
+import com.vknxworks.proxctrl.ui.components.CtrlMenuItem
+import com.vknxworks.proxctrl.ui.components.CtrlDropdownMenu
 import com.vknxworks.proxctrl.ui.components.CtrlDialog
 import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import com.vknxworks.proxctrl.ui.components.CtrlTextField
@@ -25,8 +27,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -220,15 +220,15 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 if (g != null && server?.readOnly == false) {
                     Box {
                         IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                        DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
-                            DropdownMenuItem(
+                        CtrlDropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
+                            CtrlMenuItem(
                                 text = { Text(stringResource(R.string.clone)) },
                                 leadingIcon = { Icon(Icons.Outlined.ContentCopy, null) },
                                 enabled = !tracker.busy && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_CLONE),
                                 onClick = { menu = false; cloning = true },
                             )
                             if (!g.isTemplate) {
-                                DropdownMenuItem(
+                                CtrlMenuItem(
                                     text = { Text(stringResource(R.string.template_convert)) },
                                     leadingIcon = { Icon(Icons.Outlined.Description, null) },
                                     enabled = !tracker.busy && g.isStopped && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_ALLOCATE),
@@ -588,9 +588,9 @@ private fun PowerRow(guest: Guest, runState: String?, allowed: Boolean, onAction
             if (guest.type == GuestType.QEMU) {
                 Box {
                     IconButton(onClick = { menu = true }, enabled = allowed) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
-                    DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
+                    CtrlDropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
                         listOf(PowerAction.SUSPEND, PowerAction.RESUME, PowerAction.HIBERNATE).forEach { action ->
-                            DropdownMenuItem(
+                            CtrlMenuItem(
                                 text = { Text(stringResource(action.label())) },
                                 leadingIcon = { Icon(action.icon(), null) },
                                 enabled = action.appliesTo(guest, runState),

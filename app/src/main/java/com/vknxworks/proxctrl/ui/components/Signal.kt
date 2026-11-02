@@ -36,6 +36,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenuBoxScope
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -68,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.vknxworks.proxctrl.ui.theme.CtrlColors
@@ -487,4 +492,84 @@ val CtrlSheetShape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
 @Composable
 fun OnAccent(content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalContentColor provides CtrlColors.OnAccent, content = content)
+}
+
+// ---------- Popup menus ----------
+
+/** Shape of popup menus. */
+private val MenuShape = RoundedCornerShape(16.dp)
+
+/**
+ * A popup menu in the Signal look: flat surface, 16dp corners, a 1dp border and no shadow or tonal
+ * tint (the shadow drew a grey box inside the popup window). Same parameters as Material's DropdownMenu.
+ */
+@Composable
+fun CtrlDropdownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        modifier = modifier,
+        offset = offset,
+        shape = MenuShape,
+        containerColor = CtrlColors.Surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, CtrlColors.Outline),
+        content = content,
+    )
+}
+
+/** The Signal popup for an exposed dropdown (a text field with a list of choices). */
+@Composable
+fun ExposedDropdownMenuBoxScope.CtrlExposedDropdownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    ExposedDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        modifier = modifier,
+        shape = MenuShape,
+        containerColor = CtrlColors.Surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, CtrlColors.Outline),
+        content = content,
+    )
+}
+
+/** A popup menu row: text in the text colour, icons muted, disabled rows in the stopped grey. */
+@Composable
+fun CtrlMenuItem(
+    text: @Composable () -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    enabled: Boolean = true,
+) {
+    DropdownMenuItem(
+        text = text,
+        onClick = onClick,
+        modifier = modifier,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        enabled = enabled,
+        colors = MenuDefaults.itemColors(
+            textColor = CtrlColors.Text,
+            leadingIconColor = CtrlColors.Muted,
+            trailingIconColor = CtrlColors.Muted,
+            disabledTextColor = CtrlColors.Stopped,
+            disabledLeadingIconColor = CtrlColors.Stopped,
+            disabledTrailingIconColor = CtrlColors.Stopped,
+        ),
+    )
 }

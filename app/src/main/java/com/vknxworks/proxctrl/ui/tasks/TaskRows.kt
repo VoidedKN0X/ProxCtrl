@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.tasks
 
+import com.vknxworks.proxctrl.ui.components.CtrlMenuItem
+import com.vknxworks.proxctrl.ui.components.CtrlDropdownMenu
 import com.vknxworks.proxctrl.ui.components.CtrlProgressBar
 import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import androidx.compose.foundation.clickable
@@ -22,8 +24,6 @@ import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -177,10 +177,10 @@ fun <T> FilterMenuChip(
             label = { Text(if (selected == null) label else nameOf(selected), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, null, Modifier.size(18.dp)) },
         )
-        DropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
-            DropdownMenuItem(text = { Text(allLabel) }, onClick = { open = false; onSelect(null) })
+        CtrlDropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
+            CtrlMenuItem(text = { Text(allLabel) }, onClick = { open = false; onSelect(null) })
             choices.forEach { choice ->
-                DropdownMenuItem(text = { Text(nameOf(choice)) }, onClick = { open = false; onSelect(choice) })
+                CtrlMenuItem(text = { Text(nameOf(choice)) }, onClick = { open = false; onSelect(choice) })
             }
         }
     }

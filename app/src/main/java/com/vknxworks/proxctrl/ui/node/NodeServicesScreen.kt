@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.node
 
+import com.vknxworks.proxctrl.ui.components.CtrlMenuItem
+import com.vknxworks.proxctrl.ui.components.CtrlDropdownMenu
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,8 +21,6 @@ import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Stop
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -222,19 +222,19 @@ private fun ServiceRow(service: NodeService, showMenu: Boolean, enabled: Boolean
                 IconButton(onClick = { menu = true }, enabled = enabled && installed) {
                     Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions))
                 }
-                DropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(
+                CtrlDropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
+                    CtrlMenuItem(
                         text = { Text(stringResource(R.string.node_service_start)) },
                         leadingIcon = { Icon(Icons.Outlined.PlayArrow, null) },
                         enabled = !service.isRunning,
                         onClick = { menu = false; onAction(ServiceAction.START) },
                     )
-                    DropdownMenuItem(
+                    CtrlMenuItem(
                         text = { Text(stringResource(R.string.node_service_restart)) },
                         leadingIcon = { Icon(Icons.Outlined.RestartAlt, null) },
                         onClick = { menu = false; onAction(ServiceAction.RESTART) },
                     )
-                    DropdownMenuItem(
+                    CtrlMenuItem(
                         text = {
                             Text(stringResource(if (service.isEssential) R.string.node_service_stop_essential else R.string.node_service_stop))
                         },

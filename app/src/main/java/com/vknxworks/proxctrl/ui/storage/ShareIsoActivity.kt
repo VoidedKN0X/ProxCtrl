@@ -1,5 +1,7 @@
 package com.vknxworks.proxctrl.ui.storage
 
+import com.vknxworks.proxctrl.ui.components.CtrlMenuItem
+import com.vknxworks.proxctrl.ui.components.CtrlExposedDropdownMenu
 import com.vknxworks.proxctrl.ui.theme.isSystemDark
 import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import com.vknxworks.proxctrl.ui.components.CtrlTextField
@@ -29,7 +31,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Upload
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
@@ -223,9 +224,9 @@ private fun TargetPicker(targets: List<StorageInfo>?, selected: StorageInfo?, en
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(open) },
             modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
         )
-        ExposedDropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
+        CtrlExposedDropdownMenu(expanded = open && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { open = false }) {
             targets.orEmpty().forEach { s ->
-                DropdownMenuItem(
+                CtrlMenuItem(
                     text = {
                         Text(if (s.total > 0) stringResource(R.string.storage_choice, label(s), formatBytes(s.avail)) else label(s))
                     },
