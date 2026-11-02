@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in ProxCtrl doesn't work as it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Before you post, please remove server addresses, token IDs, token secrets, passwords, MAC addresses and other personal info from your text and screenshots. Issues are public.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Describe the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. See ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: input
+    id: app-version
+    attributes:
+      label: ProxCtrl version
+      placeholder: "Profile picture > bottom of the page, e.g. 1.4.3"
+    validations:
+      required: true
+  - type: input
+    id: android
+    attributes:
+      label: Android version and phone
+      placeholder: "Android 15, Pixel 8"
+    validations:
+      required: true
+  - type: input
+    id: server-version
+    attributes:
+      label: Proxmox VE version
+      placeholder: "e.g. 9.0.5 (Datacenter > your node > Summary, or run pveversion)"
+  - type: dropdown
+    id: source
+    attributes:
+      label: Installed from
+      options:
+        - GitHub Releases
+        - Obtainium
+        - CtrlF-Droid
+        - Built it myself
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots or logs
+      description: For console problems, the diagnostics readout (bug icon at the top of the console) helps a lot. It never includes what you typed.

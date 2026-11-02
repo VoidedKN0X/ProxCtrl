@@ -29,10 +29,6 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
 - **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in and consoles always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore
 
-## Screenshots
-
-Coming soon.
-
 ## Requirements
 
 - Android 13 or newer, on a 64-bit ARM phone (nearly every phone from the last several years)
@@ -41,7 +37,7 @@ Coming soon.
 
 ## Install
 
-1. Download the latest `.apk` file from the [Releases page](https://github.com/VoidedKN0X/ProxCtrl/releases/latest).
+1. Open the [latest release](https://github.com/VoidedKN0X/ProxCtrl/releases/latest) on your phone, scroll down to **Assets** and tap the file that ends in `.apk` (for example `ProxCtrl-v1.4.3.apk`) to download it. The "Source code" zip and tar.gz files are not the app.
 2. Open it on your phone. Android may ask you to allow installing apps from your browser or file manager.
 3. Updates install over the old version. Your settings and login are kept.
 
@@ -53,6 +49,29 @@ Coming soon.
 <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/VoidedKN0X/ProxCtrl"><img src=".github/assets/badge_obtainium.png" alt="Get it on Obtainium" height="80"></a> <a href="https://voidedkn0x.github.io/CtrlF-Droid/"><img src=".github/assets/badge_ctrlf-droid.png" alt="Get it from our F-Droid repo" height="80"></a>
 
 If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X/ProxCtrl` in Obtainium by hand.
+
+## Is it safe to install?
+
+- **Open source:** all of ProxCtrl's code is in this repo, under the GPL-3.0 licence. You can read every line.
+- **Built by GitHub, not on a personal computer:** every APK on the Releases page is built from this code by [the build workflow](.github/workflows/build.yml) on GitHub Actions.
+- **Always signed with the same key:** every release is signed with the same release key. Android refuses to install an update signed with a different key over the app you have, and the CtrlF-Droid repo only accepts APKs signed with this key. Its SHA-256 certificate fingerprint is:
+
+  ```
+  14:22:8B:A9:36:0F:A2:93:AC:20:CF:9D:32:76:50:E3:2C:51:86:34:F8:05:67:68:23:91:C5:EC:25:9E:6D:FE
+  ```
+
+  Advanced users can compare it with [AppVerifier](https://github.com/soupslurpr/AppVerifier).
+
+**Permissions** ProxCtrl asks for:
+
+| Permission | What it's for |
+| --- | --- |
+| Internet (`INTERNET`) | Talking to your own Proxmox servers, and sending Wake-on-LAN packets on your network |
+| Network state (`ACCESS_NETWORK_STATE`) | Running background checks and widget refreshes only when the phone has a connection |
+| Notifications (`POST_NOTIFICATIONS`) | Showing alerts from background checks and push from ntfy; Android asks you first |
+| Biometrics (`USE_BIOMETRIC`) | Unlocking the optional app lock with your fingerprint |
+
+ProxCtrl never reads your contacts, location, files or Wi-Fi name. A file only reaches it when you pick or share an ISO image yourself. See [Privacy](#privacy) for what it sends and where.
 
 ## Getting started
 
@@ -304,6 +323,10 @@ Signing in to a server, consoles, the node shell and the lock and PIN screens ar
 - **Notifications** on the lock screen hide guest and node details when you hide sensitive notification content in Android's settings.
 - **No backups:** Android doesn't back up ProxCtrl's data or move it to a new phone.
 
+## How ProxCtrl is made
+
+ProxCtrl is a one-person project by VoidedKN0X (VKNXWorks). Much of the code is written with the help of AI (Claude, by Anthropic). I decide what the app does, review the changes and use the app myself. Every change is listed in the [changelog](CHANGELOG.md), and you can read every line of code here.
+
 ## Build from source
 
 You need [Android Studio](https://developer.android.com/studio), or JDK 17 and the Android SDK.
@@ -325,6 +348,10 @@ Or open the folder in Android Studio and press **Run** with your phone connected
 ## Support the project
 
 ProxCtrl is free and open source. If it's useful to you, you can support development on [GitHub Sponsors](https://github.com/sponsors/VoidedKN0X). Starring the repo and [reporting bugs](https://github.com/VoidedKN0X/ProxCtrl/issues) helps too.
+
+Found a bug or have an idea? Use the [issue forms](https://github.com/VoidedKN0X/ProxCtrl/issues/new/choose).
+
+Found a security problem? Please don't open a public issue; see [SECURITY.md](SECURITY.md).
 
 In the app, the **About** section at the bottom of the **You** page (tap your profile picture) has **Support ProxCtrl** and **Report a bug** rows that open these pages.
 
@@ -348,12 +375,17 @@ Native Android apps for self-hosted services and everyday tools, all with the sa
 | [PaperCtrl](https://github.com/VoidedKN0X/PaperCtrl) | Scan and browse documents on Paperless-ngx |
 | [PrintCtrl](https://github.com/VoidedKN0X/PrintCtrl) | Bambu Lab printers through Bambuddy, and Spoolman spools |
 | **ProxCtrl** (this app) | Manage your Proxmox VE server |
+| [RideCtrl](https://github.com/VoidedKN0X/RideCtrl) | Offline maintenance, fuel and mod log for your vehicles |
 | [SeerrCtrl](https://github.com/VoidedKN0X/SeerrCtrl) | Request movies and shows on Seerr / Jellyseerr |
+| [SynapseCtrl](https://github.com/VoidedKN0X/SynapseCtrl) | Administer your Matrix Synapse server |
 | [TrueCtrl](https://github.com/VoidedKN0X/TrueCtrl) | Monitor and manage your TrueNAS server |
+| [WrtCtrl](https://github.com/VoidedKN0X/WrtCtrl) | Manage your OpenWrt router |
 
 ## License
 
 ProxCtrl is licensed under the [GNU General Public License v3.0](LICENSE). © VKNXWorks
+
+ProxCtrl is an independent app and isn't made by or affiliated with Proxmox Server Solutions GmbH.
 
 The [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) fonts are bundled in the app and licensed under the SIL Open Font License 1.1; see `FONT-LICENSE-SpaceGrotesk.txt` and `FONT-LICENSE-JetBrainsMono.txt` (also in the app at `assets/licenses/`).
 

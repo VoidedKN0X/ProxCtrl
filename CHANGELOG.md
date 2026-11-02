@@ -4,6 +4,14 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Project updates (2026-11-02)
+
+No new app version: these changes are to the repo only.
+
+- **New SECURITY.md**: how to report a security problem privately (through GitHub's **Report a vulnerability**), which versions get fixes, what counts as a security problem in ProxCtrl, and the release key's SHA-256 fingerprint.
+- **Issue forms**: bug reports and feature requests now use short forms (ProxCtrl version, Android version and phone, Proxmox VE version, where you installed it from), with a reminder to remove server addresses, tokens and passwords. Blank issues are off, and security problems point to the private report instead.
+- **README**: the Install steps now say exactly which file to download from a release (the `.apk` under **Assets**, not the "Source code" files). New **Is it safe to install?** section (open source, built by GitHub Actions, always signed with the same key and its fingerprint, and what each permission is for) and **How ProxCtrl is made** section. The empty Screenshots section is gone, the Support section links the issue forms and SECURITY.md, the Ctrl series table lists every app, and the License section says ProxCtrl isn't made by or affiliated with Proxmox Server Solutions GmbH.
+
 ## v1.4.3 (2026-11-02)
 
 ### Fixed
