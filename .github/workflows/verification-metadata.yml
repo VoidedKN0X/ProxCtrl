@@ -1,0 +1,62 @@
+name: Dependency verification metadata
+
+# Run by hand (Actions > Dependency verification metadata > Run workflow) whenever a library, plugin
+# or the Gradle version changes. It writes gradle/verification-metadata.xml from scratch (the sha256
+# of every library and plugin the build downloads) and prints it in the log, gzipped and base64-encoded
+# between the BEGIN and END markers. Decode it (base64 -d | gunzip), check the diff only lists Maven
+# Central, Google Maven and Gradle Plugin Portal artifacts, and commit it in the same push as the change.
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: gradle/actions/wrapper-validation@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        with:
+          cache-disabled: true
+
+      - name: Write verification metadata
+        # No signing key here: the release build is signed with the debug key, which needs the same
+        # libraries and plugins. CI and GITHUB_ACTIONS are unset for Gradle only so it allows that.
+        run: |
+          chmod +x gradlew
+          cat > gradle/verification-metadata.xml <<'XML'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+             <configuration>
+                <verify-metadata>true</verify-metadata>
+                <verify-signatures>false</verify-signatures>
+                <trusted-artifacts>
+                   <trust file=".*-javadoc[.]jar" regex="true"/>
+                   <trust file=".*-sources[.]jar" regex="true"/>
+                </trusted-artifacts>
+             </configuration>
+             <components/>
+          </verification-metadata>
+          XML
+          sed -i 's/^          //' gradle/verification-metadata.xml
+          env -u CI -u GITHUB_ACTIONS ./gradlew --no-daemon --write-verification-metadata sha256 \
+            assembleRelease assembleDebug :app:dependencies --configuration releaseRuntimeClasspath
+
+      - name: Print verification metadata
+        run: |
+          sha256sum gradle/verification-metadata.xml
+          echo "----- BEGIN verification-metadata.xml.gz.b64 -----"
+          gzip -9nc gradle/verification-metadata.xml | base64 -w 76
+          echo "----- END verification-metadata.xml.gz.b64 -----"

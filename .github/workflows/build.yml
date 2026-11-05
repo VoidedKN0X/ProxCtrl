@@ -14,8 +14,7 @@ on:
       - "gradlew.bat"
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: build-${{ github.ref }}
@@ -26,6 +25,8 @@ jobs:
   # app/build.gradle.kts are bumped. Other pushes just build to check the code.
   version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.v.outputs.version }}
       tag: ${{ steps.v.outputs.tag }}
@@ -140,7 +141,9 @@ jobs:
     if: needs.version.outputs.release == 'true' && needs.build.outputs.release_signed == 'true' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write       # create the release and its tag
+      id-token: write       # sign the build provenance attestation
+      attestations: write   # store it with the repo
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -159,11 +162,30 @@ jobs:
           name: ProxCtrl-apk
           path: out
 
-      - name: Publish release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+      - name: Add checksum to the release notes
+        run: |
+          {
+            for f in out/*.apk; do
+              echo
+              echo "SHA-256: \`$(sha256sum "$f" | cut -d' ' -f1)\`  $(basename "$f")"
+            done
+          } >> "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md"
+
+      # Proves the APK was built by this workflow from the tagged commit:
+      #   gh attestation verify <apk> -R VoidedKN0X/ProxCtrl
+      - name: Attest build provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
-          tag_name: ${{ needs.version.outputs.tag }}
-          target_commitish: ${{ github.sha }}
-          name: ProxCtrl ${{ needs.version.outputs.version }}
-          files: out/*.apk
-          body_path: ${{ runner.temp }}/notes.md
+          subject-path: out/*.apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" out/*.apk \
+            --target "$GITHUB_SHA" \
+            --title "ProxCtrl ${TAG#v}" \
+            --notes-file "$RUNNER_TEMP/notes.md"
