@@ -314,6 +314,7 @@ fun SetupScreen(editId: String? = null, onDone: () -> Unit, onCancel: (() -> Uni
 
     // Token secrets, passwords and two-factor codes are typed here: never in screenshots or Recents.
     SecureScreen()
+    ShieldScreen()
 
     // An http:// address accepted here but not saved is forgotten on leaving; a saved one stays allowed.
     DisposableEffect(Unit) {

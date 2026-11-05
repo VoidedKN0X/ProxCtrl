@@ -4,6 +4,22 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.6 (2026-11-05)
+
+More protection for the PIN screen, "Confirm changes" and the confirmations of actions that can't be undone. ProxCtrl works exactly as before.
+
+### Security
+
+- **No floating windows over the PIN screen and confirmations.** While the lock screen, choosing or changing the app PIN, **Confirm changes**, signing in to a server, creating a container with its root password, or a confirmation such as shut down, stop, reboot, delete, restore, roll back or remove a server is showing, other apps' floating windows such as chat heads and "draw over other apps" overlays are hidden, so no app can cover or imitate these screens to trick a tap or watch your PIN. They come back as soon as the screen closes, and other screens, including consoles, aren't affected (Android 12+, no prompt).
+- **The PIN screens are hidden from apps that read the screen.** On Android 14+, apps that use Android's accessibility features to read other apps' screens can't see the lock, PIN and **Confirm changes** screens. Real accessibility tools such as screen readers still work there, and password managers can still fill the sign-in and new-container password fields.
+- **Shared ISO files must really belong to the app sharing them.** On Android 15+, Android itself now refuses a share to ProxCtrl when the sending app passes along a file it isn't allowed to open itself, so another app can't use ProxCtrl to upload files it has no access to. Sharing an ISO from your file manager or browser works as before.
+- **Stricter requests from other apps.** On Android 16+, other apps can only open ProxCtrl with the requests it declares (opening the app, its own guest links, sharing an ISO, the widgets, the quick settings tile and push from your UnifiedPush app), not with made-up requests aimed directly at its parts.
+
+### Project
+
+- **Every library checked:** the build now refuses any library or build plugin whose SHA-256 doesn't match the one recorded in the repo (`gradle/verification-metadata.xml`).
+- **README:** a "Check a download" note (the APK's SHA-256 in the release notes and `gh attestation verify`), the new permission in the permissions table, and how the dependency checksums are updated.
+
 ## Project updates (2026-11-05)
 
 ### Project

@@ -43,6 +43,8 @@ fun TypedConfirmDialog(
     icon: ImageVector = Icons.Outlined.Warning,
     extra: (@Composable () -> Unit)? = null,
 ) {
+    // A confirmation of something that can't be undone: no other app's floating window over it.
+    ShieldScreen(sensitiveData = false)
     var typed by remember { mutableStateOf("") }
     val matches = typed.trim() == expected
     CtrlDialog(
@@ -92,6 +94,7 @@ fun ConfirmDialog(
     danger: Boolean = true,
     icon: ImageVector? = null,
 ) {
+    ShieldScreen(sensitiveData = false)
     CtrlDialog(
         onDismissRequest = onDismiss,
         icon = if (icon != null) {

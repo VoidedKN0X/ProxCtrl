@@ -106,6 +106,8 @@ fun BulkPowerDialog(
     val skipped = selected.size - targets.size
     var stopUnderstood by remember { mutableStateOf(false) }
     val isStop = action == PowerAction.STOP
+    // Can't be undone: no other app's floating window over the confirmation.
+    com.vknxworks.proxctrl.ui.components.ShieldScreen(sensitiveData = false)
     CtrlDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(if (isStop) Icons.Outlined.Warning else action.icon(), null, tint = if (isStop) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary) },

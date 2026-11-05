@@ -70,6 +70,7 @@ import com.vknxworks.proxctrl.data.guests.ResourcesApi
 import com.vknxworks.proxctrl.data.guests.CreateApi
 import com.vknxworks.proxctrl.ui.components.TaskCard
 import com.vknxworks.proxctrl.ui.components.TypedConfirmDialog
+import com.vknxworks.proxctrl.ui.components.ShieldScreen
 import com.vknxworks.proxctrl.ui.components.rememberTaskTracker
 import com.vknxworks.proxctrl.ui.tasks.GuestTasksRoute
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -781,6 +782,8 @@ private fun NotesDialog(initial: String, onDismiss: () -> Unit, onSave: (String)
 
 @Composable
 private fun PowerConfirmDialog(action: PowerAction, name: String, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    // Shut down, stop, reboot and the rest: no other app's floating window over the confirmation.
+    ShieldScreen(sensitiveData = false)
     val (title, body) = when (action) {
         PowerAction.START -> R.string.confirm_start_title to null
         PowerAction.SHUTDOWN -> R.string.confirm_shutdown_title to R.string.confirm_shutdown_body

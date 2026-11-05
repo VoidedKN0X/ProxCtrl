@@ -78,6 +78,7 @@ import com.vknxworks.proxctrl.data.lock.LockVault
 import com.vknxworks.proxctrl.data.lock.PinRequest
 import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.ui.components.ConfirmDialog
+import com.vknxworks.proxctrl.ui.components.ShieldScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -174,6 +175,7 @@ private suspend fun defaultBackgroundChecks(c: AppContainer): Boolean {
 
 @Composable
 private fun LegacyLockedScreen(activity: FragmentActivity) {
+    ShieldScreen(sensitiveData = true)
     var error by remember { mutableStateOf<String?>(null) }
     fun unlock() = AppLock.legacyAuthenticate(activity) { error = it }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -332,6 +334,7 @@ private fun PinLockScreen(activity: FragmentActivity) {
 /** "Confirm changes": the fingerprint or the PIN before something changes on a server. */
 @Composable
 private fun ConfirmChangeScreen(activity: FragmentActivity, onResult: (Boolean) -> Unit) {
+    ShieldScreen(sensitiveData = true)
     val c = LocalContext.current.container
     val vault = c.vault
     val scope = rememberCoroutineScope()
@@ -562,6 +565,7 @@ private fun PinPadScreen(
     onFingerprint: (() -> Unit)? = null,
     bottom: @Composable () -> Unit,
 ) {
+    ShieldScreen(sensitiveData = true)
     val haptics = LocalHapticFeedback.current
     Surface(Modifier.fillMaxSize(), color = CtrlColors.Background) {
         Column(

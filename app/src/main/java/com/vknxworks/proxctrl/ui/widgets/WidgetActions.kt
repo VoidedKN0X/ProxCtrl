@@ -100,6 +100,8 @@ fun WidgetActionConfirm() {
     val list by c.guests.state.collectAsStateWithLifecycle()
     var running by remember { mutableStateOf(false) }
     val r = request ?: return
+    // Start or shut down a guest from a widget: no other app's floating window over the confirmation.
+    com.vknxworks.proxctrl.ui.components.ShieldScreen(sensitiveData = false)
     val server = active?.server
     // Opened from the home screen right after start-up, the guest list may still be loading.
     LaunchedEffect(r) {

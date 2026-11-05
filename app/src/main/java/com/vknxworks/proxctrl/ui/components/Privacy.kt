@@ -14,6 +14,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import android.content.ContextWrapper
+import android.os.Build
+import android.view.View
+import android.view.Window
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
+import java.util.WeakHashMap
 
 /**
  * True while the app is covered by the lock screen, or its activity is closing. Dialogs, bottom sheets
@@ -68,4 +75,56 @@ fun copySensitive(context: Context, label: String, text: String) {
         description.extras = PersistableBundle().apply { putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true) }
     }
     context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(clip)
+}
+
+/**
+ * While a PIN, lock, sign-in or destructive confirmation screen is showing:
+ * - other apps' floating windows (chat heads, "draw over other apps" overlays) are hidden, so nothing can
+ *   cover or imitate the screen to trick a tap or capture the PIN (Android 12+);
+ * - with [sensitiveData], the screen's contents are only shared with real accessibility tools such as
+ *   screen readers, not with other apps that use the accessibility API to read the screen (Android 14+).
+ * Counted per window, so screens that overlap during a transition can't turn it off early; everything
+ * goes back to normal when the last one closes. Other screens of the app aren't affected.
+ */
+@Composable
+fun ShieldScreen(sensitiveData: Boolean = false) {
+    val view = LocalView.current
+    DisposableEffect(view, sensitiveData) {
+        val window = (view.parent as? DialogWindowProvider)?.window ?: view.context.shieldActivity()?.window
+        val root = view.rootView
+        if (window != null) Shields.hideOverlays(window, true)
+        if (sensitiveData) Shields.sensitive(root, true)
+        onDispose {
+            if (window != null) Shields.hideOverlays(window, false)
+            if (sensitiveData) Shields.sensitive(root, false)
+        }
+    }
+}
+
+private object Shields {
+    private val overlayCounts = WeakHashMap<Window, Int>()
+    private val sensitiveCounts = WeakHashMap<View, Int>()
+
+    fun hideOverlays(window: Window, on: Boolean) {
+        val n = (overlayCounts[window] ?: 0) + if (on) 1 else -1
+        overlayCounts[window] = n.coerceAtLeast(0)
+        if ((on && n == 1) || (!on && n <= 0)) runCatching { window.setHideOverlayWindows(on) }
+    }
+
+    fun sensitive(view: View, on: Boolean) {
+        if (Build.VERSION.SDK_INT < 34) return
+        val n = (sensitiveCounts[view] ?: 0) + if (on) 1 else -1
+        sensitiveCounts[view] = n.coerceAtLeast(0)
+        if ((on && n == 1) || (!on && n <= 0)) runCatching {
+            view.setAccessibilityDataSensitive(
+                if (on) View.ACCESSIBILITY_DATA_SENSITIVE_YES else View.ACCESSIBILITY_DATA_SENSITIVE_AUTO,
+            )
+        }
+    }
+}
+
+private tailrec fun Context.shieldActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.shieldActivity()
+    else -> null
 }

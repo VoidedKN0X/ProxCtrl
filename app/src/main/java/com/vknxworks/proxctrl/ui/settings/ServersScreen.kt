@@ -111,6 +111,8 @@ fun ServersScreen() {
     }
 
     removing?.let { server ->
+        // Can't be undone: no other app's floating window over the confirmation.
+        com.vknxworks.proxctrl.ui.components.ShieldScreen(sensitiveData = false)
         CtrlDialog(
             onDismissRequest = { removing = null },
             title = { Text(stringResource(R.string.remove_server_title, server.name)) },

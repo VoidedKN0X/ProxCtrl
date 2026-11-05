@@ -61,6 +61,7 @@ If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X
   ```
 
   Advanced users can compare it with [AppVerifier](https://github.com/soupslurpr/AppVerifier).
+- **Check a download:** the release notes list the APK's SHA-256 checksum, so you can compare it with the file you downloaded. With the [GitHub CLI](https://cli.github.com/), `gh attestation verify <apk> -R VoidedKN0X/ProxCtrl` proves the APK was built by this repo's build workflow from the tagged commit. The signing-certificate fingerprint above stays the check that matters for updates.
 
 **Permissions** ProxCtrl asks for:
 
@@ -70,6 +71,7 @@ If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X
 | Network state (`ACCESS_NETWORK_STATE`) | Running background checks and widget refreshes only when the phone has a connection |
 | Notifications (`POST_NOTIFICATIONS`) | Showing alerts from background checks and push from ntfy; Android asks you first |
 | Biometrics (`USE_BIOMETRIC`) | Unlocking the optional app lock with your fingerprint |
+| Hide other apps' floating windows (`HIDE_OVERLAY_WINDOWS`) | Hiding other apps' floating windows (chat heads, overlays) over the PIN screen, **Confirm changes**, sign-in and confirmations such as shut down or delete, so nothing can cover them. No prompt, and nothing changes on other screens |
 | Prevent phone from sleeping (`WAKE_LOCK`) | Keeping the phone awake for the few seconds a background check or widget refresh runs |
 | Run at startup (`RECEIVE_BOOT_COMPLETED`) | Setting background checks and widget refreshes up again after the phone restarts (nothing runs if they're off) |
 
@@ -308,6 +310,8 @@ Two more switches in the same section work with or without the app lock, and are
 
 Signing in to a server, consoles, the node shell and the lock and PIN screens are always kept out of screenshots and recordings, whatever these switches say. With the app lock on, the recent-apps view always shows a blank card.
 
+While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation such as shut down or delete is showing, other apps' floating windows (chat heads, overlays) are hidden so nothing can cover it, and on Android 14+ apps that read the screen through accessibility can't see the PIN, lock or **Confirm changes** screens; real accessibility tools such as screen readers still work, and password managers can still fill the sign-in fields.
+
 ## Consoles and the node shell
 
 - **Containers** open a terminal (xterm.js), **VMs** open their screen (noVNC), or a terminal when their display is set to a serial port, and the **node shell** opens from the Shell button on the node's card on the Overview.
@@ -352,6 +356,8 @@ You need [Android Studio](https://developer.android.com/studio), or JDK 17 and t
 3. The APK is in `app/build/outputs/apk/debug/`. Copy it to your phone and install it.
 
 Or open the folder in Android Studio and press **Run** with your phone connected.
+
+**Dependency verification:** every library and Gradle plugin the build downloads is checked against its SHA-256 in `gradle/verification-metadata.xml`, and the build stops if one doesn't match. When you add or update a dependency or plugin, run the **Dependency verification metadata** workflow from the Actions tab, check the diff of the file it prints, and commit the new `gradle/verification-metadata.xml` in the same push.
 
 ## Support the project
 
