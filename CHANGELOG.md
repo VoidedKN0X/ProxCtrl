@@ -4,6 +4,22 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.4 (2026-11-05)
+
+A security and privacy check of the whole app and its repo. ProxCtrl works exactly as before.
+
+### Security
+
+- **Two unused permissions removed.** ProxCtrl no longer has **Use fingerprint hardware** (`USE_FINGERPRINT`), an old permission that only Android 8 and older use (fingerprint unlock goes through **Use biometrics**, which stays), or **Run foreground service** (`FOREGROUND_SERVICE`), which the background-work library added but ProxCtrl's background checks never use. Fingerprint unlock, background checks and widgets work exactly as before.
+- **Release builds no longer write debug or info messages to the phone's log**, from ProxCtrl or from the libraries it uses. ProxCtrl itself never logged your token, server address or console output, and now nothing from its libraries ends up there either.
+- **One less entry point for other tools.** A receiver that the baseline-profile library adds for adb and app-store tooling is removed. Only the system could use it, but ProxCtrl doesn't need it.
+
+### Project
+
+- **Build checks:** every build now verifies that the Gradle wrapper is an official Gradle release, and checks that no Google Play services, Firebase, ML Kit, Play Core or Tink library has made it into the app.
+- **Repo:** Google service files are ignored by git, next to the signing keys that already were, so they can't be committed by accident.
+- **README:** the permissions table now lists every permission the app has, including keeping the phone awake during a background check and setting the checks up again after a restart, the Privacy section says ProxCtrl is Google-free and has no update check, and the Ctrl series list has every app in the series, including CallCtrl, ClockCtrl, ContactCtrl, DateCtrl, LijnCtrl, MailCtrl, RecorderCtrl and TextCtrl.
+
 ## Project updates (2026-11-03)
 
 ### Project

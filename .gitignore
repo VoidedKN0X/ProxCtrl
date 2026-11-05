@@ -21,3 +21,5 @@ local.properties
 keystore.properties
 signing.properties
 !debug.keystore
+# Signing keys and secrets never go in the repo.
+google-services.json
