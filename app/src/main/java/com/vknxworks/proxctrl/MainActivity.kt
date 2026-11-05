@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -95,7 +97,8 @@ class MainActivity : FragmentActivity() {
                                 Modifier.fillMaxSize()
                                     .clearAndSetSemantics { }
                                     .focusProperties { canFocus = false }
-                                    .onPreviewKeyEvent { true }
+                                    // Back still reaches the lock screen (it sends ProxCtrl to the background).
+                                    .onPreviewKeyEvent { it.key != Key.Back }
                             } else {
                                 Modifier.fillMaxSize()
                             },
