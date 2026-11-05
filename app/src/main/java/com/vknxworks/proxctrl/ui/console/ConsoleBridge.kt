@@ -22,11 +22,14 @@ class ConsoleBridge(
     private val onFailed: (String) -> Unit,
     private val onModsReleased: () -> Unit,
     private val onLog: (String) -> Unit,
+    /** True while the lock screen or a PIN screen covers the app. */
+    private val inputBlocked: () -> Boolean = { false },
 ) {
     /** Calls from the page, for the diagnostics panel. */
     val pageReadyCalls = AtomicLong()
     val sendCalls = AtomicLong()
     val sendsWithoutSession = AtomicLong()
+    val sendsBlocked = AtomicLong()
 
     @JavascriptInterface
     fun pageReady() {
@@ -37,6 +40,9 @@ class ConsoleBridge(
     @JavascriptInterface
     fun sendText(text: String) {
         sendCalls.incrementAndGet()
+        // Typing (a terminal's "0:" data frame) never reaches the server while the app is covered by the
+        // lock. Resizes and keep-alives still go through, so the session stays open behind the lock.
+        if (text.startsWith("0:") && inputBlocked()) { sendsBlocked.incrementAndGet(); return }
         val s = session() ?: run { sendsWithoutSession.incrementAndGet(); return }
         s.sendText(text)
     }

@@ -129,7 +129,13 @@ object UnifiedPush {
 
     private fun send(context: Context, intent: Intent) {
         // Tells ntfy which app is asking: a pending intent before Android 14, the sender's identity after.
-        val pi = PendingIntent.getBroadcast(context, 0, Intent("org.unifiedpush.dummy_app"), PendingIntent.FLAG_IMMUTABLE)
+        // Never fired; only its creator is read. Explicit (our own package) so it could never reach another app.
+        val pi = PendingIntent.getBroadcast(
+            context,
+            0,
+            Intent("org.unifiedpush.dummy_app").setPackage(context.packageName),
+            PendingIntent.FLAG_IMMUTABLE,
+        )
         intent.putExtra("pi", pi)
         runCatching {
             if (Build.VERSION.SDK_INT >= 34) {

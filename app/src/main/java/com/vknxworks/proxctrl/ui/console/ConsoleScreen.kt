@@ -61,6 +61,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -83,6 +84,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -111,6 +113,7 @@ import com.vknxworks.proxctrl.ui.nav.LocalNavigator
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 private const val ASSET_HOST = "https://appassets.androidplatform.net"
@@ -165,6 +168,12 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     var showDiag by remember { mutableStateOf(false) }
     var fieldFocused by remember { mutableStateOf(false) }
     val diag = remember { ConsoleDiag() }
+    // The lock screen or a PIN screen covers the app: no typing reaches the console until it's gone.
+    // Also read from WebView's bridge thread.
+    val covered = com.vknxworks.proxctrl.ui.components.LocalAppCovered.current
+    val coveredNow = remember { AtomicBoolean(covered) }
+    SideEffect { coveredNow.set(covered) }
+    val focusManager = LocalFocusManager.current
     var consoleBounds by remember { mutableStateOf<List<Int>?>(null) }
 
     fun js(code: String) {
@@ -261,6 +270,9 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             },
             onModsReleased = { ctrl = false; alt = false; superKey = false },
             onLog = diag::log,
+            inputBlocked = {
+                coveredNow.get() || com.vknxworks.proxctrl.data.lock.AppLock.state.value != com.vknxworks.proxctrl.data.lock.AppLock.State.UNLOCKED
+            },
         )
     }
 
@@ -294,6 +306,11 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
      * the keyboard adds to it is sent as typing, and whatever it removes is sent as Backspace.
      */
     fun onInput(value: TextFieldValue) {
+        if (covered || coveredNow.get()) {
+            // Behind the lock: nothing typed goes to the server.
+            input = TextFieldValue(KEYBOARD_SENTINEL, TextRange(KEYBOARD_SENTINEL.length))
+            return
+        }
         val old = KEYBOARD_SENTINEL
         val new = value.text
         if (value.composition != null && new.startsWith(old)) {
@@ -313,6 +330,8 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
 
     /** Keys from a hardware keyboard, or ones the phone keyboard sends as key presses. */
     fun onHardwareKey(event: KeyEvent): Boolean {
+        // Behind the lock: swallow every key (also Tab and arrows, which would move to hidden buttons).
+        if (covered || coveredNow.get()) return true
         if (event.type != KeyEventType.KeyDown) return false
         diag.keyEvents++
         val name = when (event.key) {
@@ -458,9 +477,22 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     // underneath the page) stay visible until then.
     // The page is a view on top of the whole window, so it's also hidden while the lock screen or a PIN
     // screen covers the app: a console must never show (or take typing) over the lock.
-    val covered = com.vknxworks.proxctrl.ui.components.LocalAppCovered.current
     LaunchedEffect(state, webView, covered) {
         webView?.visibility = if (state == ConsoleState.CONNECTED && !covered) View.VISIBLE else View.INVISIBLE
+    }
+
+    // Covered: drop the keyboard field's focus and close the keyboard (the session stays open). Uncovered
+    // again: a terminal that had the keyboard up gets it back, so you can carry on typing.
+    var hadKeyboard by remember { mutableStateOf(false) }
+    LaunchedEffect(covered) {
+        if (covered) {
+            hadKeyboard = hadKeyboard || fieldFocused
+            runCatching { focusManager.clearFocus(force = true) }
+            keyboard?.hide()
+        } else if (hadKeyboard) {
+            hadKeyboard = false
+            if (state == ConsoleState.CONNECTED && !target.isScreen) showKeyboard()
+        }
     }
 
     Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).imePadding()) {

@@ -203,6 +203,8 @@ object AppLock {
     fun lock() {
         val c = container ?: return
         _state.value = State.LOCKED
+        // A "Confirm changes" (or unlock) from before the lock no longer counts: the next change asks again.
+        lastConfirmAt = 0L
         lockCount++
         request = null
         confirm?.complete(false)

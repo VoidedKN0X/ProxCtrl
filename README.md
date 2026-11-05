@@ -295,9 +295,10 @@ Turn it on under **Settings › Privacy and security › App lock** (tap your pr
 - **Wrong PINs:** after 5 tries you wait 30 seconds, doubling up to 15 minutes. Restarting the app or the phone, or changing the clock, doesn't skip the wait.
 - **Lock again:** as soon as you leave the app (the default), after 1, 5 or 15 minutes or 1 hour away, or only when the app restarts. Picking a file, opening a link in your browser or Android's settings don't count as leaving, unless you stay away for more than 5 minutes.
 - **Change app PIN** asks for your current PIN first, and turning the app lock off asks for the PIN too.
-- **Confirm changes** (ProxCtrl only) asks for your fingerprint or PIN before anything that changes a server: power actions, snapshots, backups, consoles and edits. One confirmation covers the next minute.
+- **Confirm changes** (ProxCtrl only) asks for your fingerprint or PIN before anything that changes a server: power actions, snapshots, backups, consoles and edits. One confirmation covers the next minute, until ProxCtrl locks again.
 - **Background checks while locked:** on, notifications, widgets and the Quick Settings tile keep checking your servers while ProxCtrl is locked, so your logins are only encrypted with the Android Keystore (as without the app lock). Off (most secure), your logins are also encrypted with the PIN, and background checks wait until you unlock; while ProxCtrl is locked, the widgets and the tile only say "ProxCtrl is locked" instead of showing your guests or the node's last known state. It starts on when you already use notifications or widgets, so turning the lock on never silently stops them.
 - **Forgot your PIN?** It can't be recovered. The lock screen offers to remove every server from this phone and turn the app lock off; nothing changes on your Proxmox servers.
+- **Open consoles stay connected behind the lock** but take no typing from the phone keyboard or a hardware or Bluetooth keyboard until you unlock; then you carry on where you were.
 - **Sharing an ISO to ProxCtrl** asks for the PIN first, and the lock screen and every PIN screen are always kept out of screenshots.
 
 Two more switches in the same section work with or without the app lock, and are both off until you turn them on:

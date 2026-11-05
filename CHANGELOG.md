@@ -4,6 +4,16 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.5 (2026-11-05)
+
+Security fixes for the app lock. ProxCtrl works exactly as before.
+
+### Security
+
+- **An open console no longer takes typing behind the lock screen.** When ProxCtrl locked while a console or node shell was open, the console was hidden but still listening: a hardware or Bluetooth keyboard, or the phone keyboard if it was still up, could type into the live shell behind the PIN screen, and Tab or the arrow keys could move to buttons hidden behind it. Now locking drops the keyboard focus and closes the keyboard, every key press is ignored while the lock (or a PIN screen) covers the app, and nothing typed is sent to the server until you unlock. The console stays connected behind the lock, and after unlocking you carry on where you were (a terminal that had the keyboard up gets it back).
+- **"Confirm changes" asks again after the app locks.** One confirmation covers the next minute, but that minute used to carry over when ProxCtrl locked and was unlocked again. Locking now ends it, so the next change after a lock always asks for your fingerprint or PIN (unlocking still counts as a confirmation, as before).
+- **The push-notification registration with ntfy is tied to ProxCtrl.** The identity token ProxCtrl hands ntfy when it registers for push now names ProxCtrl as its only possible receiver. ntfy never used it to send anything, and push notifications work as before.
+
 ## v1.4.4 (2026-11-05)
 
 A security and privacy check of the whole app and its repo. ProxCtrl works exactly as before.

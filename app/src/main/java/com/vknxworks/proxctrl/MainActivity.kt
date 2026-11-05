@@ -8,6 +8,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
@@ -74,7 +78,28 @@ class MainActivity : FragmentActivity() {
                     // Dialogs, sheets and menus of the app wait while the lock or a PIN screen covers it,
                     // instead of staying on top of it (where they could still be tapped).
                     CompositionLocalProvider(LocalAppCovered provides (covered || closing)) {
-                        Box(if (hidden) Modifier.fillMaxSize().clearAndSetSemantics { } else Modifier.fillMaxSize()) { AppRoot() }
+                        // Nor can it be typed into: a hardware or Bluetooth keyboard (or the phone keyboard
+                        // left open) must never reach a field or an open console behind the lock. Key
+                        // presses are swallowed, nothing in it can take focus, and locking drops the focus
+                        // and closes the keyboard. Unlocking gives everything back as it was.
+                        val focusManager = LocalFocusManager.current
+                        val keyboard = LocalSoftwareKeyboardController.current
+                        LaunchedEffect(hidden) {
+                            if (hidden) {
+                                runCatching { focusManager.clearFocus(force = true) }
+                                keyboard?.hide()
+                            }
+                        }
+                        Box(
+                            if (hidden) {
+                                Modifier.fillMaxSize()
+                                    .clearAndSetSemantics { }
+                                    .focusProperties { canFocus = false }
+                                    .onPreviewKeyEvent { true }
+                            } else {
+                                Modifier.fillMaxSize()
+                            },
+                        ) { AppRoot() }
                         // A widget's Start / Shut down button, waiting for confirmation.
                         if (lock == AppLock.State.UNLOCKED) WidgetActionConfirm()
                     }
