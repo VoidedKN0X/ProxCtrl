@@ -19,11 +19,11 @@ android {
 
     defaultConfig {
         applicationId = "com.vknxworks.proxctrl"
-        minSdk = 33
+        minSdk = 35
         targetSdk = 36
         // Bump both to publish a new release (see CHANGELOG.md).
-        versionCode = 38
-        versionName = "1.4.6"
+        versionCode = 39
+        versionName = "1.4.7"
         // 64-bit ARM phones only (arm64-v8a), like every Ctrl app.
         ndk { abiFilters += listOf("arm64-v8a") }
     }

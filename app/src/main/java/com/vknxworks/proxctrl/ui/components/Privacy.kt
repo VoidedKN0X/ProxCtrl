@@ -15,7 +15,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import android.content.ContextWrapper
-import android.os.Build
 import android.view.View
 import android.view.Window
 import androidx.compose.ui.platform.LocalView
@@ -112,7 +111,6 @@ private object Shields {
     }
 
     fun sensitive(view: View, on: Boolean) {
-        if (Build.VERSION.SDK_INT < 34) return
         val n = (sensitiveCounts[view] ?: 0) + if (on) 1 else -1
         sensitiveCounts[view] = n.coerceAtLeast(0)
         if ((on && n == 1) || (!on && n <= 0)) runCatching {

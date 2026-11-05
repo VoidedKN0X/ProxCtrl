@@ -9,7 +9,7 @@
     <!-- Hides other apps' floating windows while the PIN, lock, "Confirm changes", sign-in or a confirmation such as
          shut down or delete is showing (Android 12+). No prompt; other screens and other apps aren't affected. -->
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
-    <!-- androidx.biometric also adds USE_FINGERPRINT, which only Android 8 and older use (ProxCtrl needs Android 13). -->
+    <!-- androidx.biometric also adds USE_FINGERPRINT, which only Android 8 and older use (ProxCtrl needs Android 15). -->
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove" />
     <!-- Added by WorkManager for work that runs as a foreground service. ProxCtrl's background checks never do. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />

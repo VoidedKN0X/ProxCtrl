@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Binder
-import android.os.Build
 import android.os.IBinder
 import android.util.Base64
 import com.vknxworks.proxctrl.R
@@ -235,11 +234,9 @@ class PushReceiver : BroadcastReceiver() {
         // Nothing is accepted before ntfy gave a registration, and the token is compared in constant time.
         val expected = UnifiedPush.token(context) ?: return
         if (!java.security.MessageDigest.isEqual(token.toByteArray(), expected.toByteArray())) return
-        if (Build.VERSION.SDK_INT >= 34) {
-            // Only rejects senders that identify as another app; anonymous ones get through to the token check.
-            val sender = sentFromPackage
-            if (sender != null && sender != UnifiedPush.NTFY) return
-        }
+        // Only rejects senders that identify as another app; anonymous ones get through to the token check.
+        val sender = sentFromPackage
+        if (sender != null && sender != UnifiedPush.NTFY) return
         val app = context.applicationContext
         when (intent.action) {
             UnifiedPush.ACTION_NEW_ENDPOINT -> {

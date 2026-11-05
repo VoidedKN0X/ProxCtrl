@@ -1,9 +1,7 @@
 package com.vknxworks.proxctrl.ui.widgets
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import com.vknxworks.proxctrl.R
@@ -55,18 +53,12 @@ class HealthTileService : TileService() {
         if (System.currentTimeMillis() - s.checkedAt > 15 * 60_000) WidgetRefresher.refreshSoon(applicationContext)
     }
 
-    @SuppressLint("StartActivityAndCollapseDeprecated")
     override fun onClick() {
         super.onClick()
         val intent = openOverviewIntent(this)
         val open = {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                val pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-                startActivityAndCollapse(pi)
-            } else {
-                @Suppress("DEPRECATION")
-                startActivityAndCollapse(intent)
-            }
+            val pi = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            startActivityAndCollapse(pi)
         }
         // On a locked phone, unlock first; the app may have its own lock on top.
         if (isLocked) unlockAndRun { open() } else open()

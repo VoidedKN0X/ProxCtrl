@@ -2,7 +2,7 @@
 
 **Manage your Proxmox VE server from your phone.**
 
-[![Latest release](https://img.shields.io/github/v/release/VoidedKN0X/ProxCtrl?label=download)](https://github.com/VoidedKN0X/ProxCtrl/releases/latest) ![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white) [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) ![Telemetry-free](https://img.shields.io/badge/telemetry-none-brightgreen) [![Sponsor](https://img.shields.io/badge/sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/VoidedKN0X)
+[![Latest release](https://img.shields.io/github/v/release/VoidedKN0X/ProxCtrl?label=download)](https://github.com/VoidedKN0X/ProxCtrl/releases/latest) ![Android 15+](https://img.shields.io/badge/Android-15%2B-3DDC84?logo=android&logoColor=white) [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE) ![Telemetry-free](https://img.shields.io/badge/telemetry-none-brightgreen) [![Sponsor](https://img.shields.io/badge/sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/VoidedKN0X)
 
 ProxCtrl is an Android app for [Proxmox VE](https://www.proxmox.com/en/proxmox-virtual-environment) 8 and 9: a fast, touch-first alternative to the web UI for monitoring your node and managing your containers and VMs day to day.
 
@@ -31,7 +31,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 
 ## Requirements
 
-- Android 13 or newer, on a 64-bit ARM phone (nearly every phone from the last several years)
+- Android 15 or newer, on a 64-bit ARM phone (nearly every phone from the last several years)
 - Proxmox VE 8 or 9
 - **Google-free and de-Googled:** no Google Play services, Firebase or other Google services, and the app never contacts Google. It works the same on de-Googled phones (GrapheneOS, CalyxOS, /e/OS, LineageOS without Google apps).
 
@@ -310,7 +310,7 @@ Two more switches in the same section work with or without the app lock, and are
 
 Signing in to a server, consoles, the node shell and the lock and PIN screens are always kept out of screenshots and recordings, whatever these switches say. With the app lock on, the recent-apps view always shows a blank card.
 
-While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation such as shut down or delete is showing, other apps' floating windows (chat heads, overlays) are hidden so nothing can cover it, and on Android 14+ apps that read the screen through accessibility can't see the PIN, lock or **Confirm changes** screens; real accessibility tools such as screen readers still work, and password managers can still fill the sign-in fields.
+While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation such as shut down or delete is showing, other apps' floating windows (chat heads, overlays) are hidden so nothing can cover it, and apps that read the screen through accessibility can't see the PIN, lock or **Confirm changes** screens; real accessibility tools such as screen readers still work, and password managers can still fill the sign-in fields.
 
 ## Consoles and the node shell
 

@@ -4,6 +4,12 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.7 (2026-11-05)
+
+### Changed
+
+- **Needs Android 15 or newer.** Android 13 no longer gets security updates and Android 14's end early 2027, so ProxCtrl now supports Android 15, 16 and 17 only. On older phones the version you have keeps working, but it won't get updates. On Android 15 and newer everything works as before.
+
 ## v1.4.6 (2026-11-05)
 
 More protection for the PIN screen, "Confirm changes" and the confirmations of actions that can't be undone. ProxCtrl works exactly as before.
