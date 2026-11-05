@@ -62,7 +62,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CreateLxcScreen() {
     SecureScreen()
-    ShieldScreen()
+    com.vknxworks.proxctrl.ui.components.ShieldScreen()
     val context = LocalContext.current
     val c = context.container
     val nav = LocalNavigator.current
