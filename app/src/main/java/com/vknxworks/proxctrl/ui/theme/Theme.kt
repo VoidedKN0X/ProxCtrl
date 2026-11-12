@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
@@ -316,7 +317,12 @@ fun ProxCtrlTheme(
 ) {
     val palette = if (darkTheme) CtrlColors.Dark else CtrlColors.Light
     CompositionLocalProvider(LocalCtrlColors provides palette) {
-        MaterialTheme(colorScheme = schemeFor(palette), typography = AppTypography, shapes = AppShapes, content = content)
+        MaterialTheme(colorScheme = schemeFor(palette), typography = AppTypography, shapes = AppShapes) {
+            // Text and icons that don't name a colour take the theme's text colour. Without this they fall
+            // back to Compose's default, black, on any screen that isn't inside a Surface (dark text on the
+            // dark background). Surfaces and the Ctrl components still set their own colour for their fill.
+            CompositionLocalProvider(LocalContentColor provides palette.text, content = content)
+        }
     }
 }
 
