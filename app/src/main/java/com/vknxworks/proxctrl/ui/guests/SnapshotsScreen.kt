@@ -60,6 +60,7 @@ import com.vknxworks.proxctrl.data.guests.GuestRef
 import com.vknxworks.proxctrl.data.guests.GuestType
 import com.vknxworks.proxctrl.data.guests.Snapshot
 import com.vknxworks.proxctrl.data.guests.SnapshotApi
+import com.vknxworks.proxctrl.data.guests.SnapshotNameProblem
 import com.vknxworks.proxctrl.data.guests.SnapshotNode
 import com.vknxworks.proxctrl.ui.components.ConnectionBanner
 import com.vknxworks.proxctrl.ui.components.EmptyState
@@ -122,7 +123,10 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
     val canSnapshot = canWrite && c.sessions.canWrite(ref.aclPath, SnapshotApi.PRIV)
     val canRollback = canWrite && (canSnapshot || c.sessions.canWrite(ref.aclPath, SnapshotApi.PRIV_ROLLBACK))
     val running = guest?.isRunning == true
-    val title = listOf(vmid.toString(), name.ifBlank { guest?.name.orEmpty() }).filter { it.isNotBlank() }.joinToString("  ")
+    val guestName = name.ifBlank { guest?.name.orEmpty() }
+    val title = listOf(vmid.toString(), guestName).filter { it.isNotBlank() }.joinToString("  ")
+    // How the guest is named in confirmations: "101 (web)", or just the ID.
+    val guestLabel = if (guestName.isBlank()) vmid.toString() else stringResource(R.string.snapshot_guest_label, vmid, guestName)
 
     Column(Modifier.fillMaxSize()) {
         ScreenTopBar(stringResource(R.string.snapshots_title, title))
@@ -144,7 +148,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
                     )
                     if (!canSnapshot) {
                         Text(
-                            stringResource(R.string.not_allowed_action),
+                            stringResource(R.string.snapshot_not_allowed, vmid),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(horizontal = Gutter + 4.dp),
@@ -156,7 +160,9 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
                 when {
                     snaps == null && err == null -> Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                     snaps == null && err != null -> Text(
-                        errorMessage(context, err, server?.host.orEmpty(), server?.auth),
+                        // A token without VM.Audit gets 403 here: say which privilege is missing, and where.
+                        if (err is PveError.Forbidden) stringResource(R.string.snapshot_list_forbidden, vmid)
+                        else errorMessage(context, err, server?.host.orEmpty(), server?.auth),
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(Gutter),
                     )
@@ -173,6 +179,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
                                     node = n,
                                     canRollback = canRollback && !tracker.busy,
                                     canDelete = canSnapshot && !tracker.busy,
+                                    showActions = canWrite,
                                     onRollback = { rollingBack = n.snapshot },
                                     onDelete = { deleting = n.snapshot },
                                 )
@@ -188,7 +195,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
         TakeSnapshotDialog(
             isVm = ref.type == GuestType.QEMU,
             running = running,
-            existing = snapshots.orEmpty().map { it.name }.toSet(),
+            existing = snapshots.orEmpty().filter { !it.isCurrent }.map { it.name }.toSet(),
             onDismiss = { taking = false },
             onTake = { snapName, description, withRam ->
                 taking = false
@@ -203,9 +210,12 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
     rollingBack?.let { snap ->
         var start by remember(snap) { mutableStateOf(false) }
         TypedConfirmDialog(
-            title = stringResource(R.string.snapshot_rollback_title, snap.name),
+            title = stringResource(R.string.snapshot_rollback_title_guest, guestLabel, snap.name),
             body = buildString {
-                append(context.getString(R.string.snapshot_rollback_body))
+                append(
+                    snap.time?.let { context.getString(R.string.snapshot_rollback_body_dated, guestLabel, snap.name, formatDateTime(it)) }
+                        ?: context.getString(R.string.snapshot_rollback_body_guest, guestLabel, snap.name),
+                )
                 if (running) append("\n\n").append(context.getString(R.string.snapshot_rollback_running))
                 if (snap.withRam) append("\n\n").append(context.getString(R.string.snapshot_rollback_ram))
             },
@@ -226,7 +236,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
             onConfirm = {
                 rollingBack = null
                 val cl = client ?: return@TypedConfirmDialog
-                tracker.run(context.getString(R.string.snapshot_task_rollback, snap.name), cl, server?.host.orEmpty(), server?.auth, ::afterTask) {
+                tracker.run(context.getString(R.string.snapshot_task_rollback_guest, guestLabel, snap.name), cl, server?.host.orEmpty(), server?.auth, ::afterTask) {
                     SnapshotApi.rollback(cl, ref, snap.name, start && !snap.withRam)
                 }
             },
@@ -236,7 +246,7 @@ fun SnapshotsScreen(node: String, type: String, vmid: Int, name: String) {
     deleting?.let { snap ->
         TypedConfirmDialog(
             title = stringResource(R.string.snapshot_delete_title, snap.name),
-            body = stringResource(R.string.snapshot_delete_body),
+            body = stringResource(R.string.snapshot_delete_body_guest, guestLabel),
             expected = vmid.toString(),
             confirmLabel = stringResource(R.string.delete),
             icon = Icons.Outlined.Delete,
@@ -264,6 +274,8 @@ private fun SnapshotRow(
     canDelete: Boolean,
     onRollback: () -> Unit,
     onDelete: () -> Unit,
+    /** Writable server and not a template: show the menu even when the sign-in may not act, so it can say why. */
+    showActions: Boolean = true,
 ) {
     val s = node.snapshot
     var menu by remember { mutableStateOf(false) }
@@ -308,7 +320,7 @@ private fun SnapshotRow(
                 )
             }
         }
-        if (!s.isCurrent && (canRollback || canDelete)) {
+        if (!s.isCurrent && showActions) {
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_actions)) }
                 CtrlDropdownMenu(expanded = menu && !com.vknxworks.proxctrl.ui.components.LocalAppCovered.current, onDismissRequest = { menu = false }) {
@@ -324,6 +336,17 @@ private fun SnapshotRow(
                         enabled = canDelete,
                         onClick = { menu = false; onDelete() },
                     )
+                    // Greyed-out items alone don't say why: name the missing privilege.
+                    if (!canRollback || !canDelete) {
+                        Text(
+                            stringResource(
+                                if (!canRollback) R.string.snapshot_rollback_not_allowed else R.string.snapshot_delete_not_allowed,
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).width(240.dp),
+                        )
+                    }
                 }
             }
         } else {
@@ -346,8 +369,7 @@ private fun TakeSnapshotDialog(
     var name by remember { mutableStateOf(suggested) }
     var description by remember { mutableStateOf("") }
     var withRam by remember { mutableStateOf(false) }
-    val valid = SnapshotApi.isValidName(name)
-    val taken = name in existing
+    val problem = SnapshotApi.nameProblem(name, existing)
     CtrlDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Outlined.AddAPhoto, null) },
@@ -359,9 +381,21 @@ private fun TakeSnapshotDialog(
                     onValueChange = { name = it.trim() },
                     singleLine = true,
                     label = { Text(stringResource(R.string.snapshot_name)) },
-                    isError = name.isNotEmpty() && (!valid || taken),
+                    isError = name.isNotEmpty() && problem != null,
                     supportingText = {
-                        Text(stringResource(if (taken) R.string.snapshot_name_taken else R.string.snapshot_name_hint))
+                        Text(
+                            stringResource(
+                                when (problem) {
+                                    null, SnapshotNameProblem.EMPTY -> R.string.snapshot_name_hint
+                                    SnapshotNameProblem.TOO_SHORT -> R.string.snapshot_name_too_short
+                                    SnapshotNameProblem.TOO_LONG -> R.string.snapshot_name_too_long
+                                    SnapshotNameProblem.FIRST_NOT_LETTER -> R.string.snapshot_name_first_letter
+                                    SnapshotNameProblem.BAD_CHARACTER -> R.string.snapshot_name_bad_char
+                                    SnapshotNameProblem.RESERVED -> R.string.snapshot_name_reserved
+                                    SnapshotNameProblem.TAKEN -> R.string.snapshot_name_taken
+                                },
+                            ),
+                        )
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -392,7 +426,7 @@ private fun TakeSnapshotDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onTake(name, description, withRam && isVm && running) }, enabled = valid && !taken) {
+            TextButton(onClick = { onTake(name, description, withRam && isVm && running) }, enabled = problem == null) {
                 Text(stringResource(R.string.snapshot_take_short))
             }
         },

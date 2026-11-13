@@ -121,6 +121,7 @@ fun ServersScreen() {
                 TextButton(onClick = {
                     removing = null
                     c.sessions.remove(server.id)
+                    c.guestTile.forgetServer(server.id)
                     c.guests.forget(server.id)
                     c.overview.forget(server.id)
                     com.vknxworks.proxctrl.data.notify.CheckStore.forget(context, server.id)

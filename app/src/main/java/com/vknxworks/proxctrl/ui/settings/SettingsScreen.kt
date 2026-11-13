@@ -165,12 +165,13 @@ fun SettingsScreen() {
                     icon = Icons.Outlined.Backup,
                 ) { d -> c.appScope.launch { c.settings.update { it.copy(backupMaxAgeDays = d) } } }
             }
-            Group(stringResource(R.string.widget_settings_group)) {
+            Group(stringResource(R.string.widget_settings_group), footer = stringResource(R.string.guest_tile_setting_footer)) {
                 GroupRow(
                     stringResource(R.string.widget_settings_title),
                     stringResource(R.string.widget_settings_subtitle),
                     icon = Icons.Outlined.Widgets,
                 )
+                GuestTileSetting()
             }
         }
     }

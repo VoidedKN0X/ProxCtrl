@@ -11,4 +11,6 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
+    <!-- The guest tile's shut-down question (shown by System UI over the panel), following the device's dark or light mode. -->
+    <style name="Theme.ProxCtrl.TileDialog" parent="android:Theme.DeviceDefault.Light.Dialog.Alert" />
 </resources>

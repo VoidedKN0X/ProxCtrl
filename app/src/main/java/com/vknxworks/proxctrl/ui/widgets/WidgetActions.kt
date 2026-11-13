@@ -35,6 +35,8 @@ import kotlinx.coroutines.launch
 object WidgetActions {
     const val ACTION_CONFIRM_POWER = "com.vknxworks.proxctrl.action.WIDGET_POWER"
     const val ACTION_OPEN_OVERVIEW = "com.vknxworks.proxctrl.action.OPEN_OVERVIEW"
+    /** The guest tile without a guest: open Settings, where it's picked. */
+    const val ACTION_OPEN_TILE_SETTINGS = "com.vknxworks.proxctrl.action.OPEN_TILE_SETTINGS"
     const val EXTRA_SERVER = "server"
     const val EXTRA_VMID = "vmid"
     const val EXTRA_ACTION = "action"
@@ -78,6 +80,12 @@ object WidgetActions {
                 _pending.value = PowerRequest(server, vmid, action)
             }
             ACTION_OPEN_OVERVIEW -> _openOverview.value = true
+            ACTION_OPEN_TILE_SETTINGS -> _openTileSettings.value = true
+            // Long-press on a Quick Settings tile: the guest tile opens its setting, the health tile the Overview.
+            android.service.quicksettings.TileService.ACTION_QS_TILE_PREFERENCES -> {
+                val component = intent.getParcelableExtra(Intent.EXTRA_COMPONENT_NAME, android.content.ComponentName::class.java)
+                if (component?.className == GuestTileService::class.java.name) _openTileSettings.value = true else _openOverview.value = true
+            }
         }
     }
 
@@ -87,6 +95,15 @@ object WidgetActions {
 
     fun overviewShown() {
         _openOverview.value = false
+    }
+
+    private val _openTileSettings = MutableStateFlow(false)
+
+    /** True when the guest tile asked for Settings (to pick its guest). The navigation host opens Settings and calls [tileSettingsShown]. */
+    val openTileSettings: StateFlow<Boolean> = _openTileSettings.asStateFlow()
+
+    fun tileSettingsShown() {
+        _openTileSettings.value = false
     }
 }
 

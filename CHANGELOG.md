@@ -4,6 +4,24 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.5.0 (2026-11-13)
+
+A Quick Settings tile for one guest, and clearer, safer snapshots.
+
+### New
+
+- **Guest tile:** add **ProxCtrl guest** from your phone's Quick Settings editor and pick its VM or container under **Settings › Widgets and Quick Settings**. With several servers you pick the server first, and the tile stays on that server whichever one is open in ProxCtrl. While the panel is open it shows live whether the guest is running (lit) or stopped. Tap it to start a stopped guest, or to shut a running one down cleanly after a confirmation; every action needs your phone unlocked first. It follows the task Proxmox starts and says so if a start or shut-down fails, or if your sign-in isn't allowed to (it needs `VM.PowerMgmt`). With **Confirm changes** on, a tap opens ProxCtrl's own question instead.
+- **Long-press a ProxCtrl tile** to open ProxCtrl: the guest tile opens its setting, the health tile the Overview.
+
+### Changed
+
+- **Rolling back a snapshot names the guest and the snapshot** (with the snapshot's date) and says plainly that every change on the guest since then is lost and your other snapshots are kept, before you type the guest ID. Deleting names the guest too.
+- **Clearer permission messages for snapshots:** when your token or user can't list, take, roll back or delete snapshots, ProxCtrl says which privilege it needs (`VM.Audit`, `VM.Snapshot` or `VM.Snapshot.Rollback`) on which guest, instead of only "Not allowed".
+- **Snapshot names are checked as you type**, with the reason when one can't be used (too short or long, not starting with a letter, a character Proxmox doesn't accept, a reserved name, or already taken).
+
+### Fixed
+
+- **Snapshot names with a dash** (such as `before-upgrade`) were offered as valid but refused by Proxmox; ProxCtrl now follows Proxmox's rule (letters, digits and `_` only) and refuses `current` and `pending`, which Proxmox reserves.
 ## v1.4.9 (2026-11-13)
 
 A security and privacy check-up. Nothing works differently, and you don't need to sign in again.

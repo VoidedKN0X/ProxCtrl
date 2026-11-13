@@ -22,8 +22,8 @@ android {
         minSdk = 35
         targetSdk = 36
         // Bump both to publish a new release (see CHANGELOG.md).
-        versionCode = 41
-        versionName = "1.4.9"
+        versionCode = 42
+        versionName = "1.5.0"
         // 64-bit ARM phones only (arm64-v8a), like every Ctrl app.
         ndk { abiFilters += listOf("arm64-v8a") }
     }
@@ -86,8 +86,10 @@ android {
 }
 
 kotlin {
-    jvmToolchain(17)
+    // Java 17 bytecode from any JDK 17+ (like the other Ctrl apps), so unit tests also run where only a newer
+    // JDK is installed; no toolchain lookup or download.
     compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         optIn.addAll(
             "androidx.compose.material3.ExperimentalMaterial3Api",
             "androidx.compose.foundation.ExperimentalFoundationApi",
@@ -129,4 +131,7 @@ dependencies {
     implementation(libs.androidx.biometric)
     // MainActivity is a FragmentActivity, which BiometricPrompt needs.
     implementation(libs.androidx.fragment)
+
+    // Unit tests of snapshot names, the snapshot tree and the API requests (JVM only, never in the app).
+    testImplementation(libs.junit)
 }

@@ -590,20 +590,31 @@
     <string name="snapshot_take">Take snapshot</string>
     <string name="snapshot_take_short">Take</string>
     <string name="snapshot_name">Name</string>
-    <string name="snapshot_name_hint">Starts with a letter; letters, digits, _ and - only, up to 40 characters</string>
+    <string name="snapshot_name_hint">Starts with a letter; then letters, digits and _ only; 2 to 40 characters</string>
+    <string name="snapshot_name_too_short">At least 2 characters</string>
+    <string name="snapshot_name_too_long">At most 40 characters</string>
+    <string name="snapshot_name_first_letter">Must start with a letter (a to z)</string>
+    <string name="snapshot_name_bad_char">Only letters, digits and _ (no spaces, dots or dashes)</string>
+    <string name="snapshot_name_reserved">\"current\" and \"pending\" are reserved by Proxmox</string>
     <string name="snapshot_name_taken">A snapshot with this name already exists</string>
     <string name="snapshot_description">Description (optional)</string>
     <string name="snapshot_include_ram">Include RAM</string>
     <string name="snapshot_include_ram_hint">Also saves what\'s in memory, so rolling back resumes the VM exactly where it was. Takes longer and uses more space.</string>
     <string name="snapshot_rollback">Roll back</string>
-    <string name="snapshot_rollback_title">Roll back to %1$s?</string>
-    <string name="snapshot_rollback_body">Everything that changed on this guest since the snapshot was taken is lost. This can\'t be undone.</string>
     <string name="snapshot_rollback_running">The guest is running: it will be stopped first.</string>
     <string name="snapshot_rollback_ram">This snapshot includes RAM, so the guest starts again where it was when the snapshot was taken.</string>
     <string name="snapshot_delete_title">Delete snapshot %1$s?</string>
-    <string name="snapshot_delete_body">The snapshot is removed for good, and you can no longer roll back to it. The guest itself isn\'t changed.</string>
+    <string name="snapshot_guest_label">%1$d (%2$s)</string>
+    <string name="snapshot_rollback_title_guest">Roll back %1$s to %2$s?</string>
+    <string name="snapshot_rollback_body_guest">%1$s goes back to snapshot %2$s. Everything that changed on it since that snapshot (files, settings, installed updates) is lost for good. Your other snapshots are kept.</string>
+    <string name="snapshot_rollback_body_dated">%1$s goes back to snapshot %2$s from %3$s. Everything that changed on it since then (files, settings, installed updates) is lost for good. Your other snapshots are kept.</string>
+    <string name="snapshot_task_rollback_guest">Rolling back %1$s to %2$s</string>
+    <string name="snapshot_delete_body_guest">The snapshot is removed from %1$s for good, and you can no longer roll back to it. The guest itself isn\'t changed.</string>
+    <string name="snapshot_not_allowed">This sign-in can\'t take or delete snapshots of this guest: it needs the VM.Snapshot privilege on /vms/%1$d.</string>
+    <string name="snapshot_list_forbidden">This sign-in can\'t see the snapshots of this guest: it needs the VM.Audit privilege on /vms/%1$d.</string>
+    <string name="snapshot_rollback_not_allowed">Rolling back needs VM.Snapshot or VM.Snapshot.Rollback for this sign-in.</string>
+    <string name="snapshot_delete_not_allowed">Deleting needs VM.Snapshot for this sign-in.</string>
     <string name="snapshot_task_take">Snapshot %1$s</string>
-    <string name="snapshot_task_rollback">Rollback to %1$s</string>
     <string name="snapshot_task_delete">Deleting snapshot %1$s</string>
 
     <!-- Backups -->
@@ -906,6 +917,32 @@
     <string name="widget_settings_subtitle">Add the node status or pinned guests widget from your home screen\'s widget list, and the ProxCtrl tile from the Quick Settings editor. They show the active server and refresh about every 15 minutes.</string>
 
     <!-- Quick Settings tile -->
+    <!-- Guest tile (Quick Settings) -->
+    <string name="guest_tile_label">ProxCtrl guest</string>
+    <string name="guest_tile_pick">Tap to pick a guest</string>
+    <string name="guest_tile_guest">%1$d %2$s</string>
+    <string name="guest_tile_id">Guest %1$d</string>
+    <string name="guest_tile_on_server">%1$s · %2$s</string>
+    <string name="guest_tile_checking">Checking…</string>
+    <string name="guest_tile_missing">Not found on the server</string>
+    <string name="guest_tile_unreachable">Can\'t reach the server</string>
+    <string name="guest_tile_template">Template</string>
+    <string name="guest_tile_locked_by">Locked (%1$s)</string>
+    <string name="guest_tile_stopped_tap">Stopped · tap to start</string>
+    <string name="guest_tile_running_tap">Running · tap to shut down</string>
+    <string name="guest_tile_stale">%1$s (old)</string>
+    <string name="guest_tile_starting">Starting…</string>
+    <string name="guest_tile_shutting_down">Shutting down…</string>
+    <string name="guest_tile_start_failed">Couldn\'t start</string>
+    <string name="guest_tile_shutdown_failed">Didn\'t shut down</string>
+    <string name="guest_tile_not_allowed">Not allowed for this sign-in</string>
+    <string name="guest_tile_shutdown_body">On %1$s. The guest is asked to shut down cleanly (ACPI for a VM, its init system for a container), so it can close its programs first.</string>
+    <string name="guest_tile_setting">Guest for the Quick Settings tile</string>
+    <string name="guest_tile_setting_none">None</string>
+    <string name="guest_tile_pick_server">Server for the guest tile</string>
+    <string name="guest_tile_pick_guest">Guest for the tile</string>
+    <string name="guest_tile_loading">Loading the guests on %1$s…</string>
+    <string name="guest_tile_setting_footer">Add the ProxCtrl guest tile from your phone\'s Quick Settings editor. It shows live whether this guest is running; tap it to start the guest, or to shut it down cleanly after a confirmation. Every action needs your phone unlocked first. The tile stays on the server you picked the guest from, whichever server is open in ProxCtrl.</string>
     <string name="tile_label">ProxCtrl</string>
     <string name="tile_subtitle">CPU %1$d%% · RAM %2$d%%</string>
     <string name="tile_subtitle_issues">%1$s · %2$s</string>

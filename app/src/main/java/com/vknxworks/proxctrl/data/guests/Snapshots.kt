@@ -23,6 +23,9 @@ data class Snapshot(
     }
 }
 
+/** Why a snapshot name is refused (see SnapshotApi.nameProblem). */
+enum class SnapshotNameProblem { EMPTY, TOO_SHORT, TOO_LONG, FIRST_NOT_LETTER, BAD_CHARACTER, RESERVED, TAKEN }
+
 /** A snapshot placed in the tree: how deep it sits below the oldest snapshot. */
 data class SnapshotNode(val snapshot: Snapshot, val depth: Int)
 
@@ -34,29 +37,63 @@ object SnapshotApi {
     const val PRIV = "VM.Snapshot"
     const val PRIV_ROLLBACK = "VM.Snapshot.Rollback"
 
-    /** Proxmox snapshot names: a letter, then letters, digits, "_" or "-"; 2 to 40 characters. */
-    val NAME = Regex("^[A-Za-z][A-Za-z0-9_-]{1,39}$")
+    /** Listing snapshots: VM.Audit on /vms/{vmid}. */
+    const val PRIV_LIST = "VM.Audit"
 
-    fun isValidName(name: String): Boolean = NAME.matches(name) && name != Snapshot.CURRENT
+    /**
+     * Proxmox snapshot names ("pve-configid", maxLength 40 in pve-common's PVE::JSONSchema): a letter,
+     * then letters, digits or "_" (no "-", no dots, no spaces); 2 to 40 characters.
+     */
+    val NAME = Regex("^[A-Za-z][A-Za-z0-9_]{1,39}$")
 
-    suspend fun list(client: PveClient, ref: GuestRef): List<Snapshot> = parse(client.get("${ref.base}/snapshot"))
+    const val NAME_MAX = 40
 
-    suspend fun take(client: PveClient, ref: GuestRef, name: String, description: String, withRam: Boolean): String? {
-        val params = buildMap {
-            put("snapname", name)
-            if (description.isNotBlank()) put("description", description)
-            if (withRam && ref.type == GuestType.QEMU) put("vmstate", "1")
-        }
-        return (client.post("${ref.base}/snapshot", params) as? JsonPrimitive)?.content
+    /** Why a snapshot name can't be used, or null when it can. [existing]: the guest's snapshot names. */
+    fun nameProblem(name: String, existing: Collection<String> = emptyList()): SnapshotNameProblem? = when {
+        name.isEmpty() -> SnapshotNameProblem.EMPTY
+        name.length > NAME_MAX -> SnapshotNameProblem.TOO_LONG
+        !name.first().isAsciiLetter() -> SnapshotNameProblem.FIRST_NOT_LETTER
+        name.any { !(it.isAsciiLetter() || it in '0'..'9' || it == '_') } -> SnapshotNameProblem.BAD_CHARACTER
+        name.length < 2 -> SnapshotNameProblem.TOO_SHORT
+        // qemu-server and pve-container refuse these two ("reserved name").
+        name == Snapshot.CURRENT || name.equals("pending", ignoreCase = true) -> SnapshotNameProblem.RESERVED
+        name in existing -> SnapshotNameProblem.TAKEN
+        else -> null
     }
 
-    suspend fun rollback(client: PveClient, ref: GuestRef, name: String, start: Boolean): String? {
-        val params = if (start) mapOf("start" to "1") else emptyMap()
-        return (client.post("${ref.base}/snapshot/$name/rollback", params) as? JsonPrimitive)?.content
+    private fun Char.isAsciiLetter() = this in 'a'..'z' || this in 'A'..'Z'
+
+    fun isValidName(name: String): Boolean = nameProblem(name) == null
+
+    // --- Requests (paths and form bodies), kept apart so they can be unit-tested ---
+
+    fun listPath(ref: GuestRef) = "${ref.base}/snapshot"
+
+    /** POST {base}/snapshot: snapname, description (when given), vmstate=1 to include RAM (running VMs only). */
+    fun takeParams(ref: GuestRef, name: String, description: String, withRam: Boolean): Map<String, String> = buildMap {
+        put("snapname", name)
+        if (description.isNotBlank()) put("description", description.trim())
+        if (withRam && ref.type == GuestType.QEMU) put("vmstate", "1")
     }
+
+    /** POST {base}/snapshot/{name}/rollback; start=1 starts the guest afterwards (PVE 7.2+ for VMs, 8 for containers). */
+    fun rollbackPath(ref: GuestRef, name: String) = "${ref.base}/snapshot/$name/rollback"
+
+    fun rollbackParams(start: Boolean): Map<String, String> = if (start) mapOf("start" to "1") else emptyMap()
+
+    /** DELETE {base}/snapshot/{name} */
+    fun deletePath(ref: GuestRef, name: String) = "${ref.base}/snapshot/$name"
+
+    suspend fun list(client: PveClient, ref: GuestRef): List<Snapshot> = parse(client.get(listPath(ref)))
+
+    suspend fun take(client: PveClient, ref: GuestRef, name: String, description: String, withRam: Boolean): String? =
+        (client.post(listPath(ref), takeParams(ref, name, description, withRam)) as? JsonPrimitive)?.content
+
+    suspend fun rollback(client: PveClient, ref: GuestRef, name: String, start: Boolean): String? =
+        (client.post(rollbackPath(ref, name), rollbackParams(start)) as? JsonPrimitive)?.content
 
     suspend fun delete(client: PveClient, ref: GuestRef, name: String): String? =
-        (client.delete("${ref.base}/snapshot/$name") as? JsonPrimitive)?.content
+        (client.delete(deletePath(ref, name)) as? JsonPrimitive)?.content
 
     fun parse(data: JsonElement?): List<Snapshot> {
         val list = data as? JsonArray ?: return emptyList()

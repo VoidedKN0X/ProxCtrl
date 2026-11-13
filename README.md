@@ -22,7 +22,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Storage**: storages and their content, backup deletion, ISO upload (also from the share menu), container templates, disks with SMART health, ZFS pools, LVM and backup jobs
 - **Tasks** with live logs, history filters and Stop
 - **Node**: status and graphs, services, updates with changelogs, network and SDN, reboot and shutdown, Wake-on-LAN
-- **Widgets** for the node and pinned guests, and a Quick Settings tile
+- **Widgets** for the node and pinned guests, and two Quick Settings tiles: node health, and **one guest** of your choice that shows live whether it runs and starts it or (after a confirmation) shuts it down, with your phone unlocked first
 - **App lock** with its own PIN and optional fingerprint, on opening and before changes; your server logins can be encrypted with the PIN while locked
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
@@ -235,7 +235,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 
 ## Snapshots and backups
 
-- **Snapshots** open from a guest's page. They're shown as a tree, oldest first, with **Now** where the guest currently is. Take a snapshot with a name, a description and, for running VMs, the RAM. Rolling back and deleting ask you to type the guest ID.
+- **Snapshots** open from a guest's page. They're shown as a tree with their dates, oldest first, with **Now** where the guest currently is. Take a snapshot with a name (checked against Proxmox's rules as you type: a letter first, then letters, digits and `_`, 2 to 40 characters), a description and, for running VMs, the RAM. Rolling back names the guest and the snapshot, warns that every later change on the guest is lost, and asks you to type the guest ID; deleting asks for it too. Progress shows in the task card. When your token lacks a privilege, ProxCtrl says which one, on which path.
 - **Backups** lists this guest's backups on every backup storage of its node (including Proxmox Backup Server), newest first, with size, notes, protection and verification state.
 - **Back up now** picks a storage, the mode (snapshot, suspend or stop), the compression (not for Proxmox Backup Server), notes and protection. It never prunes older backups.
 - **Restore** replaces the guest with the backup. It only works while the guest is stopped and not protected, shows a clear warning and asks you to type the guest ID. Containers are restored to the storage their root disk is on now, unless you pick another; VMs keep the storages from the backup unless you pick one.
@@ -286,6 +286,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Pinned guests widget**: pick the guests it shows when you add it (tap its title to change them). Each shows a status dot and a **Start** or **Shut down** button. The buttons never act from the home screen: they open ProxCtrl and ask you to confirm first.
 - Widgets show the active server. They refresh about every 15 minutes (Android's minimum, with a network connection) and whenever you open ProxCtrl. When the server can't be reached they keep the last known state, marked as not updated. With the app lock on and *Background checks while locked* off, they only say "ProxCtrl is locked" until you unlock it.
 - **Quick Settings tile**: the node's name, health and CPU / RAM. It's lit when all is good. Tap it to open the Overview. Add it from the Quick Settings editor.
+- **Guest tile** (**ProxCtrl guest** in the Quick Settings editor): pick its guest under **Settings › Widgets and Quick Settings › Guest for the Quick Settings tile** (with several servers, pick the server first; the tile stays on that server). While the panel is open it shows live whether the guest is running (lit) or stopped, and counts the task through when you act. Tap it to start a stopped guest, or to shut down a running one cleanly after a confirmation. Every action needs your phone unlocked first. A paused or locked guest, a template or a read-only server only opens ProxCtrl. It needs `VM.PowerMgmt` on the guest; without it the tile says "Not allowed for this sign-in". With **Confirm changes** on, a tap opens ProxCtrl's own question, which then asks for your fingerprint or PIN. Long-press either tile to open ProxCtrl.
 
 ## App lock
 

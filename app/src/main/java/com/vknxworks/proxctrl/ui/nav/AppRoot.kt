@@ -137,6 +137,14 @@ private fun MainScaffold() {
             com.vknxworks.proxctrl.ui.widgets.WidgetActions.overviewShown()
         }
     }
+    // The guest tile has no guest yet (or long-pressed): open Settings, where it's picked.
+    val openTileSettings by com.vknxworks.proxctrl.ui.widgets.WidgetActions.openTileSettings.collectAsStateWithLifecycle()
+    LaunchedEffect(openTileSettings) {
+        if (openTileSettings) {
+            navController.navigate(SettingsRoute) { launchSingleTop = true }
+            com.vknxworks.proxctrl.ui.widgets.WidgetActions.tileSettingsShown()
+        }
+    }
 
     // proxctrl://guest/<vmid>: open that guest's page, or the Guests tab when it isn't on this server.
     val c = LocalContext.current.container

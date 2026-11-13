@@ -6,6 +6,7 @@ import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.data.lock.LockPrefs
 import com.vknxworks.proxctrl.data.lock.LockVault
 import com.vknxworks.proxctrl.data.notify.CheckStore
+import com.vknxworks.proxctrl.data.widgets.GuestTileStore
 import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.data.notify.NotifySettingsRepository
 import com.vknxworks.proxctrl.data.overview.OverviewRepository
@@ -107,6 +108,7 @@ class AppContainer(val context: Context) {
             serverStore.servers.value.forEach { CheckStore.forget(context, it.id) }
             serverStore.removeAll()
         }
+        guestTile.set(null)
         AppLock.markUnlocked()
         settings.update { it.copy(lockOnOpen = false, lockChanges = false) }
         vault.disable()
@@ -141,6 +143,9 @@ class AppContainer(val context: Context) {
     val guests = GuestRepository(context, sessions, appScope)
     val overview = OverviewRepository(context, sessions, guests, appScope)
     val notifySettings = NotifySettingsRepository(context, appScope)
+
+    /** The guest the Quick Settings guest tile controls. */
+    val guestTile = GuestTileStore(context)
 }
 
 val Context.container: AppContainer
