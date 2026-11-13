@@ -27,7 +27,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in and consoles always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in and consoles always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore (in the StrongBox security chip when the phone has one)
 
 ## Requirements
 

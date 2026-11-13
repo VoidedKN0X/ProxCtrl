@@ -4,6 +4,20 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.4.9 (2026-11-13)
+
+A security and privacy check-up. Nothing works differently, and you don't need to sign in again.
+
+### Security
+
+- **Logins in the phone's security chip:** on phones with StrongBox (a separate security chip, such as Titan M on Pixels), the key that encrypts your saved token secrets and passwords is now made inside that chip, and falls back to the normal Android Keystore on phones without one. This applies when the key is first made (a new install, or after clearing ProxCtrl's data); logins you already saved stay encrypted with the key they have.
+- **Widgets only take updates from Android:** the node status and pinned guests widgets no longer accept refresh requests from other apps, only from Android's own widget service. They look and work the same.
+- **Checked build tools:** the build now also checks the SHA-256 of the Gradle build tool it downloads, as it already did for every library.
+
+### Performance
+
+- Reading a saved login no longer opens the Android Keystore again each time, so background checks, widgets and the tile start their requests a little sooner.
+
 ## v1.4.8 (2026-11-12)
 
 ### Fixed

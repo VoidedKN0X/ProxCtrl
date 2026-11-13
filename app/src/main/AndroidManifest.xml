@@ -77,10 +77,11 @@
             </intent-filter>
         </service>
 
-        <!-- Home-screen widgets (Glance). -->
+        <!-- Home-screen widgets (Glance). Not exported: only the system's widget service sends them updates,
+             and it reaches non-exported receivers. Other apps can't trigger refreshes. -->
         <receiver
             android:name=".ui.widgets.NodeStatusWidgetReceiver"
-            android:exported="true"
+            android:exported="false"
             android:label="@string/widget_node_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -91,7 +92,7 @@
         </receiver>
         <receiver
             android:name=".ui.widgets.PinnedGuestsWidgetReceiver"
-            android:exported="true"
+            android:exported="false"
             android:label="@string/widget_pinned_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
