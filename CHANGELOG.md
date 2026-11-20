@@ -4,9 +4,9 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
-## Unreleased
+## v1.7.0 (2026-11-20)
 
-Not released yet: these changes are on `main` and in the CI build, and ship with the next version. Built and checked by CI only: none of this had been run on a phone when it was written.
+**This release encrypts some of what the app stores on the phone. An older version cannot read it afterwards, so export or back up anything you need before you update (details below).** Built and checked by CI only: nothing in this release had been run on a phone when it was published.
 
 ### Security
 
