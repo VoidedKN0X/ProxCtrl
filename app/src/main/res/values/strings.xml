@@ -865,91 +865,6 @@
     <string name="tasks_act_acme_order">Order certificate</string>
     <string name="tasks_act_acme_renew">Renew certificate</string>
 
-    <!-- Widgets, tile and app lock -->
-    <!-- Widgets -->
-    <string name="widget_app_name">ProxCtrl</string>
-    <string name="widget_node_label">Node status</string>
-    <string name="widget_pinned_label">Pinned guests</string>
-    <string name="widget_node_description">Your node\'s health, CPU, RAM, disk and uptime</string>
-    <string name="widget_pinned_description">Guests you pick, with their status and Start or Shut down</string>
-    <string name="widget_health_ok">All good</string>
-    <plurals name="widget_health_issues">
-        <item quantity="one">%d thing to look at</item>
-        <item quantity="other">%d things to look at</item>
-    </plurals>
-    <string name="widget_health_offline">Can\'t reach the server</string>
-    <string name="widget_no_server">No server set up</string>
-    <string name="widget_no_data">No data yet</string>
-    <string name="widget_open_app_hint">Open ProxCtrl and add a server</string>
-    <string name="widget_cpu">CPU</string>
-    <string name="widget_ram">RAM</string>
-    <string name="widget_disk">Disk</string>
-    <string name="widget_uptime">Up %1$s</string>
-    <string name="widget_updated">Updated %1$s</string>
-    <string name="widget_stale">Not updated · last %1$s</string>
-    <string name="widget_never_updated">Not updated yet</string>
-    <string name="widget_pinned_title">Pinned guests</string>
-    <string name="widget_pinned_empty">Tap to pick guests</string>
-    <string name="widget_guest_missing">Not on this server any more</string>
-    <string name="widget_status_running">Running</string>
-    <string name="widget_status_stopped">Stopped</string>
-    <string name="widget_status_paused">Paused</string>
-    <string name="widget_status_unknown">Unknown</string>
-    <string name="widget_start">Start</string>
-    <string name="widget_shutdown">Shut down</string>
-    <string name="widget_config_title">Pinned guests</string>
-    <string name="widget_config_subtitle">Pick the guests from %1$s this widget shows. Tap the widget\'s title to change them later.</string>
-    <string name="widget_config_no_server">Open ProxCtrl and add a server first.</string>
-    <string name="widget_config_save">Save</string>
-    <string name="widget_confirm_start_title">Start %1$s?</string>
-    <string name="widget_confirm_shutdown_title">Shut down %1$s?</string>
-    <string name="widget_confirm_start_body">Asked from the home screen widget.</string>
-    <string name="widget_confirm_shutdown_body">Asked from the home screen widget. The guest is asked to shut down cleanly.</string>
-    <string name="widget_confirm_unknown_guest">This guest isn\'t in the guest list. Pull to refresh the guest list, then try again.</string>
-    <string name="widget_confirm_not_applicable">The guest\'s state changed since the widget was updated, so this doesn\'t apply any more.</string>
-    <string name="widget_confirm_other_server_title">Another server is active</string>
-    <string name="widget_confirm_other_server_body">The widget shows a different server from the one active in ProxCtrl. Switch to that server in ProxCtrl first.</string>
-    <string name="widget_confirm_read_only_title">Read-only mode</string>
-    <string name="widget_confirm_sent">%1$s sent to %2$s</string>
-    <string name="widget_confirm_failed">%1$s failed: %2$s</string>
-    <string name="widget_settings_group">Widgets and Quick Settings</string>
-    <string name="widget_settings_title">Home screen widgets and tile</string>
-    <string name="widget_settings_subtitle">Add the node status or pinned guests widget from your home screen\'s widget list, and the ProxCtrl tile from the Quick Settings editor. They show the active server and refresh about every 15 minutes.</string>
-
-    <!-- Quick Settings tile -->
-    <!-- Guest tile (Quick Settings) -->
-    <string name="guest_tile_label">ProxCtrl guest</string>
-    <string name="guest_tile_pick">Tap to pick a guest</string>
-    <string name="guest_tile_guest">%1$d %2$s</string>
-    <string name="guest_tile_id">Guest %1$d</string>
-    <string name="guest_tile_on_server">%1$s · %2$s</string>
-    <string name="guest_tile_checking">Checking…</string>
-    <string name="guest_tile_missing">Not found on the server</string>
-    <string name="guest_tile_unreachable">Can\'t reach the server</string>
-    <string name="guest_tile_template">Template</string>
-    <string name="guest_tile_locked_by">Locked (%1$s)</string>
-    <string name="guest_tile_stopped_tap">Stopped · tap to start</string>
-    <string name="guest_tile_running_tap">Running · tap to shut down</string>
-    <string name="guest_tile_stale">%1$s (old)</string>
-    <string name="guest_tile_starting">Starting…</string>
-    <string name="guest_tile_shutting_down">Shutting down…</string>
-    <string name="guest_tile_start_failed">Couldn\'t start</string>
-    <string name="guest_tile_shutdown_failed">Didn\'t shut down</string>
-    <string name="guest_tile_not_allowed">Not allowed for this sign-in</string>
-    <string name="guest_tile_shutdown_body">On %1$s. The guest is asked to shut down cleanly (ACPI for a VM, its init system for a container), so it can close its programs first.</string>
-    <string name="guest_tile_setting">Guest for the Quick Settings tile</string>
-    <string name="guest_tile_setting_none">None</string>
-    <string name="guest_tile_pick_server">Server for the guest tile</string>
-    <string name="guest_tile_pick_guest">Guest for the tile</string>
-    <string name="guest_tile_loading">Loading the guests on %1$s…</string>
-    <string name="guest_tile_setting_footer">Add the ProxCtrl guest tile from your phone\'s Quick Settings editor. It shows live whether this guest is running; tap it to start the guest, or to shut it down cleanly after a confirmation. Every action needs your phone unlocked first. The tile stays on the server you picked the guest from, whichever server is open in ProxCtrl.</string>
-    <string name="tile_label">ProxCtrl</string>
-    <string name="tile_subtitle">CPU %1$d%% · RAM %2$d%%</string>
-    <string name="tile_subtitle_issues">%1$s · %2$s</string>
-    <string name="tile_subtitle_stale">%1$s (old)</string>
-    <string name="widget_locked">ProxCtrl is locked</string>
-    <string name="widget_locked_subtitle">Unlock ProxCtrl to see your server</string>
-
     <!-- App lock -->
     <string name="lock_changes">Confirm changes</string>
     <string name="lock_changes_subtitle">Ask for your fingerprint or app PIN before anything that changes a server: power actions, snapshots, backups, consoles, edits. Once confirmed, the next minute doesn\'t ask again</string>
@@ -1235,7 +1150,7 @@
     <string name="lock_again_1_hour">After 1 hour away</string>
     <string name="lock_again_restart">Only when the app restarts</string>
     <string name="lock_background">Background checks while locked</string>
-    <string name="lock_background_subtitle">On: notifications, widgets and the tile keep checking your servers while ProxCtrl is locked, so your server logins stay usable in the background. Off (most secure): the logins are also encrypted with your app PIN, and background checks wait until you unlock</string>
+    <string name="lock_background_subtitle">On: notifications keep checking your servers while ProxCtrl is locked, so your server logins stay usable in the background. Off (most secure): the logins are also encrypted with your app PIN, and background checks wait until you unlock</string>
     <string name="pin_enter">Enter your PIN</string>
     <string name="pin_enter_restart">Enter your PIN. It\'s needed after a restart and every 72 hours.</string>
     <string name="pin_wrong">Wrong PIN</string>

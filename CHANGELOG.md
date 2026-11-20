@@ -4,6 +4,18 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+Not in a release yet: these changes are in the code and ship with the next version.
+
+### Removed
+
+- **Home-screen widgets:** the **Node status** and **Pinned guests** widgets are gone. After updating, Android removes them from your home screen (or shows them as unavailable; remove them by hand). Everything they showed is still in the app: the Overview has the node's health, CPU, RAM, disk and uptime, and the Guests tab starts and shuts down guests.
+- **Quick Settings tiles:** both tiles are gone, the **ProxCtrl** health tile and the **ProxCtrl guest** tile that started or shut down one guest. The **Widgets and Quick Settings** section in Settings, with *Guest for the Quick Settings tile*, is removed with them.
+- **Their background work and saved data:** the 15-minute widget refresh no longer runs, and what the widgets and tiles kept on the phone (the node's last known state, the guests you pinned, the tile's guest) is deleted the first time the updated app starts. Background checks for notifications are not affected.
+- **Smaller app:** the widget library (Jetpack Glance) is no longer part of ProxCtrl.
+- **Background checks while locked** now only covers notifications. When you turn the app lock on, it starts on only if you use notifications (before, also when a widget was on your home screen).
+
 ## v1.5.0 (2026-11-13)
 
 A Quick Settings tile for one guest, and clearer, safer snapshots.

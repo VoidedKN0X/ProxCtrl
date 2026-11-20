@@ -21,7 +21,7 @@ Only the latest release gets security fixes. Please update before reporting, and
 - ProxCtrl accepting a certificate you didn't trust, or a changed certificate, or sending anything over plain HTTP that you didn't allow
 - A change to your server (power actions, snapshots, backups, restores, consoles, deletions) happening without your confirmation, in read-only mode, or while the app lock should block it
 - Ways around the app lock, or protected screens (sign-in, consoles, PIN screens) showing up in screenshots when they shouldn't
-- Another app on the phone being able to make ProxCtrl do something you didn't ask for (links, widgets, shared files, push messages)
+- Another app on the phone being able to make ProxCtrl do something you didn't ask for (links, shared files, push messages)
 - Anything that lets someone run code or read files they shouldn't
 
 Problems in Proxmox VE itself should go to that project.

@@ -11,7 +11,6 @@ import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
@@ -49,7 +48,7 @@ import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import kotlinx.coroutines.launch
 
-/** App settings (Ctrl / Signal is dark only, so there is no appearance section): notifications, privacy and security (app lock), warning thresholds and widgets. */
+/** App settings (Ctrl / Signal is dark only, so there is no appearance section): notifications, privacy and security (app lock), and warning thresholds. */
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
@@ -164,14 +163,6 @@ fun SettingsScreen() {
                     settings.backupMaxAgeDays,
                     icon = Icons.Outlined.Backup,
                 ) { d -> c.appScope.launch { c.settings.update { it.copy(backupMaxAgeDays = d) } } }
-            }
-            Group(stringResource(R.string.widget_settings_group), footer = stringResource(R.string.guest_tile_setting_footer)) {
-                GroupRow(
-                    stringResource(R.string.widget_settings_title),
-                    stringResource(R.string.widget_settings_subtitle),
-                    icon = Icons.Outlined.Widgets,
-                )
-                GuestTileSetting()
             }
         }
     }

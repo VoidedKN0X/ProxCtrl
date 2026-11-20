@@ -16,14 +16,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import com.vknxworks.proxctrl.data.lock.AppLock
-import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.ui.lock.LockOverlays
 import com.vknxworks.proxctrl.ui.lock.LockScreen
-import com.vknxworks.proxctrl.ui.widgets.WidgetActionConfirm
-import com.vknxworks.proxctrl.ui.widgets.WidgetActions
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,14 +45,6 @@ class MainActivity : FragmentActivity() {
         if (savedInstanceState == null) handleLink(intent)
         val c = container
         AppLock.attach(this, c)
-        // Widgets show fresh data after the app was opened, and their refresh keeps running.
-        lifecycleScope.launch {
-            // Never worth a crash at start-up: the widgets' own refresh tries again.
-            runCatching {
-                WidgetRefresher.schedule(applicationContext)
-                if (WidgetRefresher.anyWidgets(applicationContext)) WidgetRefresher.refreshSoon(applicationContext)
-            }
-        }
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
             val lock by AppLock.state.collectAsStateWithLifecycle()
@@ -103,8 +90,6 @@ class MainActivity : FragmentActivity() {
                                 Modifier.fillMaxSize()
                             },
                         ) { AppRoot() }
-                        // A widget's Start / Shut down button, waiting for confirmation.
-                        if (lock == AppLock.State.UNLOCKED) WidgetActionConfirm()
                     }
                     CompositionLocalProvider(LocalAppCovered provides closing) {
                         if (lock == AppLock.State.UNLOCKED) {
@@ -132,6 +117,5 @@ class MainActivity : FragmentActivity() {
      */
     private fun handleLink(intent: Intent?) {
         runCatching { DeepLinks.handle(intent?.data) }
-        runCatching { WidgetActions.handle(this, intent) }
     }
 }

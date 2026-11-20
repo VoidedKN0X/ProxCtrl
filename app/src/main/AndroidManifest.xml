@@ -52,11 +52,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="proxctrl" android:host="guest" />
             </intent-filter>
-            <!-- Long-pressing a Quick Settings tile opens ProxCtrl: the guest tile's setting, or the Overview. -->
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
 
         <!-- Proxmox's notifications, handed over by ntfy. Exported because ntfy is another app; every broadcast
@@ -80,73 +75,6 @@
             <intent-filter>
                 <action android:name="org.unifiedpush.android.connector.RAISE_TO_FOREGROUND" />
             </intent-filter>
-        </service>
-
-        <!-- Home-screen widgets (Glance). Not exported: only the system's widget service sends them updates,
-             and it reaches non-exported receivers. Other apps can't trigger refreshes. -->
-        <receiver
-            android:name=".ui.widgets.NodeStatusWidgetReceiver"
-            android:exported="false"
-            android:label="@string/widget_node_label">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_node_status_info" />
-        </receiver>
-        <receiver
-            android:name=".ui.widgets.PinnedGuestsWidgetReceiver"
-            android:exported="false"
-            android:label="@string/widget_pinned_label">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_pinned_guests_info" />
-        </receiver>
-        <activity
-            android:name=".ui.widgets.PinnedGuestsConfigActivity"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:taskAffinity=""
-            android:theme="@style/Theme.ProxCtrl">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
-
-        <!-- Quick Settings tile: node health; tap opens the Overview. -->
-        <service
-            android:name=".ui.widgets.HealthTileService"
-            android:exported="true"
-            android:icon="@drawable/ic_notification"
-            android:label="@string/tile_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.service.quicksettings.ACTIVE_TILE"
-                android:value="false" />
-        </service>
-
-        <!-- Quick Settings tile for one guest picked in Settings: running or stopped, tap to start or (after a
-             confirmation) shut down; every action needs the phone unlocked. Exported because only System UI can
-             bind to it (BIND_QUICK_SETTINGS_TILE). -->
-        <service
-            android:name=".ui.widgets.GuestTileService"
-            android:exported="true"
-            android:icon="@drawable/ic_tile_guest"
-            android:label="@string/guest_tile_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
-                android:value="true" />
         </service>
 
         <!-- "Share" an ISO or IMG file to ProxCtrl to upload it to an ISO storage. -->

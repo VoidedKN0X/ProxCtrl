@@ -17,6 +17,18 @@ class ProxCtrlApp : Application() {
         container = AppContainer(this)
         Notifier.createChannels(this)
         val c = container
+        // The home-screen widgets and Quick Settings tiles were removed: stop their background refresh
+        // and delete what they kept on the phone (last node state, pinned guests, the tile's guest).
+        c.appScope.launch {
+            runCatching {
+                val wm = androidx.work.WorkManager.getInstance(this@ProxCtrlApp)
+                wm.cancelUniqueWork("proxctrl-widgets")
+                wm.cancelUniqueWork("proxctrl-widgets-now")
+            }
+            runCatching { java.io.File(noBackupFilesDir, "widgets").deleteRecursively() }
+            runCatching { deleteSharedPreferences("guest_tile") }
+            runCatching { deleteSharedPreferences("widget_internal") }
+        }
         c.appScope.launch {
             // Keep the background check and the registration with ntfy in line with the settings.
             val first = c.notifySettings.current()

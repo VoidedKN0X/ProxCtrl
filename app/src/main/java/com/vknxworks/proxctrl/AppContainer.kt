@@ -6,8 +6,6 @@ import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.data.lock.LockPrefs
 import com.vknxworks.proxctrl.data.lock.LockVault
 import com.vknxworks.proxctrl.data.notify.CheckStore
-import com.vknxworks.proxctrl.data.widgets.GuestTileStore
-import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.data.notify.NotifySettingsRepository
 import com.vknxworks.proxctrl.data.overview.OverviewRepository
 import com.vknxworks.proxctrl.data.server.CleartextPolicy
@@ -26,7 +24,7 @@ import java.util.concurrent.TimeUnit
 /** Manual dependency container; one per process. */
 class AppContainer(val context: Context) {
     /**
-     * Work that outlives a screen (saving settings, refreshes, push, widgets). A failure in one of these
+     * Work that outlives a screen (saving settings, refreshes, push). A failure in one of these
      * (a server that went away, storage that can't be read right now) must never take the app down, also
      * not while it's closing: the next refresh tries again.
      */
@@ -66,13 +64,13 @@ class AppContainer(val context: Context) {
     /** Server logins are sealed with the app PIN: the lock is on and background checks are off. */
     fun sealing(): Boolean = vault.enabled && !lockPrefs.backgroundChecks
 
-    /** Background work (notifications, widgets, tile) can't read the logins right now. */
+    /** Background work (notifications) can't read the logins right now. */
     fun backgroundBlocked(): Boolean = sealing() && !vault.isOpen
 
     val serverStore = ServerStore(context, vault, ::sealing)
     val sessions = Sessions(serverStore, http, appScope, initiallyLocked = sealing())
 
-    /** Turns the app lock on with [pin]. [backgroundChecks]: keep notifications and widgets working while locked. */
+    /** Turns the app lock on with [pin]. [backgroundChecks]: keep notifications working while locked. */
     suspend fun enableLock(pin: String, backgroundChecks: Boolean) {
         // Unlocked first, so the lock screen doesn't flash up while the PIN is being saved.
         AppLock.markUnlocked()
@@ -108,23 +106,17 @@ class AppContainer(val context: Context) {
             serverStore.servers.value.forEach { CheckStore.forget(context, it.id) }
             serverStore.removeAll()
         }
-        guestTile.set(null)
         AppLock.markUnlocked()
         settings.update { it.copy(lockOnOpen = false, lockChanges = false) }
         vault.disable()
         lockPrefs.backgroundChecks = false
         sessions.setLocked(false)
-        WidgetRefresher.refreshSoon(context)
     }
 
     /** Locked: wipe the key from memory and drop the clients that hold the logins. */
     fun onLocked() {
         vault.close()
-        if (sealing()) {
-            sessions.setLocked(true)
-            // The widgets and the tile now only say that ProxCtrl is locked.
-            appScope.launch { runCatching { WidgetRefresher.redraw(context) } }
-        }
+        if (sealing()) sessions.setLocked(true)
     }
 
     fun onUnlocked() {
@@ -132,20 +124,10 @@ class AppContainer(val context: Context) {
         sessions.setLocked(false)
         // Seal any login left unsealed (ProxCtrl stopped between setting up the lock and sealing them).
         if (vault.enabled) appScope.launch(Dispatchers.Default) { runCatching { serverStore.resealAll(sealing()) } }
-        // Widgets that said "locked" show the server again.
-        if (sealing()) {
-            appScope.launch {
-                runCatching { WidgetRefresher.redraw(context) }
-                if (runCatching { WidgetRefresher.anyWidgets(context) }.getOrDefault(false)) WidgetRefresher.refreshSoon(context)
-            }
-        }
     }
     val guests = GuestRepository(context, sessions, appScope)
     val overview = OverviewRepository(context, sessions, guests, appScope)
     val notifySettings = NotifySettingsRepository(context, appScope)
-
-    /** The guest the Quick Settings guest tile controls. */
-    val guestTile = GuestTileStore(context)
 }
 
 val Context.container: AppContainer

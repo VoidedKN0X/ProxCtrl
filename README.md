@@ -22,7 +22,6 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Storage**: storages and their content, backup deletion, ISO upload (also from the share menu), container templates, disks with SMART health, ZFS pools, LVM and backup jobs
 - **Tasks** with live logs, history filters and Stop
 - **Node**: status and graphs, services, updates with changelogs, network and SDN, reboot and shutdown, Wake-on-LAN
-- **Widgets** for the node and pinned guests, and two Quick Settings tiles: node health, and **one guest** of your choice that shows live whether it runs and starts it or (after a confirmation) shuts it down, with your phone unlocked first
 - **App lock** with its own PIN and optional fingerprint, on opening and before changes; your server logins can be encrypted with the PIN while locked
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
@@ -68,14 +67,14 @@ If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X
 | Permission | What it's for |
 | --- | --- |
 | Internet (`INTERNET`) | Talking to your own Proxmox servers, and sending Wake-on-LAN packets on your network |
-| Network state (`ACCESS_NETWORK_STATE`) | Running background checks and widget refreshes only when the phone has a connection |
+| Network state (`ACCESS_NETWORK_STATE`) | Running background checks only when the phone has a connection |
 | Notifications (`POST_NOTIFICATIONS`) | Showing alerts from background checks and push from ntfy; Android asks you first |
 | Biometrics (`USE_BIOMETRIC`) | Unlocking the optional app lock with your fingerprint |
 | Hide other apps' floating windows (`HIDE_OVERLAY_WINDOWS`) | Hiding other apps' floating windows (chat heads, overlays) over the PIN screen, **Confirm changes**, sign-in and confirmations such as shut down or delete, so nothing can cover them. No prompt, and nothing changes on other screens |
-| Prevent phone from sleeping (`WAKE_LOCK`) | Keeping the phone awake for the few seconds a background check or widget refresh runs |
-| Run at startup (`RECEIVE_BOOT_COMPLETED`) | Setting background checks and widget refreshes up again after the phone restarts (nothing runs if they're off) |
+| Prevent phone from sleeping (`WAKE_LOCK`) | Keeping the phone awake for the few seconds a background check runs |
+| Run at startup (`RECEIVE_BOOT_COMPLETED`) | Setting background checks up again after the phone restarts (nothing runs if they're off) |
 
-The last two come with Android's background-work library, which runs the background checks and widget refreshes. Android also lists a permission named after ProxCtrl itself (`DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`): it only lets ProxCtrl's own parts talk to each other, and no other app can hold it.
+The last two come with Android's background-work library, which runs the background checks. Android also lists a permission named after ProxCtrl itself (`DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`): it only lets ProxCtrl's own parts talk to each other, and no other app can hold it.
 
 ProxCtrl never reads your contacts, location, files or Wi-Fi name. A file only reaches it when you pick or share an ISO image yourself. See [Privacy](#privacy) for what it sends and where.
 
@@ -280,14 +279,6 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Wake-on-LAN**: enter the node's MAC address (and, if needed, your network's broadcast address and port) from the menu on the Node tab, and ProxCtrl can turn the node back on. When the node can't be reached, the Node tab offers to wake it. The packet is sent from your phone, so your phone has to be on the same network as the node, and Wake-on-LAN must be turned on in the node's firmware and network card. ProxCtrl never looks at your Wi-Fi name or location.
 - Services, updates and changelogs need `Sys.Modify` on the node (see step 3 of the API token setup), and reboot and shutdown need `Sys.PowerMgmt`.
 
-## Widgets and Quick Settings tile
-
-- **Node status widget**: the node's health (all good, things to look at, or offline), CPU, RAM, root disk and uptime, and when it was last updated. Tap it to open the Overview.
-- **Pinned guests widget**: pick the guests it shows when you add it (tap its title to change them). Each shows a status dot and a **Start** or **Shut down** button. The buttons never act from the home screen: they open ProxCtrl and ask you to confirm first.
-- Widgets show the active server. They refresh about every 15 minutes (Android's minimum, with a network connection) and whenever you open ProxCtrl. When the server can't be reached they keep the last known state, marked as not updated. With the app lock on and *Background checks while locked* off, they only say "ProxCtrl is locked" until you unlock it.
-- **Quick Settings tile**: the node's name, health and CPU / RAM. It's lit when all is good. Tap it to open the Overview. Add it from the Quick Settings editor.
-- **Guest tile** (**ProxCtrl guest** in the Quick Settings editor): pick its guest under **Settings › Widgets and Quick Settings › Guest for the Quick Settings tile** (with several servers, pick the server first; the tile stays on that server). While the panel is open it shows live whether the guest is running (lit) or stopped, and counts the task through when you act. Tap it to start a stopped guest, or to shut down a running one cleanly after a confirmation. Every action needs your phone unlocked first. A paused or locked guest, a template or a read-only server only opens ProxCtrl. It needs `VM.PowerMgmt` on the guest; without it the tile says "Not allowed for this sign-in". With **Confirm changes** on, a tap opens ProxCtrl's own question, which then asks for your fingerprint or PIN. Long-press either tile to open ProxCtrl.
-
 ## App lock
 
 Turn it on under **Settings › Privacy and security › App lock** (tap your profile picture, then **Settings**). It's off until you turn it on.
@@ -299,7 +290,7 @@ Turn it on under **Settings › Privacy and security › App lock** (tap your pr
 - **Lock again:** as soon as you leave the app (the default), after 1, 5 or 15 minutes or 1 hour away, or only when the app restarts. Picking a file, opening a link in your browser or Android's settings don't count as leaving, unless you stay away for more than 5 minutes.
 - **Change app PIN** asks for your current PIN first, and turning the app lock off asks for the PIN too.
 - **Confirm changes** (ProxCtrl only) asks for your fingerprint or PIN before anything that changes a server: power actions, snapshots, backups, consoles and edits. One confirmation covers the next minute, until ProxCtrl locks again.
-- **Background checks while locked:** on, notifications, widgets and the Quick Settings tile keep checking your servers while ProxCtrl is locked, so your logins are only encrypted with the Android Keystore (as without the app lock). Off (most secure), your logins are also encrypted with the PIN, and background checks wait until you unlock; while ProxCtrl is locked, the widgets and the tile only say "ProxCtrl is locked" instead of showing your guests or the node's last known state. It starts on when you already use notifications or widgets, so turning the lock on never silently stops them.
+- **Background checks while locked:** on, notifications keep checking your servers while ProxCtrl is locked, so your logins are only encrypted with the Android Keystore (as without the app lock). Off (most secure), your logins are also encrypted with the PIN, and background checks wait until you unlock. It starts on when you already use notifications, so turning the lock on never silently stops them.
 - **Forgot your PIN?** It can't be recovered. The lock screen offers to remove every server from this phone and turn the app lock off; nothing changes on your Proxmox servers.
 - **Open consoles stay connected behind the lock** but take no typing from the phone keyboard or a hardware or Bluetooth keyboard until you unlock; then you carry on where you were.
 - **Sharing an ISO to ProxCtrl** asks for the PIN first, and the lock screen and every PIN screen are always kept out of screenshots.

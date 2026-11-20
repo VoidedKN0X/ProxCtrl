@@ -11,8 +11,6 @@ import com.vknxworks.proxctrl.data.guests.power
 import com.vknxworks.proxctrl.data.server.AuthMethod
 import com.vknxworks.proxctrl.data.server.Server
 import com.vknxworks.proxctrl.data.server.ServerSecrets
-import com.vknxworks.proxctrl.data.widgets.GuestTileLogic
-import com.vknxworks.proxctrl.data.widgets.GuestTileTarget
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
@@ -29,7 +27,7 @@ import org.junit.Assert.fail
 import org.junit.Test
 
 /**
- * The requests the snapshot screen and the guest tile send, against a fake Proxmox VE: an OkHttp
+ * The requests the snapshot screen sends, against a fake Proxmox VE: an OkHttp
  * interceptor that records each request and answers with recorded responses. Nothing leaves the computer.
  */
 class ApiRequestsTest {
@@ -135,50 +133,4 @@ class ApiRequestsTest {
           {"id":"qemu/400","type":"qemu","vmid":400,"name":"paused","node":"pve","status":"running"}
         ]}
     """.trimIndent()
-
-    @Test
-    fun guestTileFindsItsGuestAndActs() = runBlocking {
-        val fake = Fake { r ->
-            if (r.url.encodedPath.endsWith("/cluster/resources")) 200 to resources else 200 to """{"data":$upid}"""
-        }
-        val api = client(fake)
-        val data = api.get(GuestTileLogic.RESOURCES_PATH, GuestTileLogic.RESOURCES_QUERY)
-        assertEquals("type=vm", fake.requests[0].first.url.encodedQuery)
-
-        // Found by type and ID, wherever it runs now (moved to node pve2).
-        val web = GuestTileLogic.find(data, GuestTileTarget("s1", "qemu", 101, "web"))!!
-        assertEquals("pve2", web.node)
-        assertEquals(PowerAction.SHUTDOWN, GuestTileLogic.tapAction(web))
-        val dns = GuestTileLogic.find(data, GuestTileTarget("s1", "lxc", 200))!!
-        assertEquals(PowerAction.START, GuestTileLogic.tapAction(dns))
-        // A guest locked by a backup or a template: no action from the tile.
-        assertNull(GuestTileLogic.tapAction(GuestTileLogic.find(data, GuestTileTarget("s1", "qemu", 300))))
-        assertNull(GuestTileLogic.tapAction(GuestTileLogic.find(data, GuestTileTarget("s1", "qemu", 9000))))
-        assertNull(GuestTileLogic.find(data, GuestTileTarget("s1", "qemu", 999)))
-        assertNull(GuestTileLogic.tapAction(null))
-        // The picker leaves templates out.
-        assertEquals(listOf(101, 101, 200, 300, 400), GuestTileLogic.pickable(data).map { it.vmid })
-
-        // Start and the graceful shut-down, on the node the guest is on, without parameters.
-        assertEquals("/nodes/pve2/qemu/101/status/shutdown", GuestTileLogic.powerPath(web, PowerAction.SHUTDOWN))
-        val shut = api.power(web, PowerAction.SHUTDOWN)
-        assertNull(shut.error)
-        assertTrue(shut.upid!!.startsWith("UPID:pve:"))
-        api.power(dns, PowerAction.START)
-        val (s, sBody) = fake.requests[1]
-        assertEquals("POST", s.method)
-        assertEquals("/api2/json/nodes/pve2/qemu/101/status/shutdown", s.url.encodedPath)
-        assertEquals("", sBody)
-        assertEquals("/api2/json/nodes/pve/lxc/200/status/start", fake.requests[2].first.url.encodedPath)
-    }
-
-    @Test
-    fun guestTileTargetRoundTrip() {
-        val t = GuestTileTarget("server-uuid", "lxc", 200, "dns")
-        val json = PveJson.encodeToString(GuestTileTarget.serializer(), t)
-        assertEquals(t, PveJson.decodeFromString(GuestTileTarget.serializer(), json))
-        assertEquals(GuestType.LXC, t.guestType)
-        // Unknown types fall back to a VM rather than failing.
-        assertEquals(GuestType.QEMU, GuestTileTarget("s", "weird", 1).guestType)
-    }
 }

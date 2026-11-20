@@ -78,14 +78,14 @@ object Notifier {
         val redacted = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_notification)
             // Signal accent (a colour resource, so it follows the phone's light or dark theme).
-            .setColor(androidx.core.content.ContextCompat.getColor(context, R.color.signal_widget_accent_text))
+            .setColor(androidx.core.content.ContextCompat.getColor(context, R.color.signal_accent_text))
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(context.getString(R.string.nt_public_text))
             .build()
         val n = NotificationCompat.Builder(context, channel)
             .setSmallIcon(R.drawable.ic_notification)
             // Signal accent (a colour resource, so it follows the phone's light or dark theme).
-            .setColor(androidx.core.content.ContextCompat.getColor(context, R.color.signal_widget_accent_text))
+            .setColor(androidx.core.content.ContextCompat.getColor(context, R.color.signal_accent_text))
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setPublicVersion(redacted)
             .setContentTitle(alert.title)

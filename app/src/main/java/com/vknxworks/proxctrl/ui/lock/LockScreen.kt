@@ -76,7 +76,6 @@ import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.data.lock.LockVault
 import com.vknxworks.proxctrl.data.lock.PinRequest
-import com.vknxworks.proxctrl.data.widgets.WidgetRefresher
 import com.vknxworks.proxctrl.ui.components.ConfirmDialog
 import com.vknxworks.proxctrl.ui.components.ShieldScreen
 import kotlinx.coroutines.Dispatchers
@@ -167,10 +166,10 @@ private suspend fun awaitOnScreen(lifecycle: Lifecycle, windowInfo: WindowInfo) 
     snapshotFlow { windowInfo.isWindowFocused }.first { it }
 }
 
-/** Background checks stay on when they're in use (notifications or widgets), so turning the lock on doesn't silently stop them. */
+/** Background checks stay on when they're in use (notifications), so turning the lock on doesn't silently stop them. */
 private suspend fun defaultBackgroundChecks(c: AppContainer): Boolean {
     val n = c.notifySettings.current()
-    return n.polling || n.push || WidgetRefresher.anyWidgets(c.context)
+    return n.polling || n.push
 }
 
 @Composable
