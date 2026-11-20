@@ -4,6 +4,7 @@ import android.app.Application
 import com.vknxworks.proxctrl.data.notify.Notifier
 import com.vknxworks.proxctrl.data.notify.NotifyWorker
 import com.vknxworks.proxctrl.data.notify.Push
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -29,6 +30,8 @@ class ProxCtrlApp : Application() {
             runCatching { deleteSharedPreferences("guest_tile") }
             runCatching { deleteSharedPreferences("widget_internal") }
         }
+        // Encryption at rest: seal the offline copies and check notes that were saved before it existed.
+        c.appScope.launch(Dispatchers.IO) { runCatching { c.sealStoredFiles() } }
         c.appScope.launch {
             // Keep the background check and the registration with ntfy in line with the settings.
             val first = c.notifySettings.current()

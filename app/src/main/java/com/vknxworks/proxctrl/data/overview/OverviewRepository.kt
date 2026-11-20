@@ -4,6 +4,7 @@ import android.content.Context
 import com.vknxworks.proxctrl.data.api.PveClient
 import com.vknxworks.proxctrl.data.api.PveError
 import com.vknxworks.proxctrl.data.api.PveJson
+import com.vknxworks.proxctrl.data.crypto.SealedCache
 import com.vknxworks.proxctrl.data.guests.GuestApi
 import com.vknxworks.proxctrl.data.guests.GuestConfig
 import com.vknxworks.proxctrl.data.guests.GuestRepository
@@ -67,6 +68,7 @@ class OverviewRepository(
     private val sessions: Sessions,
     private val guests: GuestRepository,
     private val scope: CoroutineScope,
+    private val cache: SealedCache,
 ) {
     private val _state = MutableStateFlow(OverviewState())
     val state: StateFlow<OverviewState> = _state.asStateFlow()
@@ -271,24 +273,16 @@ class OverviewRepository(
     private fun cacheFile(serverId: String) = File(File(context.noBackupFilesDir, "cache").apply { mkdirs() }, "overview-$serverId.json")
 
     private suspend fun readCache(serverId: String): OverviewCache? = withContext(Dispatchers.IO) {
-        runCatching { PveJson.decodeFromString(OverviewCache.serializer(), cacheFile(serverId).readText()) }.getOrNull()
+        runCatching { cache.readText(cacheFile(serverId))?.let { PveJson.decodeFromString(OverviewCache.serializer(), it) } }.getOrNull()
     }
 
-    /** Written to a temporary file first and then moved in place, so a write that's cut short never leaves half a file. */
-    private suspend fun writeCache(serverId: String, cache: OverviewCache) = withContext(Dispatchers.IO) {
-        runCatching {
-            val file = cacheFile(serverId)
-            val tmp = File(file.parentFile, file.name + ".tmp")
-            tmp.writeText(PveJson.encodeToString(OverviewCache.serializer(), cache))
-            if (!tmp.renameTo(file)) {
-                tmp.copyTo(file, overwrite = true)
-                tmp.delete()
-            }
-        }
+    /** Sealed, written to a temporary file first and then moved in place ([SealedCache.writeText]). */
+    private suspend fun writeCache(serverId: String, snapshot: OverviewCache) = withContext(Dispatchers.IO) {
+        runCatching { cache.writeText(cacheFile(serverId), PveJson.encodeToString(OverviewCache.serializer(), snapshot)) }
     }
 
     fun forget(serverId: String) {
-        runCatching { cacheFile(serverId).delete() }
+        runCatching { cache.delete(cacheFile(serverId)) }
     }
 
     private companion object {

@@ -1,6 +1,9 @@
 package com.vknxworks.proxctrl
 
 import android.content.Context
+import com.vknxworks.proxctrl.data.crypto.DataKeyStore
+import com.vknxworks.proxctrl.data.crypto.KeystoreWrapper
+import com.vknxworks.proxctrl.data.crypto.SealedCache
 import com.vknxworks.proxctrl.data.guests.GuestRepository
 import com.vknxworks.proxctrl.data.lock.AppLock
 import com.vknxworks.proxctrl.data.lock.LockPrefs
@@ -19,6 +22,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 /** Manual dependency container; one per process. */
@@ -125,9 +129,27 @@ class AppContainer(val context: Context) {
         // Seal any login left unsealed (ProxCtrl stopped between setting up the lock and sealing them).
         if (vault.enabled) appScope.launch(Dispatchers.Default) { runCatching { serverStore.resealAll(sealing()) } }
     }
-    val guests = GuestRepository(context, sessions, appScope)
-    val overview = OverviewRepository(context, sessions, guests, appScope)
+
+    /**
+     * Encryption at rest for the offline copies (guest list, Overview) and the background checks' notes.
+     * Its own data key in `data.key`, wrapped by its own Keystore key: nothing to do with the app lock or
+     * with the key of the saved logins. Nothing is read here; the Keystore is first asked on a background
+     * thread, when a file is read or saved.
+     */
+    val sealedCache = SealedCache { DataKeyStore(context.filesDir, KeystoreWrapper(DATA_KEY_ALIAS)) }
+
+    /** Seals the copies and notes saved before encryption (and those of servers that aren't open). Slow: off the main thread. */
+    fun sealStoredFiles() {
+        sealedCache.sealAll(listOf(File(context.noBackupFilesDir, "cache"), File(context.noBackupFilesDir, "notify")))
+    }
+
+    val guests = GuestRepository(context, sessions, appScope, sealedCache)
+    val overview = OverviewRepository(context, sessions, guests, appScope, sealedCache)
     val notifySettings = NotifySettingsRepository(context, appScope)
+
+    private companion object {
+        const val DATA_KEY_ALIAS = "proxctrl_data_at_rest"
+    }
 }
 
 val Context.container: AppContainer

@@ -10,6 +10,15 @@ Android app for managing a Proxmox VE 8/9 server. Part of the VKNXWorks Ctrl ser
 - Check Proxmox endpoints and privileges against the Proxmox source or API viewer; never guess field names. Parse API responses leniently (missing fields must never crash).
 - Test write actions on a throwaway container, never on TrueNAS (103), HAOS (106) or Vaultwarden.
 
+## Encryption at rest
+
+- `noBackupFilesDir/cache/guests-<id>.json`, `cache/overview-<id>.json` and `notify/<id>.json` are sealed with AES-256-GCM (`data/crypto/SealedFile`, marker `PROXCTRL-REST1`) under the data key (`DataKeyStore`: 32 random bytes in `filesDir/data.key`, wrapped by the Keystore key `proxctrl_data_at_rest` through `KeystoreWrapper`/`KeystoreAes`; no user authentication, so background checks work while locked). It is separate from the app lock vault and from `proxctrl_secrets`; never touch those for this.
+- All of these are caches the app can make again, so they go through `data/crypto/SealedCache` (the simple tier): reads accept sealed and ordinary files; writes seal when there is a data key and write an ordinary file when there isn't; a sealed file that can't be opened is a cache miss and is deleted. Never put anything the user typed in, or anything that can't be fetched again, through `SealedCache`: that needs the full treatment (block writes, keep the file, tell the user), as in RideCtrl.
+- An ordinary file only becomes a sealed one through `SealedFile.sealInPlace` (temp file, sync, read back, compare, atomic rename); `AppContainer.sealStoredFiles()` runs that over `cache/` and `notify/` at every start, on a background thread. Never replace an existing `data.key`, and never create a Keystore key on the decrypt path (`KeystoreAes.existing`).
+- Keystore work stays off the main thread: `SealedCache.readText`/`writeText`/`sealAll` are only called from `Dispatchers.IO`; `delete` doesn't touch the Keystore and may run anywhere.
+- Not sealed on purpose: the `servers` preferences (server list, read synchronously at start), the push registration preferences (read on the main thread in the push receiver), plain settings, and WorkManager's database. See the changelog entry for the reasons.
+- `SealedFileTest` covers the format, the migration step, the key rules and `SealedCache` (`./gradlew :app:testDebugUnitTest`; CI doesn't run unit tests).
+
 ## Dependency verification
 
 Gradle checks every library and plugin download against its SHA-256 in `gradle/verification-metadata.xml` (checksums only, no PGP). When a dependency or plugin changes, run the `verification-metadata.yml` workflow (`gh api -X POST repos/VoidedKN0X/ProxCtrl/actions/workflows/verification-metadata.yml/dispatches -f ref=main`), decode the file from its log, check the diff (only Maven Central, Google's Maven and the Gradle plugin portal) and commit it in the same push. Never turn verification off or make it lenient.

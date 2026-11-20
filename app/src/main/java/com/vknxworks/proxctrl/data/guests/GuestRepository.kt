@@ -3,6 +3,7 @@ package com.vknxworks.proxctrl.data.guests
 import android.content.Context
 import com.vknxworks.proxctrl.data.api.PveError
 import com.vknxworks.proxctrl.data.api.PveJson
+import com.vknxworks.proxctrl.data.crypto.SealedCache
 import com.vknxworks.proxctrl.data.server.ActiveServer
 import com.vknxworks.proxctrl.data.server.Sessions
 import kotlinx.coroutines.CoroutineScope
@@ -44,13 +45,14 @@ private data class GuestCache(val updatedAt: Long, val guests: List<Guest>)
 
 /**
  * Loads all guests with one call (GET /cluster/resources?type=vm), never one call per guest.
- * The last good list is kept on disk per server, so the app shows it straight away (marked stale)
- * when the server can't be reached. VM disk use comes from the guest agent on a slower cycle.
+ * The last good list is kept on disk per server (encrypted, see [SealedCache]), so the app shows it straight
+ * away (marked stale) when the server can't be reached. VM disk use comes from the guest agent on a slower cycle.
  */
 class GuestRepository(
     private val context: Context,
     private val sessions: Sessions,
     private val scope: CoroutineScope,
+    private val cache: SealedCache,
 ) {
     private val _state = MutableStateFlow(GuestsState())
     val state: StateFlow<GuestsState> = _state.asStateFlow()
@@ -161,25 +163,17 @@ class GuestRepository(
     private fun cacheFile(serverId: String) = File(File(context.noBackupFilesDir, "cache").apply { mkdirs() }, "guests-$serverId.json")
 
     private suspend fun readCache(serverId: String): GuestCache? = withContext(Dispatchers.IO) {
-        runCatching { PveJson.decodeFromString(GuestCache.serializer(), cacheFile(serverId).readText()) }.getOrNull()
+        runCatching { cache.readText(cacheFile(serverId))?.let { PveJson.decodeFromString(GuestCache.serializer(), it) } }.getOrNull()
     }
 
-    /** Written to a temporary file first and then moved in place, so a write that's cut short never leaves half a file. */
-    private suspend fun writeCache(serverId: String, cache: GuestCache) = withContext(Dispatchers.IO) {
-        runCatching {
-            val file = cacheFile(serverId)
-            val tmp = File(file.parentFile, file.name + ".tmp")
-            tmp.writeText(PveJson.encodeToString(GuestCache.serializer(), cache))
-            if (!tmp.renameTo(file)) {
-                tmp.copyTo(file, overwrite = true)
-                tmp.delete()
-            }
-        }
+    /** Sealed, written to a temporary file first and then moved in place ([SealedCache.writeText]). */
+    private suspend fun writeCache(serverId: String, snapshot: GuestCache) = withContext(Dispatchers.IO) {
+        runCatching { cache.writeText(cacheFile(serverId), PveJson.encodeToString(GuestCache.serializer(), snapshot)) }
     }
 
     /** Forgets the cached list of a removed server. */
     fun forget(serverId: String) {
-        runCatching { cacheFile(serverId).delete() }
+        runCatching { cache.delete(cacheFile(serverId)) }
     }
 
     companion object {

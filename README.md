@@ -323,6 +323,7 @@ While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation suc
 - **Links:** the Support, Report a bug, Source code and Licence rows in About open in your browser; the app itself doesn't contact GitHub.
 - **Notifications** on the lock screen hide guest and node details when you hide sensitive notification content in Android's settings.
 - **No backups:** Android doesn't back up ProxCtrl's data or move it to a new phone.
+- **Encrypted on the phone:** besides your logins, the offline copies of the guest list and the Overview and the background check's notes are stored encrypted (AES-256-GCM, with a key protected by the phone's secure hardware). This protects those files when they're copied off the phone, not against something that controls the running app. The list of servers (names and addresses), the push address, Wake-on-LAN settings and other settings are ordinary settings files in the app's private storage.
 - **No update check:** ProxCtrl never checks for its own updates; Obtainium or the F-Droid client does that if you use one. (The **Updates available** notification is about your Proxmox node's packages, read from your own server.)
 
 **Google-free.** No Google Play services, Firebase or other Google libraries, and nothing ever goes to Google. Every build checks its dependencies for them, and release builds write nothing about you to the phone's log.
