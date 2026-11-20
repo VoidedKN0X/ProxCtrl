@@ -98,7 +98,9 @@ class GuestRepository(
         val active = sessions.active.value ?: return
         refreshLock.withLock {
             if (_state.value.serverId != active.server.id) return
-            _state.value = _state.value.copy(loading = true)
+            // Only while there is no list to show yet: a refresh of a list that is already on screen (the
+            // 5-second poll) would otherwise publish the state twice, and nothing reads the flag meanwhile.
+            if (_state.value.guests.isEmpty()) _state.value = _state.value.copy(loading = true)
             try {
                 val resources = active.client.get("/cluster/resources", ListSerializer(ClusterResource.serializer()), mapOf("type" to "vm"))
                 val guests = resources.mapNotNull(Guest::from).sortedBy { it.vmid }
