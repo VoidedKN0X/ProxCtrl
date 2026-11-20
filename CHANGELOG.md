@@ -4,6 +4,14 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+Built and checked by CI only: nothing here had been run on a phone when it was pushed. No version bump, so this is not a release yet.
+
+### Performance
+
+- **Task log without line wrapping no longer draws the whole log at once.** With wrapping turned off, every line of the log (up to 50,000 for a big backup) was laid out in one block as soon as the task opened, which could freeze the screen for long logs. Each line is now its own row, as it already was with wrapping on, so only the lines on screen are drawn. The lines still scroll sideways together: the longest line is measured once to know how wide the log is, and every row is laid out that wide.
+  - **What can look or behave differently:** with wrapping off, a running task now follows new lines at the end of the log the same way as with wrapping on (before, it jumped back to the start of the log at each new line), and the jump-to-end button now appears when you scroll up (before, it never showed without wrapping). A sideways fling stops if the line you flung on scrolls off the screen. If a line contains characters wider than the rest (the log font has no glyph for them), the log can get a little wider when that line first comes on screen.
 ## v1.7.0 (2026-11-20)
 
 **This release encrypts some of what the app stores on the phone. An older version cannot read it afterwards, so export or back up anything you need before you update (details below).** Built and checked by CI only: nothing in this release had been run on a phone when it was published.

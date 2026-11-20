@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.automirrored.outlined.WrapText
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
@@ -36,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,9 +46,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -134,8 +141,8 @@ fun TaskDetailScreen(upid: String) {
             entry = runCatching { TaskList.find(cl, upid) }.getOrNull() ?: entry
         }
         if (follow && lines.size > before) {
-            // Item 0 is the summary; with wrapping each line is its own item, without it one block.
-            listState.scrollToItem(if (wrap) lines.size else 1)
+            // Item 0 is the summary; every line is its own item after it, wrapped or not.
+            listState.scrollToItem(lines.size)
         }
         error = null
         true
@@ -159,6 +166,18 @@ fun TaskDetailScreen(upid: String) {
     val authId = server?.authId.orEmpty()
     val owned = entry?.isOwnedBy(authId) ?: (decoded?.user?.let { it == authId || authId.substringBefore('!') == it } == true)
     val canStop = running == true && server?.readOnly == false && (owned || c.sessions.canWrite("/nodes/$node", TaskList.STOP_PRIV))
+
+    // Without wrapping: how wide the log is. The longest line is measured up front (monospace, so it
+    // is normally the widest), and a line that turns out wider when it is drawn widens it.
+    val sideScroll = rememberScrollState()
+    var seenWidth by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val measurer = rememberTextMeasurer(cacheSize = 2)
+    val logStyle = LocalTextStyle.current.merge(TextStyle(fontFamily = FontFamily.Monospace, fontSize = 11.sp, lineHeight = 15.sp))
+    val longestWidth = remember(lines, wrap, logStyle) {
+        if (wrap) 0 else lines.maxByOrNull { it.text.length }?.let { measurer.measure(it.text.ifEmpty { " " }, logStyle, softWrap = false, maxLines = 1).size.width } ?: 0
+    }
+    val unwrappedWidth = with(density) { maxOf(longestWidth, seenWidth).toDp() }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
@@ -219,11 +238,17 @@ fun TaskDetailScreen(upid: String) {
                     }
                 }
                 if (wrap) {
-                    items(lines, key = { "l" + it.n }) { line -> LogText(line.text, Modifier.padding(horizontal = Gutter)) }
+                    items(lines, key = { "l" + it.n }, contentType = { "wrapped" }) { line -> LogText(line.text, Modifier.padding(horizontal = Gutter)) }
                 } else {
-                    item(key = "nowrap") {
-                        Column(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = Gutter)) {
-                            lines.forEach { LogText(it.text, Modifier, softWrap = false) }
+                    // One item per line, so only the lines on screen are composed. They scroll sideways
+                    // together: one scroll state for all, and every line laid out at least as wide as the widest.
+                    items(lines, key = { "l" + it.n }, contentType = { "unwrapped" }) { line ->
+                        Box(Modifier.fillMaxWidth().horizontalScroll(sideScroll).padding(horizontal = Gutter).widthIn(min = unwrappedWidth)) {
+                            LogText(
+                                line.text,
+                                Modifier.onSizeChanged { if (it.width > longestWidth && it.width > seenWidth) seenWidth = it.width },
+                                softWrap = false,
+                            )
                         }
                     }
                 }
