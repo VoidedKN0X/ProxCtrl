@@ -52,7 +52,7 @@ If the Obtainium button doesn't open the app, add `https://github.com/VoidedKN0X
 ## Is it safe to install?
 
 - **Open source:** all of ProxCtrl's code is in this repo, under the GPL-3.0 licence. You can read every line.
-- **Built by GitHub, not on a personal computer:** every APK on the Releases page is built from this code by [the build workflow](.github/workflows/build.yml) on GitHub Actions.
+- **Built by GitHub, not on a personal computer:** every APK on the Releases page is built from this code by [the build workflow](.github/workflows/build.yml) on GitHub Actions. The signing key is kept away from the build: one job builds the APK without any secrets, and a separate job that runs no code from this repo signs it and checks the signature against the fingerprint below.
 - **Always signed with the same key:** every release is signed with the same release key. Android refuses to install an update signed with a different key over the app you have, and the CtrlF-Droid repo only accepts APKs signed with this key. Its SHA-256 certificate fingerprint is:
 
   ```
