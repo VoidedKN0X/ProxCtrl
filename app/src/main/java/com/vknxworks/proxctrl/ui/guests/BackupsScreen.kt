@@ -9,17 +9,22 @@ import com.vknxworks.proxctrl.ui.components.CtrlTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -74,7 +79,7 @@ import com.vknxworks.proxctrl.data.guests.StorageChoice
 import com.vknxworks.proxctrl.ui.components.ConfirmDialog
 import com.vknxworks.proxctrl.ui.components.ConnectionBanner
 import com.vknxworks.proxctrl.ui.components.EmptyState
-import com.vknxworks.proxctrl.ui.components.Group
+import com.vknxworks.proxctrl.ui.components.GroupSlice
 import com.vknxworks.proxctrl.ui.components.PillButton
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import com.vknxworks.proxctrl.ui.components.TaskCard
@@ -140,62 +145,86 @@ fun BackupsScreen(node: String, type: String, vmid: Int, name: String) {
             onRefresh = { refreshing = true; reload++ },
             modifier = Modifier.fillMaxSize(),
         ) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
-                if (access.error != null) ConnectionBanner()
-                TaskCard(tracker)
-                if (writable) {
-                    PillButton(
-                        text = stringResource(R.string.backup_now),
-                        onClick = { backingUp = true },
-                        icon = Icons.Outlined.Backup,
-                        enabled = canBackup && !tracker.busy && guest?.lock.isNullOrEmpty(),
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
-                    )
-                    if (!canBackup) {
-                        Text(
-                            stringResource(R.string.not_allowed_action),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = Gutter + 4.dp),
-                        )
+            val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val err = error
+            val data = backups
+            // The volume ID names one backup; the position is used if the server ever repeats one.
+            val uniqueIds = remember(data) { data != null && data.backups.mapTo(HashSet()) { it.volid }.size == data.backups.size }
+            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = navBottom + 24.dp)) {
+                item(key = "top", contentType = "top") {
+                    Column(Modifier.fillMaxWidth()) {
+                        if (access.error != null) ConnectionBanner()
+                        TaskCard(tracker)
+                        if (writable) {
+                            PillButton(
+                                text = stringResource(R.string.backup_now),
+                                onClick = { backingUp = true },
+                                icon = Icons.Outlined.Backup,
+                                enabled = canBackup && !tracker.busy && guest?.lock.isNullOrEmpty(),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
+                            )
+                            if (!canBackup) {
+                                Text(
+                                    stringResource(R.string.not_allowed_action),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = Gutter + 4.dp),
+                                )
+                            }
+                        }
+                        data?.failures?.forEach { f ->
+                            Text(
+                                stringResource(R.string.backups_storage_failed, f.storage, errorMessage(context, f.error, server?.host.orEmpty(), server?.auth)),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(horizontal = Gutter + 4.dp, vertical = 4.dp),
+                            )
+                        }
                     }
                 }
-                val err = error
-                val data = backups
-                data?.failures?.forEach { f ->
-                    Text(
-                        stringResource(R.string.backups_storage_failed, f.storage, errorMessage(context, f.error, server?.host.orEmpty(), server?.auth)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = Gutter + 4.dp, vertical = 4.dp),
-                    )
-                }
                 when {
-                    data == null && err == null -> Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    data == null && err != null -> Text(
-                        errorMessage(context, err, server?.host.orEmpty(), server?.auth),
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(Gutter),
-                    )
-                    data != null && data.backups.isEmpty() -> EmptyState(
-                        icon = Icons.Outlined.Inventory2,
-                        title = stringResource(R.string.backups_empty),
-                        body = stringResource(R.string.backups_empty_hint),
-                        modifier = Modifier.heightIn(min = 320.dp),
-                    )
-                    data != null -> Group(footer = stringResource(R.string.backups_footer)) {
-                        data.backups.forEach { b ->
-                            val canDelete = writable && !b.isProtected &&
-                                c.sessions.canWrite(ref.aclPath, BackupApi.PRIV) &&
-                                c.sessions.canWrite("/storage/${b.storage}", BackupApi.STORAGE_PRIV)
-                            BackupRow(
-                                backup = b,
-                                canRestore = canBackup && !tracker.busy,
-                                canDelete = canDelete && !tracker.busy,
-                                showMenu = writable,
-                                onRestore = { restoring = b },
-                                onDelete = { deleting = b },
-                            )
+                    data == null && err == null -> item(key = "loading", contentType = "state") {
+                        Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    }
+                    data == null && err != null -> item(key = "error", contentType = "state") {
+                        Text(
+                            errorMessage(context, err, server?.host.orEmpty(), server?.auth),
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(Gutter),
+                        )
+                    }
+                    data != null && data.backups.isEmpty() -> item(key = "empty", contentType = "state") {
+                        EmptyState(
+                            icon = Icons.Outlined.Inventory2,
+                            title = stringResource(R.string.backups_empty),
+                            body = stringResource(R.string.backups_empty_hint),
+                            modifier = Modifier.heightIn(min = 320.dp),
+                        )
+                    }
+                    data != null -> {
+                        val rows = data.backups
+                        itemsIndexed(
+                            rows,
+                            key = { i, b -> if (uniqueIds) "v:" + b.volid else "p:$i" },
+                            contentType = { _, _ -> "row" },
+                        ) { i, b ->
+                            GroupSlice(
+                                first = i == 0,
+                                last = i == rows.lastIndex,
+                                footer = stringResource(R.string.backups_footer),
+                            ) {
+                                val canDelete = writable && !b.isProtected &&
+                                    c.sessions.canWrite(ref.aclPath, BackupApi.PRIV) &&
+                                    c.sessions.canWrite("/storage/${b.storage}", BackupApi.STORAGE_PRIV)
+                                BackupRow(
+                                    backup = b,
+                                    canRestore = canBackup && !tracker.busy,
+                                    canDelete = canDelete && !tracker.busy,
+                                    showMenu = writable,
+                                    onRestore = { restoring = b },
+                                    onDelete = { deleting = b },
+                                )
+                            }
                         }
                     }
                 }

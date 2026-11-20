@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -46,7 +47,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -206,6 +214,81 @@ fun Group(
             DividedColumn(Modifier.fillMaxWidth(), content = content)
         }
         if (footer != null) {
+            Text(
+                footer,
+                style = MaterialTheme.typography.bodySmall,
+                color = CtrlColors.Muted,
+                modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 8.dp),
+            )
+        }
+    }
+}
+
+/** The corner radius of [CtrlShapes.Card], for the rows of a card that is drawn one row at a time. */
+private val GroupCorner = 22.dp
+private val GroupTopShape = RoundedCornerShape(topStart = GroupCorner, topEnd = GroupCorner)
+private val GroupBottomShape = RoundedCornerShape(bottomStart = GroupCorner, bottomEnd = GroupCorner)
+
+/**
+ * One row of a [Group] for lazy lists. Every row is its own list item, so only the rows on screen
+ * are composed, and together they look like one grouped card: the [first] row carries the section
+ * [title], the top padding and the rounded top, the [last] row the rounded bottom, the [footer] and
+ * the bottom padding, and every row but the first has the 1dp divider on top. The outline is the
+ * card's own: a rounded rectangle drawn past the row's edges where the card goes on.
+ */
+@Composable
+fun GroupSlice(
+    first: Boolean,
+    last: Boolean,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    footer: String? = null,
+    content: @Composable () -> Unit,
+) {
+    val outline = CtrlColors.Outline
+    val shape = when {
+        first && last -> CtrlShapes.Card
+        first -> GroupTopShape
+        last -> GroupBottomShape
+        else -> RectangleShape
+    }
+    Column(
+        modifier.fillMaxWidth().padding(
+            start = Gutter,
+            end = Gutter,
+            top = if (first) 8.dp else 0.dp,
+            bottom = if (last) 8.dp else 0.dp,
+        ),
+    ) {
+        if (first && title != null) {
+            CtrlSectionLabel(title, Modifier.padding(start = 4.dp, bottom = 8.dp))
+        }
+        Surface(
+            shape = shape,
+            color = CtrlColors.Surface,
+            contentColor = CtrlColors.Text,
+            modifier = Modifier.fillMaxWidth().drawWithContent {
+                drawContent()
+                val stroke = 1.dp.toPx()
+                if (!first) drawRect(outline, Offset.Zero, Size(size.width, stroke))
+                val radius = GroupCorner.toPx()
+                val beyond = radius + stroke
+                val top = if (first) stroke / 2 else -beyond
+                val bottom = if (last) size.height - stroke / 2 else size.height + beyond
+                clipRect {
+                    drawRoundRect(
+                        color = outline,
+                        topLeft = Offset(stroke / 2, top),
+                        size = Size(size.width - stroke, bottom - top),
+                        cornerRadius = CornerRadius(radius - stroke / 2),
+                        style = Stroke(stroke),
+                    )
+                }
+            },
+        ) {
+            content()
+        }
+        if (last && footer != null) {
             Text(
                 footer,
                 style = MaterialTheme.typography.bodySmall,

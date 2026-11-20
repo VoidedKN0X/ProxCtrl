@@ -7,18 +7,22 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Delete
@@ -64,7 +68,7 @@ import com.vknxworks.proxctrl.data.storage.StorageInfo
 import com.vknxworks.proxctrl.ui.components.ConfirmDialog
 import com.vknxworks.proxctrl.ui.components.ConnectionBanner
 import com.vknxworks.proxctrl.ui.components.EmptyState
-import com.vknxworks.proxctrl.ui.components.Group
+import com.vknxworks.proxctrl.ui.components.GroupSlice
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import com.vknxworks.proxctrl.ui.components.TaskCard
 import com.vknxworks.proxctrl.ui.components.UsageBar
@@ -78,6 +82,24 @@ import com.vknxworks.proxctrl.ui.theme.Health
 
 /** The order content types are shown in. */
 private val CONTENT_ORDER = listOf("backup", "iso", "vztmpl", "images", "rootdir", "import", "snippets")
+
+/** A storage's content, split by type and sorted the way it is shown. */
+private class GroupedContent(
+    /** The types present, in [CONTENT_ORDER]. */
+    val types: List<String>,
+    /** Per type: newest first, then by name. */
+    val byType: Map<String, List<ContentItem>>,
+    /** Whether every volume ID occurs once, so it can identify a row. */
+    val uniqueIds: Boolean,
+)
+
+private fun groupContent(list: List<ContentItem>): GroupedContent {
+    val types = list.map { it.content }.distinct().sortedBy { t -> CONTENT_ORDER.indexOf(t).let { if (it < 0) 99 else it } }
+    val byType = types.associateWith { t ->
+        list.filter { it.content == t }.sortedWith(compareByDescending<ContentItem> { it.ctime }.thenBy { it.name })
+    }
+    return GroupedContent(types, byType, list.mapTo(HashSet()) { it.volid }.size == list.size)
+}
 
 /**
  * What's on one storage, by type: backups (deletable), ISO images (upload from the phone), container
@@ -154,45 +176,65 @@ fun StorageContentScreen(node: String, storage: String) {
             onRefresh = { refreshing = true; reload++ },
             modifier = Modifier.fillMaxSize(),
         ) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
-                if (access.error != null) ConnectionBanner()
-                TaskCard(tracker)
-                info?.let { s -> StorageSummary(s, settings.diskWarnPercent) }
-                pickError?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = Gutter + 4.dp))
+            val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val err = error
+            val list = items
+            // Sorted and split by type once per loaded list, not on every recomposition.
+            val content = remember(list) { list?.let { groupContent(it) } }
+            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = navBottom + 24.dp)) {
+                item(key = "top", contentType = "top") {
+                    Column(Modifier.fillMaxWidth()) {
+                        if (access.error != null) ConnectionBanner()
+                        TaskCard(tracker)
+                        info?.let { s -> StorageSummary(s, settings.diskWarnPercent) }
+                        pickError?.let {
+                            Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = Gutter + 4.dp))
+                        }
+                    }
                 }
-                val err = error
-                val list = items
                 when {
-                    list == null && err != null -> ErrorText(err)
-                    list == null -> LoadingBox()
-                    list.isEmpty() -> EmptyState(
-                        icon = Icons.Outlined.Inventory2,
-                        title = stringResource(R.string.storage_content_empty),
-                        body = stringResource(R.string.storage_content_empty_hint),
-                        modifier = Modifier.heightIn(min = 320.dp),
-                    )
+                    list == null && err != null -> item(key = "error", contentType = "state") { ErrorText(err) }
+                    list == null || content == null -> item(key = "loading", contentType = "state") { LoadingBox() }
+                    list.isEmpty() -> item(key = "empty", contentType = "state") {
+                        EmptyState(
+                            icon = Icons.Outlined.Inventory2,
+                            title = stringResource(R.string.storage_content_empty),
+                            body = stringResource(R.string.storage_content_empty_hint),
+                            modifier = Modifier.heightIn(min = 320.dp),
+                        )
+                    }
                     else -> {
-                        val types = list.map { it.content }.distinct().sortedBy { t -> CONTENT_ORDER.indexOf(t).let { if (it < 0) 99 else it } }
+                        val types = content.types
                         if (types.size > 1) {
-                            Row(
-                                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = Gutter, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                FilterChip(selected = filter == null, onClick = { filter = null }, label = { Text(stringResource(R.string.storage_filter_all, list.size)) })
-                                types.forEach { t ->
-                                    FilterChip(
-                                        selected = filter == t,
-                                        onClick = { filter = if (filter == t) null else t },
-                                        label = { Text(stringResource(R.string.storage_filter_type, stringResource(contentLabel(t)), list.count { it.content == t })) },
-                                    )
+                            item(key = "filter", contentType = "filter") {
+                                Row(
+                                    Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = Gutter, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    FilterChip(selected = filter == null, onClick = { filter = null }, label = { Text(stringResource(R.string.storage_filter_all, list.size)) })
+                                    types.forEach { t ->
+                                        FilterChip(
+                                            selected = filter == t,
+                                            onClick = { filter = if (filter == t) null else t },
+                                            label = { Text(stringResource(R.string.storage_filter_type, stringResource(contentLabel(t)), content.byType[t]?.size ?: 0)) },
+                                        )
+                                    }
                                 }
                             }
                         }
                         types.filter { filter == null || it == filter }.forEach { t ->
-                            val inType = list.filter { it.content == t }.sortedWith(compareByDescending<ContentItem> { it.ctime }.thenBy { it.name })
-                            Group(stringResource(contentLabel(t))) {
-                                inType.forEach { item ->
+                            val inType = content.byType[t].orEmpty()
+                            itemsIndexed(
+                                inType,
+                                // The volume ID names one file on the storage; the position is used if the server ever repeats one.
+                                key = { i, item -> if (content.uniqueIds) "v:" + item.volid else "p:$t:$i" },
+                                contentType = { _, _ -> "row" },
+                            ) { i, item ->
+                                GroupSlice(
+                                    first = i == 0,
+                                    last = i == inType.lastIndex,
+                                    title = stringResource(contentLabel(t)),
+                                ) {
                                     val canDelete = writable && item.content == "backup" && !item.isProtected && (
                                         c.sessions.canWrite("/storage/$storage", StorageApi.PRIV_ALLOCATE) ||
                                             (

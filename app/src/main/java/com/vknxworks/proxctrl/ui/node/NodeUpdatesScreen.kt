@@ -5,15 +5,20 @@ import com.vknxworks.proxctrl.ui.components.CtrlSecondaryButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -53,7 +58,7 @@ import com.vknxworks.proxctrl.data.node.NodeApi
 import com.vknxworks.proxctrl.data.node.PackageUpdate
 import com.vknxworks.proxctrl.ui.components.ConnectionBanner
 import com.vknxworks.proxctrl.ui.components.EmptyState
-import com.vknxworks.proxctrl.ui.components.Group
+import com.vknxworks.proxctrl.ui.components.GroupSlice
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import com.vknxworks.proxctrl.ui.components.TaskCard
 import com.vknxworks.proxctrl.ui.components.errorMessage
@@ -109,72 +114,94 @@ fun NodeUpdatesScreen(node: String) {
             onRefresh = { refreshing = true; reload++ },
             modifier = Modifier.fillMaxSize(),
         ) {
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
-                if (access.error != null) ConnectionBanner()
-                TaskCard(tracker)
+            val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            val list = updates
+            val err = error
+            // The package name identifies a row; the position is used if a name is listed twice.
+            val uniqueNames = remember(list) { list != null && list.mapTo(HashSet()) { it.name }.size == list.size }
+            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = navBottom + 24.dp)) {
+                item(key = "top", contentType = "top") {
+                    Column(Modifier.fillMaxWidth()) {
+                        if (access.error != null) ConnectionBanner()
+                        TaskCard(tracker)
 
-                kernel?.takeIf { it.rebootRequired }?.let { k -> RebootCard(k) }
+                        kernel?.takeIf { it.rebootRequired }?.let { k -> RebootCard(k) }
 
-                Row(Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp)) {
-                    if (server?.readOnly == false) {
-                        CtrlSecondaryButton(
-                            onClick = {
-                                val cl = client ?: return@CtrlSecondaryButton
-                                tracker.run(
-                                    context.getString(R.string.node_updates_task_refresh),
-                                    cl,
-                                    server?.host.orEmpty(),
-                                    server?.auth,
-                                    onFinished = { reload++ },
-                                ) { NodeApi.refreshPackages(cl, node) }
-                            },
-                            enabled = canRefresh && !tracker.busy,
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Icon(Icons.Outlined.Refresh, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.node_updates_refresh))
-                        }
-                    }
-                    if (canShell) {
-                        if (server?.readOnly == false) Spacer(Modifier.width(8.dp))
-                        CtrlSecondaryButton(
-                            onClick = { nav.navigate(ConsoleRoute(kind = "node", node = node, title = context.getString(R.string.node_shell_title, node))) },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Icon(Icons.Outlined.Terminal, null, Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.node_shell))
+                        Row(Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp)) {
+                            if (server?.readOnly == false) {
+                                CtrlSecondaryButton(
+                                    onClick = {
+                                        val cl = client ?: return@CtrlSecondaryButton
+                                        tracker.run(
+                                            context.getString(R.string.node_updates_task_refresh),
+                                            cl,
+                                            server?.host.orEmpty(),
+                                            server?.auth,
+                                            onFinished = { reload++ },
+                                        ) { NodeApi.refreshPackages(cl, node) }
+                                    },
+                                    enabled = canRefresh && !tracker.busy,
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Icon(Icons.Outlined.Refresh, null, Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.node_updates_refresh))
+                                }
+                            }
+                            if (canShell) {
+                                if (server?.readOnly == false) Spacer(Modifier.width(8.dp))
+                                CtrlSecondaryButton(
+                                    onClick = { nav.navigate(ConsoleRoute(kind = "node", node = node, title = context.getString(R.string.node_shell_title, node))) },
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Icon(Icons.Outlined.Terminal, null, Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.node_shell))
+                                }
+                            }
                         }
                     }
                 }
-
-                val list = updates
-                val err = error
                 when {
-                    !canList -> Text(
-                        stringResource(R.string.node_updates_no_permission),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(Gutter),
-                    )
-                    list == null && err == null -> Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                    list == null && err != null -> Text(
-                        errorMessage(context, err, server?.host.orEmpty(), server?.auth),
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(Gutter),
-                    )
-                    list != null && list.isEmpty() -> EmptyState(
-                        icon = Icons.Outlined.CheckCircle,
-                        title = stringResource(R.string.node_updates_none),
-                        body = stringResource(R.string.node_updates_none_hint),
-                        modifier = Modifier.heightIn(min = 280.dp),
-                    )
-                    list != null -> Group(
-                        title = pluralStringResource(R.plurals.node_updates_count, list.size, list.size),
-                        footer = stringResource(R.string.node_updates_footer),
-                    ) {
-                        list.forEach { u -> UpdateRow(u, onClick = { changelogFor = u }) }
+                    !canList -> item(key = "denied", contentType = "state") {
+                        Text(
+                            stringResource(R.string.node_updates_no_permission),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(Gutter),
+                        )
+                    }
+                    list == null && err == null -> item(key = "loading", contentType = "state") {
+                        Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    }
+                    list == null && err != null -> item(key = "error", contentType = "state") {
+                        Text(
+                            errorMessage(context, err, server?.host.orEmpty(), server?.auth),
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(Gutter),
+                        )
+                    }
+                    list != null && list.isEmpty() -> item(key = "empty", contentType = "state") {
+                        EmptyState(
+                            icon = Icons.Outlined.CheckCircle,
+                            title = stringResource(R.string.node_updates_none),
+                            body = stringResource(R.string.node_updates_none_hint),
+                            modifier = Modifier.heightIn(min = 280.dp),
+                        )
+                    }
+                    list != null -> itemsIndexed(
+                        list,
+                        key = { i, u -> if (uniqueNames) "u:" + u.name else "p:$i" },
+                        contentType = { _, _ -> "row" },
+                    ) { i, u ->
+                        GroupSlice(
+                            first = i == 0,
+                            last = i == list.lastIndex,
+                            title = pluralStringResource(R.plurals.node_updates_count, list.size, list.size),
+                            footer = stringResource(R.string.node_updates_footer),
+                        ) {
+                            UpdateRow(u, onClick = { changelogFor = u })
+                        }
                     }
                 }
             }
