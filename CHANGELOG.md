@@ -4,9 +4,9 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
-## Unreleased
+## v1.6.0 (2026-11-20)
 
-Not in a release yet: these changes are in the code and ship with the next version.
+Built and checked by CI only: nothing in this release had been run on a phone when it was published.
 
 ### Removed
 
