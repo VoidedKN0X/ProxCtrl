@@ -74,6 +74,8 @@ class OverviewRepository(
     private val lock = Mutex()
     private val lastRun = HashMap<String, Long>()
     private val onBootCheckedAt = HashMap<Int, Long>()
+    /** When the offline cache was last saved (guarded by [lock]). */
+    private var cacheWrittenAt = 0L
 
     init {
         scope.launch {
@@ -84,6 +86,7 @@ class OverviewRepository(
     private suspend fun switchTo(active: ActiveServer?) = lock.withLock {
         lastRun.clear()
         onBootCheckedAt.clear()
+        cacheWrittenAt = 0
         if (active == null) {
             _state.value = OverviewState()
             return@withLock
@@ -113,10 +116,14 @@ class OverviewRepository(
         lock.withLock {
             if (_state.value.serverId != active.server.id) return
             try {
-                // The guest list feeds disk and boot warnings.
-                guests.refresh()
-
-                val nodes = client.get("/nodes", ListSerializer(NodeEntry.serializer())).sortedBy { it.node }
+                // The guest list feeds disk and boot warnings. It's read at the same time as the node list;
+                // the guest read always runs to its end, also when the node list fails.
+                val nodes = coroutineScope {
+                    val guestsJob = async { guests.refresh() }
+                    val nodeList = runCatching { client.get("/nodes", ListSerializer(NodeEntry.serializer())) }
+                    guestsJob.await()
+                    nodeList.getOrThrow()
+                }.sortedBy { it.node }
                 val online = nodes.filter { it.isOnline }.map { it.node }
                 val statuses = coroutineScope {
                     online.map { n -> async { runCatching { NodeStatus.parse(n, client.get("/nodes/$n/status")) }.getOrNull() } }
@@ -145,7 +152,13 @@ class OverviewRepository(
                 if (due("node-info", 30 * 60_000, force)) s = loadNodeInfo(client, online, s)
 
                 _state.value = s
-                writeCache(active.server.id, OverviewCache(s.updatedAt, s.nodes, s.nodeStatus.values.toList(), s.storages))
+                // The cache is only read when the app starts: saving it on every 5-second refresh would
+                // rewrite the file for nothing. At most once a minute, and always after pull to refresh.
+                val now = System.currentTimeMillis()
+                if (force || now - cacheWrittenAt !in 0 until CACHE_WRITE_INTERVAL_MS) {
+                    cacheWrittenAt = now
+                    writeCache(active.server.id, OverviewCache(s.updatedAt, s.nodes, s.nodeStatus.values.toList(), s.storages))
+                }
             } catch (e: PveError) {
                 _state.value = _state.value.copy(error = e)
             }
@@ -157,13 +170,28 @@ class OverviewRepository(
         var failedOk = false
         val failed = mutableListOf<TaskEntry>()
         val lastBackup = HashMap<String, TaskEntry>()
-        for (n in online) {
-            runCatching {
-                client.get("/nodes/$n/tasks", ListSerializer(TaskEntry.serializer()), mapOf("errors" to "1", "since" to since, "limit" to "50"))
-            }.onSuccess { failed += it.map { t -> t.copy(node = t.node.ifBlank { n }) }; failedOk = true }
-            runCatching {
-                client.get("/nodes/$n/tasks", ListSerializer(TaskEntry.serializer()), mapOf("typefilter" to "vzdump", "limit" to "1"))
-            }.getOrNull()?.firstOrNull()?.let { lastBackup[n] = it.copy(node = it.node.ifBlank { n }) }
+        // Both reads for every node at the same time; the answers are put together in node order below.
+        val perNode = coroutineScope {
+            online.map { n ->
+                val errors = async {
+                    runCatching {
+                        client.get("/nodes/$n/tasks", ListSerializer(TaskEntry.serializer()), mapOf("errors" to "1", "since" to since, "limit" to "50"))
+                    }.getOrNull()
+                }
+                val backup = async {
+                    runCatching {
+                        client.get("/nodes/$n/tasks", ListSerializer(TaskEntry.serializer()), mapOf("typefilter" to "vzdump", "limit" to "1"))
+                    }.getOrNull()
+                }
+                Triple(n, errors, backup)
+            }.map { (n, errors, backup) -> Triple(n, errors.await(), backup.await()) }
+        }
+        for ((n, errors, backup) in perNode) {
+            if (errors != null) {
+                failed += errors.map { t -> t.copy(node = t.node.ifBlank { n }) }
+                failedOk = true
+            }
+            backup?.firstOrNull()?.let { lastBackup[n] = it.copy(node = it.node.ifBlank { n }) }
         }
         return s.copy(
             failedTasks = if (failedOk) failed.filter { it.isError }.sortedByDescending { it.starttime } else s.failedTasks,
@@ -246,11 +274,24 @@ class OverviewRepository(
         runCatching { PveJson.decodeFromString(OverviewCache.serializer(), cacheFile(serverId).readText()) }.getOrNull()
     }
 
+    /** Written to a temporary file first and then moved in place, so a write that's cut short never leaves half a file. */
     private suspend fun writeCache(serverId: String, cache: OverviewCache) = withContext(Dispatchers.IO) {
-        runCatching { cacheFile(serverId).writeText(PveJson.encodeToString(OverviewCache.serializer(), cache)) }
+        runCatching {
+            val file = cacheFile(serverId)
+            val tmp = File(file.parentFile, file.name + ".tmp")
+            tmp.writeText(PveJson.encodeToString(OverviewCache.serializer(), cache))
+            if (!tmp.renameTo(file)) {
+                tmp.copyTo(file, overwrite = true)
+                tmp.delete()
+            }
+        }
     }
 
     fun forget(serverId: String) {
         runCatching { cacheFile(serverId).delete() }
+    }
+
+    private companion object {
+        const val CACHE_WRITE_INTERVAL_MS = 60_000L
     }
 }

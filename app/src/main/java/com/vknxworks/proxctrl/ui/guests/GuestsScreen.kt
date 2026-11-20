@@ -109,7 +109,7 @@ fun GuestsScreen() {
     val canBulk = server != null && !server.readOnly && access.permissions.hasAnywhere("/vms", PowerAction.PRIV)
     val selecting = selection.isNotEmpty()
     // Selected guests that disappeared (deleted) drop out of the selection.
-    val selectedGuests = all.filter { it.vmid in selection }
+    val selectedGuests = remember(all, selection) { all.filter { it.vmid in selection } }
 
     fun toggle(g: Guest) {
         selection = if (g.vmid in selection) selection - g.vmid else selection + g.vmid

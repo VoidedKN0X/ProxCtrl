@@ -51,16 +51,28 @@ class Sessions(
     /** Bumped when secrets change outside the client (signing in again), so the client is rebuilt. */
     private val revision = MutableStateFlow(0)
 
+    /**
+     * The client made for the first value of [active]. The flow below hands out this same object for its
+     * first result when nothing changed in between, so the client isn't built twice at start and the
+     * access check doesn't run twice.
+     */
+    private val initialActive: ActiveServer? =
+        if (initiallyLocked) null else store.servers.value.firstOrNull { it.id == store.activeId.value }?.let { ActiveServer(it, clientFor(it)) }
+
+    @Volatile
+    private var initialUnused: ActiveServer? = initialActive
+
     val active: StateFlow<ActiveServer?> = combine(store.servers, store.activeId, revision, locked) { list, id, rev, isLocked ->
         (if (isLocked) null else list.firstOrNull { it.id == id }) to rev
     }
         .distinctUntilChanged()
-        .map { (server, _) -> server?.let { ActiveServer(it, clientFor(it)) } }
-        .stateIn(
-            scope,
-            SharingStarted.Eagerly,
-            if (initiallyLocked) null else store.servers.value.firstOrNull { it.id == store.activeId.value }?.let { ActiveServer(it, clientFor(it)) },
-        )
+        .map { (server, rev) ->
+            val first = initialUnused
+            initialUnused = null
+            if (first != null && rev == 0 && server != null && first.server == server) first
+            else server?.let { ActiveServer(it, clientFor(it)) }
+        }
+        .stateIn(scope, SharingStarted.Eagerly, initialActive)
 
     private val _access = MutableStateFlow(Access())
     val access: StateFlow<Access> = _access.asStateFlow()
@@ -76,11 +88,13 @@ class Sessions(
         PveClient(
             server,
             baseHttp,
-            store.secrets(server.id),
+            ServerSecrets(),
             // The saved setting, not this copy of the server: a client made before read-only was
             // switched on must not keep writing.
             isReadOnly = { store.servers.value.firstOrNull { it.id == server.id }?.readOnly ?: server.readOnly },
             onSecretsChanged = { updated -> store.saveSecrets(server.id, updated) },
+            // Read (decrypted) on the client's first request, not here: this runs on the main thread at app start.
+            loadSecrets = { store.secrets(server.id) },
         )
 
     /** Reloads permissions and version of the active server. */

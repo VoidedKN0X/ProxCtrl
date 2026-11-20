@@ -55,7 +55,7 @@ fun httpFor(base: OkHttpClient, host: String, certPin: String): OkHttpClient {
 class PveClient(
     val server: Server,
     base: OkHttpClient,
-    secrets: ServerSecrets,
+    private val initialSecrets: ServerSecrets,
     /**
      * Whether the server is in read-only mode right now. Read on every request (not copied from
      * [server] once), so switching read-only on also stops clients a screen is still holding.
@@ -63,14 +63,29 @@ class PveClient(
     private val isReadOnly: () -> Boolean = { server.readOnly },
     /** Called when a ticket is renewed, so it can be saved (encrypted). */
     private val onSecretsChanged: (ServerSecrets) -> Unit = {},
+    /**
+     * When set, the saved login is read (and decrypted with the Android Keystore) the first time it's
+     * needed, instead of using [initialSecrets]. That first use is a request, which never runs on the
+     * main thread, so building a client costs nothing at app start.
+     */
+    private val loadSecrets: (() -> ServerSecrets)? = null,
 ) {
-    val http: OkHttpClient = httpFor(base, server.host, server.certPin)
+    /** Built on first use: setting up TLS for a pinned certificate is slow, and requests run off the main thread. */
+    val http: OkHttpClient by lazy { httpFor(base, server.host, server.certPin) }
     private val apiBase: HttpUrl = "${server.url}/api2/json".toHttpUrl()
     private val ticketLock = Mutex()
 
     @Volatile
-    var secrets: ServerSecrets = secrets
-        private set
+    private var loadedSecrets: ServerSecrets? = if (loadSecrets == null) initialSecrets else null
+    private val secretsLock = Any()
+
+    var secrets: ServerSecrets
+        get() = loadedSecrets ?: synchronized(secretsLock) {
+            loadedSecrets ?: (loadSecrets?.invoke() ?: initialSecrets).also { loadedSecrets = it }
+        }
+        private set(value) {
+            loadedSecrets = value
+        }
 
     fun url(path: String, query: Map<String, String> = emptyMap()): HttpUrl {
         val b = apiBase.newBuilder()

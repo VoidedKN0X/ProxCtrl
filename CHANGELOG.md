@@ -16,6 +16,14 @@ Not in a release yet: these changes are in the code and ship with the next versi
 - **Smaller app:** the widget library (Jetpack Glance) is no longer part of ProxCtrl.
 - **Background checks while locked** now only covers notifications. When you turn the app lock on, it starts on only if you use notifications (before, also when a widget was on your home screen).
 
+### Performance
+
+- **Faster start:** opening ProxCtrl (and every background check) no longer decrypts your saved login and sets up the secure connection on the main thread before the first screen can be drawn. Both now happen when the first request is sent, in the background. Nothing changes in how or where logins are stored.
+- **No double work at start:** the connection to the active server was built twice when the app started, and the check of what your sign-in may do (`/version` and `/access/permissions`) ran twice. Both now happen once.
+- **Quicker Overview refresh:** the guest list and the node list are read at the same time instead of one after the other, and the failed-task and last-backup reads for each node run side by side. The Overview shows the same data.
+- **Less writing to storage:** the offline copies of the guest list and the Overview were rewritten on every 5-second refresh. They're now saved at most once a minute (and after every pull to refresh on the Overview), and written to a temporary file first so an interrupted save can't leave a broken file. These copies are only read when the app starts, so what you see at start can be up to a minute older than before.
+- **Guests tab:** the list of selected guests is no longer worked out again on every redraw.
+
 ## v1.5.0 (2026-11-13)
 
 A Quick Settings tile for one guest, and clearer, safer snapshots.

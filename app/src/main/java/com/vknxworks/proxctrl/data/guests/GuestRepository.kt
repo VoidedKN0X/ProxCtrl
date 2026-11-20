@@ -61,6 +61,8 @@ class GuestRepository(
     private val agentFailedAt = java.util.concurrent.ConcurrentHashMap<Int, Long>()
     private var agentCheckedAt = 0L
     private var tagColorsLoadedFor: String? = null
+    /** When the offline cache was last saved (guarded by [refreshLock]). */
+    private var cacheWrittenAt = 0L
 
     init {
         scope.launch {
@@ -74,6 +76,7 @@ class GuestRepository(
             agentFailedAt.clear()
             agentCheckedAt = 0
             tagColorsLoadedFor = null
+            cacheWrittenAt = 0
             if (active == null) {
                 _state.value = GuestsState()
                 return
@@ -107,7 +110,12 @@ class GuestRepository(
                 val now = System.currentTimeMillis()
                 val withDisks = guests.map(::withAgentDisk)
                 _state.value = _state.value.copy(guests = withDisks, updatedAt = now, error = null, loading = false)
-                writeCache(active.server.id, GuestCache(now, withDisks))
+                // The cache is only read when the app starts: at most one save a minute instead of one
+                // for every 5-second refresh.
+                if (now - cacheWrittenAt !in 0 until CACHE_WRITE_INTERVAL_MS) {
+                    cacheWrittenAt = now
+                    writeCache(active.server.id, GuestCache(now, withDisks))
+                }
             } catch (e: PveError) {
                 _state.value = _state.value.copy(error = e, loading = false)
             }
@@ -156,8 +164,17 @@ class GuestRepository(
         runCatching { PveJson.decodeFromString(GuestCache.serializer(), cacheFile(serverId).readText()) }.getOrNull()
     }
 
+    /** Written to a temporary file first and then moved in place, so a write that's cut short never leaves half a file. */
     private suspend fun writeCache(serverId: String, cache: GuestCache) = withContext(Dispatchers.IO) {
-        runCatching { cacheFile(serverId).writeText(PveJson.encodeToString(GuestCache.serializer(), cache)) }
+        runCatching {
+            val file = cacheFile(serverId)
+            val tmp = File(file.parentFile, file.name + ".tmp")
+            tmp.writeText(PveJson.encodeToString(GuestCache.serializer(), cache))
+            if (!tmp.renameTo(file)) {
+                tmp.copyTo(file, overwrite = true)
+                tmp.delete()
+            }
+        }
     }
 
     /** Forgets the cached list of a removed server. */
@@ -168,6 +185,7 @@ class GuestRepository(
     companion object {
         const val AGENT_INTERVAL_MS = 60_000L
         const val AGENT_RETRY_MS = 10 * 60_000L
+        private const val CACHE_WRITE_INTERVAL_MS = 60_000L
 
         /**
          * Sums the guest's real filesystems from get-fsinfo ({"result": [{mountpoint, type, used-bytes,
