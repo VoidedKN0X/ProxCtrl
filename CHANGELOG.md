@@ -8,6 +8,10 @@ To publish a new version: bump `versionCode` and `versionName` in `app/build.gra
 
 Built and checked by CI only: nothing here had been run on a phone when it was pushed. No version bump, so this is not a release yet.
 
+### Fixed
+
+- **Fixed before release: the app would have crashed at start with the new build tools.** ProxCtrl uses WorkManager for its background work, and WorkManager stores its jobs in a small Room database that is created by name when the app starts. The shrinker (R8) in Android Gradle Plugin 9 is stricter than the old one and removed the constructor that needs, which makes the app stop right at launch (a known problem with Room 2.6.1 under Android Gradle Plugin 9). A keep rule for that constructor, the same one newer Room versions ship themselves, is now in `app/proguard-rules.pro`. No released version was affected: the new build tools have not been in any release. Built by CI only; not yet run on a phone.
+
 ### Performance
 
 - **Task log without line wrapping no longer draws the whole log at once.** With wrapping turned off, every line of the log (up to 50,000 for a big backup) was laid out in one block as soon as the task opened, which could freeze the screen for long logs. Each line is now its own row, as it already was with wrapping on, so only the lines on screen are drawn. The lines still scroll sideways together: the longest line is measured once to know how wide the log is, and every row is laid out that wide.
