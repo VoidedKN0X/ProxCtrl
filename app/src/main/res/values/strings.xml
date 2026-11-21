@@ -1599,4 +1599,6 @@
     <string name="backup_field_events">Which events notify you</string>
     <string name="backup_field_cpu">High CPU threshold</string>
     <string name="backup_field_sustain">How long CPU or memory must stay high</string>
+
+    <string name="agent_fs_tap">Tap to check</string>
 </resources>

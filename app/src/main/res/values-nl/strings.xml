@@ -1361,4 +1361,5 @@
     <string name="backup_field_events">Welke gebeurtenissen een melding geven</string>
     <string name="backup_field_cpu">Drempel voor hoge CPU</string>
     <string name="backup_field_sustain">Hoelang CPU of geheugen hoog moet blijven</string>
+    <string name="agent_fs_tap">Tik om te controleren</string>
 </resources>

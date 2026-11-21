@@ -112,9 +112,18 @@ fun GuestAgentScreen(node: String, vmid: Int, name: String) {
             agentError = e
         }
         loaded = true
-        // Asking for the freeze state is a POST in Proxmox's API, so it's skipped in read-only mode.
-        if (canFreeze && agentError == null) frozen = runCatching { AgentApi.freezeStatus(cl, ref) }.getOrNull()
         refreshing = false
+    }
+
+    /**
+     * Asks whether the file systems are frozen. In Proxmox's API that question is a POST, so it counts
+     * as a change (read-only mode, "Confirm changes"): it's only asked on a tap or after a freeze or thaw,
+     * never just by opening the page.
+     */
+    fun checkFreeze() {
+        val cl = client ?: return
+        if (!canFreeze) return
+        scope.launch { frozen = runCatching { AgentApi.freezeStatus(cl, ref) }.getOrNull() ?: frozen }
     }
 
     /** Waits for the command with [pid] to finish, for at most [EXEC_WAIT_MS]. */
@@ -191,8 +200,9 @@ fun GuestAgentScreen(node: String, vmid: Int, name: String) {
                         subtitle = when (frozen) {
                             "frozen" -> stringResource(R.string.agent_fs_frozen)
                             "thawed" -> stringResource(R.string.agent_fs_thawed)
-                            else -> stringResource(R.string.agent_fs_unknown)
+                            else -> stringResource(if (canFreeze) R.string.agent_fs_tap else R.string.agent_fs_unknown)
                         },
+                        onClick = if (canFreeze) ({ checkFreeze() }) else null,
                     )
                     if (canFreeze) {
                         GroupRow(
@@ -206,7 +216,7 @@ fun GuestAgentScreen(node: String, vmid: Int, name: String) {
                             onClick = if (tracker.busy) null else ({
                                 val cl = client
                                 if (cl != null) {
-                                    tracker.run(context.getString(R.string.agent_task_thaw), cl, server?.host.orEmpty(), server?.auth, { reload++ }) {
+                                    tracker.run(context.getString(R.string.agent_task_thaw), cl, server?.host.orEmpty(), server?.auth, { checkFreeze() }) {
                                         AgentApi.thaw(cl, ref)
                                         null
                                     }
@@ -297,7 +307,7 @@ fun GuestAgentScreen(node: String, vmid: Int, name: String) {
             onConfirm = {
                 confirm = null
                 val cl = client ?: return@ConfirmDialog
-                tracker.run(context.getString(R.string.agent_task_freeze), cl, server?.host.orEmpty(), server?.auth, { reload++ }) {
+                tracker.run(context.getString(R.string.agent_task_freeze), cl, server?.host.orEmpty(), server?.auth, { checkFreeze() }) {
                     AgentApi.freeze(cl, ref)
                     null
                 }
