@@ -6,7 +6,7 @@ Android app for managing a Proxmox VE 8/9 server. Part of the VKNXWorks Ctrl ser
 
 - Don't commit. Leave changes uncommitted for review. Push straight to `main` only when asked, with no branches or pull requests.
 - Every push needs a detailed `CHANGELOG.md` entry.
-- Every user-visible string goes in `app/src/main/res/values/strings.xml`.
+- Every user-visible string goes in `app/src/main/res/values/strings.xml`, with its Dutch translation (Belgian usage, informal "je") in `app/src/main/res/values-nl/strings.xml`. Android picks the language from the phone; there is no in-app language setting. Technical names, units and the app name stay untranslated (leave them out of the Dutch file).
 - Check Proxmox endpoints and privileges against the Proxmox source or API viewer; never guess field names. Parse API responses leniently (missing fields must never crash).
 - Test write actions on a throwaway container, never on TrueNAS (103), HAOS (106) or Vaultwarden.
 
