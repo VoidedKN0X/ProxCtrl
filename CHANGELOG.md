@@ -6,7 +6,7 @@ To publish a new version: bump `versionCode` and `versionName` in `app/build.gra
 
 ## Unreleased
 
-Built and checked by CI only: nothing below has been run on a phone yet. Every new action talks to Proxmox through API calls checked against Proxmox's own source code, but please try each one on a throwaway guest first.
+Every new action talks to Proxmox through API calls that were checked against Proxmox's own source code, but none of them has been tried against a real server yet: try each one on a throwaway guest first, never on TrueNAS, Home Assistant or Vaultwarden.
 
 ### New
 
