@@ -11,6 +11,7 @@ Built and checked by CI only: not run on a phone when it was published.
 ### Changed
 
 - **Consoles can be screenshotted.** VM, container and node consoles used to be kept out of screenshots and screen recordings no matter what, which made it impossible to share a log line or an error from a shell. They now follow **Hide in screenshots** (Settings, off by default) like the rest of the app: leave it off to capture console output, turn it on to blank everything. Signing in to a server, creating a container and the lock and PIN screens stay hidden regardless. Keep in mind that a console screenshot shows whatever the shell printed, so check it for passwords or keys before sharing.
+- README and SECURITY.md updated to say the same.
 
 ## v1.8.0 (2026-11-21)
 

@@ -26,7 +26,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in and consoles always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore (in the StrongBox security chip when the phone has one)
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore (in the StrongBox security chip when the phone has one)
 
 ## Requirements
 
@@ -300,7 +300,7 @@ Two more switches in the same section work with or without the app lock, and are
 - **Hide in screenshots**: screenshots and screen recordings show a blank screen (and so does the recent-apps view).
 - **Hide in recent apps**: the recent-apps view shows a blank card instead of ProxCtrl. Screenshots still work.
 
-Signing in to a server, consoles, the node shell and the lock and PIN screens are always kept out of screenshots and recordings, whatever these switches say. With the app lock on, the recent-apps view always shows a blank card.
+Signing in to a server, creating a container and the lock and PIN screens are always kept out of screenshots and recordings, whatever these switches say. Consoles and the node shell follow **Hide in screenshots**, so their output can be captured when the switch is off. With the app lock on, the recent-apps view always shows a blank card.
 
 While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation such as shut down or delete is showing, other apps' floating windows (chat heads, overlays) are hidden so nothing can cover it, and apps that read the screen through accessibility can't see the PIN, lock or **Confirm changes** screens; real accessibility tools such as screen readers still work, and password managers can still fill the sign-in fields.
 
