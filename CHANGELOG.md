@@ -4,7 +4,9 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
-## Unreleased
+## v1.9.0 (2026-11-21)
+
+Built and checked by CI only: nothing in this release had been run on a phone when it was published.
 
 Every new action talks to Proxmox through API calls that were checked against Proxmox's own source code, but none of them has been tried against a real server yet: try each one on a throwaway guest first, never on TrueNAS, Home Assistant or Vaultwarden.
 
