@@ -333,6 +333,9 @@
     <string name="att_storage_down">Speicher %1$s ist nicht verfügbar</string>
     <string name="att_storage_down_detail">Auf %1$s: %2$s</string>
     <string name="att_subscription">Subscription auf %1$s ist %2$s</string>
+    <string name="att_subscription_expired">abgelaufen</string>
+    <string name="att_subscription_invalid">ungültig</string>
+    <string name="att_subscription_suspended">gesperrt</string>
     <string name="att_subscription_detail">Prüfe den Subscription-Schlüssel auf der Subscription-Seite der Node.</string>
     <plurals name="att_updates">
         <item quantity="one">%1$d Update auf %2$s verfügbar</item>
@@ -340,6 +343,9 @@
     </plurals>
     <string name="att_updates_detail">Aus der letzten Aktualisierung der Paketliste. Installiere sie in der Node-Shell.</string>
     <string name="att_ha">HA: %1$s ist im Zustand %2$s</string>
+    <string name="att_ha_state_error">Fehler</string>
+    <string name="att_ha_state_fence">Fence</string>
+    <string name="att_ha_state_recovery">Wiederherstellung</string>
     <string name="att_ha_quorum">HA-Quorum-Problem</string>
     <string name="node_online">Online</string>
     <string name="node_offline">Offline</string>

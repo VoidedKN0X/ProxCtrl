@@ -378,6 +378,9 @@
     <string name="att_storage_down">Storage %1$s is unavailable</string>
     <string name="att_storage_down_detail">On %1$s: %2$s</string>
     <string name="att_subscription">Subscription on %1$s is %2$s</string>
+    <string name="att_subscription_expired">expired</string>
+    <string name="att_subscription_invalid">invalid</string>
+    <string name="att_subscription_suspended">suspended</string>
     <string name="att_subscription_detail">Check the subscription key under the node\'s Subscription page.</string>
     <plurals name="att_updates">
         <item quantity="one">%1$d update available on %2$s</item>
@@ -385,6 +388,9 @@
     </plurals>
     <string name="att_updates_detail">From the last package list refresh. Install them in the node shell.</string>
     <string name="att_ha">HA: %1$s is in state %2$s</string>
+    <string name="att_ha_state_error">error</string>
+    <string name="att_ha_state_fence">fence</string>
+    <string name="att_ha_state_recovery">recovery</string>
     <string name="att_ha_quorum">HA quorum problem</string>
 
     <string name="node_online">Online</string>

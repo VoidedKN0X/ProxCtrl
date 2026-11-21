@@ -19,6 +19,7 @@ import com.vknxworks.proxctrl.data.overview.TaskEntry
 import com.vknxworks.proxctrl.data.server.Server
 import com.vknxworks.proxctrl.ui.components.formatBytes
 import com.vknxworks.proxctrl.ui.components.percent
+import com.vknxworks.proxctrl.ui.tasks.taskDescription
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonArray
@@ -225,7 +226,7 @@ class Checker(private val context: Context) {
                     val t = other.first()
                     events += Alert(
                         "${server.id}:task:${t.upid}", NotifyEvent.TASK_FAILED, Severity.WARNING,
-                        prefix + s(R.string.nt_task_title, listOf(t.type, t.id).filter { it.isNotBlank() }.joinToString(" ")),
+                        prefix + s(R.string.nt_task_title, taskDescription(context, t.type, t.id)),
                         t.status,
                         vmid = t.id.toIntOrNull(),
                     )

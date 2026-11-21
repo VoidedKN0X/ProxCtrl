@@ -4,6 +4,16 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+### Fixed
+
+- **Subscription and HA warnings in your language.** The Overview warning "Subscription on <node> is …" showed Proxmox's English status word (expired, invalid, suspended) in every language, and "HA: <guest> is in state …" did the same with error and recovery. Both now use the phone's language (Dutch, French, German). Unknown values still show as Proxmox sends them, and "fence" stays as the Proxmox term.
+- **Failed-task warning and notification name the task in words.** "Latest: …" under failed tasks on the Overview, and the "Task failed: …" notification, showed the raw Proxmox task type and ID (like `qmstart 101`). They now use the same translated description as the Tasks page (like "VM 101 – Start").
+- **Unavailable storage** on the Overview said "On <node>: unknown" in English; it now says Unknown in the phone's language.
+- **German node line keeps its capitals.** Under the node name on the Overview, the version and uptime line is written in lower case as a style; in German that turned nouns like "Laufzeit" into "laufzeit". German now keeps the words as written.
+- **Dutch strings that were missing.** About 45 labels that the Dutch translation didn't have yet (mostly keyboard keys of the console, the VM and container creation steps, the Cluster page and the node's network and boot details) are now in the Dutch file. Most read the same as in English; "QEMU guest agent" is now "QEMU-gastagent", "Service" is "Dienst" and "Legacy BIOS" is "Legacy-BIOS".
+
 ## v1.10.0 (2026-11-21)
 
 Built and checked by CI only: nothing in this release had been run on a phone when it was published.

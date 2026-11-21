@@ -27,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,6 +39,7 @@ import com.vknxworks.proxctrl.data.overview.Severity
 import com.vknxworks.proxctrl.ui.components.formatBytes
 import com.vknxworks.proxctrl.ui.components.percent
 import com.vknxworks.proxctrl.ui.components.relativeTime
+import com.vknxworks.proxctrl.ui.tasks.taskDescription
 import com.vknxworks.proxctrl.ui.theme.Gutter
 import com.vknxworks.proxctrl.ui.theme.Health
 
@@ -83,10 +85,28 @@ private fun title(item: AttentionItem): String = when (item) {
     is AttentionItem.NotBackedUp -> pluralStringResource(R.plurals.att_not_backed_up, item.guests.size, item.guests.size)
     is AttentionItem.StorageFull -> stringResource(R.string.att_storage_full, item.storage.storage, percent(item.fraction))
     is AttentionItem.StorageUnavailable -> stringResource(R.string.att_storage_down, item.storage.storage)
-    is AttentionItem.Subscription -> stringResource(R.string.att_subscription, item.node, item.status)
+    is AttentionItem.Subscription -> stringResource(R.string.att_subscription, item.node, subscriptionStatus(item.status))
     is AttentionItem.Updates -> pluralStringResource(R.plurals.att_updates, item.count, item.count, item.node)
     is AttentionItem.HaProblem -> if (item.entry.type == "quorum") stringResource(R.string.att_ha_quorum)
-    else stringResource(R.string.att_ha, item.entry.sid.ifBlank { item.entry.id }, item.entry.state)
+    else stringResource(R.string.att_ha, item.entry.sid.ifBlank { item.entry.id }, haState(item.entry.state))
+}
+
+/** Proxmox's subscription status word in the phone's language; any other value as Proxmox sends it. */
+@Composable
+private fun subscriptionStatus(status: String): String = when (status) {
+    "expired" -> stringResource(R.string.att_subscription_expired)
+    "invalid" -> stringResource(R.string.att_subscription_invalid)
+    "suspended" -> stringResource(R.string.att_subscription_suspended)
+    else -> status
+}
+
+/** The HA states that raise an attention item, in the phone's language; any other value as Proxmox sends it. */
+@Composable
+private fun haState(state: String): String = when (state) {
+    "error" -> stringResource(R.string.att_ha_state_error)
+    "fence" -> stringResource(R.string.att_ha_state_fence)
+    "recovery" -> stringResource(R.string.att_ha_state_recovery)
+    else -> state
 }
 
 @Composable
@@ -95,7 +115,7 @@ private fun detail(item: AttentionItem): String? = when (item) {
     is AttentionItem.NodeOffline -> stringResource(R.string.att_node_offline_detail)
     is AttentionItem.StoppedOnBoot -> stringResource(R.string.att_onboot_detail)
     is AttentionItem.FailedTasks -> item.tasks.first().let { t ->
-        stringResource(R.string.att_failed_tasks_detail, listOf(t.type, t.id).filter { it.isNotBlank() }.joinToString(" "), relativeTime(t.starttime * 1000))
+        stringResource(R.string.att_failed_tasks_detail, taskDescription(LocalContext.current, t.type, t.id), relativeTime(t.starttime * 1000))
     }
     is AttentionItem.BackupFailed -> stringResource(R.string.att_backup_failed_detail, relativeTime(item.task.starttime * 1000), item.task.status)
     is AttentionItem.BackupOld -> names(item.guests)
@@ -106,7 +126,11 @@ private fun detail(item: AttentionItem): String? = when (item) {
         formatBytes(item.storage.maxdisk.toLong()),
         item.storage.node,
     )
-    is AttentionItem.StorageUnavailable -> stringResource(R.string.att_storage_down_detail, item.storage.node, item.storage.status)
+    is AttentionItem.StorageUnavailable -> stringResource(
+        R.string.att_storage_down_detail,
+        item.storage.node,
+        if (item.storage.status == "unknown") stringResource(R.string.status_unknown) else item.storage.status,
+    )
     is AttentionItem.Subscription -> stringResource(R.string.att_subscription_detail)
     is AttentionItem.Updates -> stringResource(R.string.att_updates_detail)
     is AttentionItem.HaProblem -> item.entry.status.takeIf { it.isNotBlank() }

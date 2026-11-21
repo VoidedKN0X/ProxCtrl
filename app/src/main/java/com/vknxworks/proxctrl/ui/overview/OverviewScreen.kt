@@ -236,7 +236,7 @@ private fun NodeSection(
                     listOfNotNull(
                         status?.pveVersion?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.pve_version, it) },
                         if (node.isOnline) stringResource(R.string.uptime_value, formatUptime(status?.uptime ?: node.uptime.toLong())) else null,
-                    ).joinToString(" · ").lowercase(),
+                    ).joinToString(" · ").let { if (Locale.getDefault().language == "de") it else it.lowercase() },
                     style = CtrlType.Mono,
                     color = CtrlColors.Muted,
                 )

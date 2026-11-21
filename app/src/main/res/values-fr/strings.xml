@@ -333,6 +333,9 @@
     <string name="att_storage_down">Le stockage %1$s est indisponible</string>
     <string name="att_storage_down_detail">Sur %1$s : %2$s</string>
     <string name="att_subscription">L’abonnement sur %1$s est %2$s</string>
+    <string name="att_subscription_expired">expiré</string>
+    <string name="att_subscription_invalid">invalide</string>
+    <string name="att_subscription_suspended">suspendu</string>
     <string name="att_subscription_detail">Vérifiez la clé d’abonnement sur la page Subscription du nœud.</string>
     <plurals name="att_updates">
         <item quantity="one">%1$d mise à jour disponible sur %2$s</item>
@@ -340,6 +343,9 @@
     </plurals>
     <string name="att_updates_detail">D’après la dernière actualisation de la liste des paquets. Installez-les dans le shell du nœud.</string>
     <string name="att_ha">HA : %1$s est dans l’état %2$s</string>
+    <string name="att_ha_state_error">erreur</string>
+    <string name="att_ha_state_fence">fence</string>
+    <string name="att_ha_state_recovery">récupération</string>
     <string name="att_ha_quorum">Problème de quorum HA</string>
     <string name="node_online">En ligne</string>
     <string name="node_offline">Hors ligne</string>
