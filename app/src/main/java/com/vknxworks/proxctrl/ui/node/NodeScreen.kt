@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DeveloperBoard
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PowerSettingsNew
@@ -311,6 +312,13 @@ fun NodeScreen() {
                         icon = Icons.Outlined.Hub,
                         showChevron = true,
                         onClick = { nav.navigate(NodeNetworkRoute(node)) },
+                    )
+                    GroupRow(
+                        title = stringResource(R.string.pci_row),
+                        subtitle = stringResource(R.string.pci_row_subtitle),
+                        icon = Icons.Outlined.DeveloperBoard,
+                        showChevron = true,
+                        onClick = { nav.navigate(NodePciRoute(node)) },
                     )
                 }
 

@@ -24,9 +24,9 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Move disks** of VMs (also while running) and containers to another storage, with format, delete-original and speed-limit options
 - **Node shell** from the node's card on the Overview
 - **Notifications**: background checks, plus instant push from Proxmox through [ntfy](https://f-droid.org/packages/io.heckel.ntfy/) and your own ntfy server
-- **Storage**: storages and their content, backup deletion, ISO upload (also from the share menu), container templates, disks with SMART health, ZFS pools, LVM and backup jobs
+- **Storage**: storages and their content, backup deletion, ISO upload (also from the share menu), container templates, OCI images from a registry (Proxmox VE 9.1+), disks with SMART health, ZFS pools, LVM, and backup jobs you can run and edit
 - **Tasks** with live logs, history filters and Stop
-- **Node**: status and graphs, services, updates with changelogs, network and SDN, reboot and shutdown, Wake-on-LAN
+- **Node**: status and graphs, services, updates with changelogs, network and SDN, GPU and PCI passthrough (which card is given to which guest), reboot and shutdown, Wake-on-LAN
 - **App lock** with its own PIN and optional fingerprint, on opening and before changes; your server logins can be encrypted with the PIN while locked
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
@@ -166,6 +166,8 @@ Even with this the token can't install updates (you run the upgrade in the node 
 | `SDN.Use` on `/sdn/zones/localnetwork` | Connecting new guests to a bridge such as `vmbr0` (or on `/sdn/zones/localnetwork/vmbr0/<tag>` for one VLAN only) |
 | `VM.Config.Disk`, `Datastore.AllocateSpace` | Moving a disk to another storage |
 | `Datastore.AllocateTemplate` | Uploading ISOs and downloading container templates |
+| `Datastore.AllocateTemplate` and `Sys.AccessNetwork` on `/nodes/<node>` | Pulling OCI images from a registry (Proxmox VE 9.1+) |
+| `Sys.Modify` on `/` and `Datastore.Allocate` on the backup storage | Editing backup jobs |
 | `Datastore.Allocate` | Deleting backups without `VM.Backup` on the guest |
 | `Sys.PowerMgmt` | Rebooting and shutting down the node |
 | `Sys.Modify` on `/nodes/<node>` | Seeing available updates, refreshing the package list and starting, stopping or restarting services; see step 3 |
@@ -270,8 +272,9 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - A storage's page shows its backups, ISO images, container templates and disk images, filterable by type, with date, size, guest, notes, protection and verification state. **Backups can be deleted** after a confirmation (protected ones can't).
 - **Upload an ISO** from the storage's page with the file picker, or from any app with **Share → ProxCtrl** (for example straight from your browser's downloads). Pick the storage, check the file name (it must end in .iso or .img) and follow the progress. The file goes straight from the phone to Proxmox.
 - **Download container templates** from Proxmox's own template list (Debian, Ubuntu, Alpine, TurnKey…), with search; templates already on the storage are marked.
+- **Pull an OCI image** (Proxmox VE 9.1 and newer): on the same page, give an image reference such as `docker.io/library/debian:13` and the node pulls it from the registry into the storage, where it shows up with the templates when you create a container. Needs `Datastore.AllocateTemplate` on the storage and `Sys.AccessNetwork` on the node; the row says so when your sign-in lacks them. The row isn't shown on older Proxmox versions.
 - **Disks**: every physical disk with model, size, type, S.M.A.R.T. health and SSD wearout, and the full S.M.A.R.T. values on tap. Also **ZFS pools** (health, usage, fragmentation, last scrub, errors and every device with its error counters) and **LVM / LVM-thin** usage.
-- **Backup jobs**: each scheduled job with its guests, storage, mode, schedule, next run and last run result, and **Run now**. Proxmox doesn't record which job made a backup, so the last run is the newest backup task for the same guests and storage.
+- **Backup jobs**: each scheduled job with its guests, storage, mode, schedule, next run and last run result, **Run now**, and **Edit**: switch the job on or off and change its name, schedule, mode, compression and which guests it covers (all, only chosen ones, or all except some). Editing needs `Sys.Modify` on `/` and `Datastore.Allocate` on the job's storage, which is more than the API token from this README has unless you add it; without it the Edit button is greyed out. Creating and deleting jobs stays in the web interface. Proxmox doesn't record which job made a backup, so the last run is the newest backup task for the same guests and storage.
 - Privileges: `Datastore.Audit` to see storages and their content, `Sys.Audit` for disks, ZFS, LVM and backup jobs, `Datastore.AllocateTemplate` to upload ISOs and download templates, `Datastore.Allocate` (or `Datastore.AllocateSpace` plus `VM.Backup` on the guest) to delete backups, and `VM.Backup` plus `Datastore.AllocateSpace` for Run now.
 
 ## Tasks
@@ -288,6 +291,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Services** lists the Proxmox services (pveproxy, pvedaemon, corosync, pve-cluster and the others) with their state. Start, stop and restart are each confirmed; ProxCtrl warns when a service it connects through could cut it off. Proxmox doesn't allow stopping pveproxy, pvedaemon or pve-cluster, so only restarting is offered for them.
 - **Updates** lists the available package updates with the installed and new version; tap one for its changelog. **Refresh** updates the package database. ProxCtrl also tells you when a newer kernel is installed than the one running, so a reboot is due. Installing updates is up to you in the node shell (`apt dist-upgrade`).
 - **Network** shows the node's interfaces, bridges, bonds and VLANs with their addresses, and the cluster's SDN zones and VNets. Read-only.
+- **GPU and PCI passthrough** shows which card is given to which guest. Every graphics card of the node is listed with its address and IOMMU group and, under it, the VM it is passed through to (from the VM's `hostpci` lines, also through resource mappings), or a note that it stays with the host. Other passed-through devices (a card's audio function, a USB or network card) are listed too, as are containers that are handed host device files such as `/dev/nvidia0` or `/dev/dri/renderD128`. Containers share a card through the host's driver and Proxmox doesn't record which card a device file belongs to, so ProxCtrl lists the files rather than guessing. Tap a guest to open it. Read-only; needs `Sys.Audit` on `/` and `VM.Audit` on the guests.
 - **Reboot** and **Shut down** the node after typing its name (for example `VKLab`).
 - **Wake-on-LAN**: enter the node's MAC address (and, if needed, your network's broadcast address and port) from the menu on the Node tab, and ProxCtrl can turn the node back on. When the node can't be reached, the Node tab offers to wake it. The packet is sent from your phone, so your phone has to be on the same network as the node, and Wake-on-LAN must be turned on in the node's firmware and network card. ProxCtrl never looks at your Wi-Fi name or location.
 - Services, updates and changelogs need `Sys.Modify` on the node (see step 3 of the API token setup), and reboot and shutdown need `Sys.PowerMgmt`.

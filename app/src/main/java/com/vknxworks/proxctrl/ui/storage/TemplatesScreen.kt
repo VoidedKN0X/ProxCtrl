@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Layers
@@ -48,6 +49,11 @@ import com.vknxworks.proxctrl.ui.components.ConfirmDialog
 import com.vknxworks.proxctrl.ui.components.ConnectionBanner
 import com.vknxworks.proxctrl.ui.components.EmptyState
 import com.vknxworks.proxctrl.ui.components.Group
+import com.vknxworks.proxctrl.ui.components.GroupRow
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import com.vknxworks.proxctrl.ui.components.ScreenTopBar
 import com.vknxworks.proxctrl.ui.components.TaskCard
 import com.vknxworks.proxctrl.ui.components.rememberTaskTracker
@@ -70,6 +76,7 @@ fun TemplatesScreen(node: String, storage: String) {
     var reload by remember { mutableIntStateOf(0) }
     var query by rememberSaveable { mutableStateOf("") }
     var downloading by remember { mutableStateOf<Appliance?>(null) }
+    var pullingOci by remember { mutableStateOf(false) }
 
     LaunchedEffect(node, storage, server?.id, reload) {
         val cl = client ?: return@LaunchedEffect
@@ -86,6 +93,9 @@ fun TemplatesScreen(node: String, storage: String) {
     }
 
     val canDownload = server?.readOnly == false && c.sessions.canWrite("/storage/$storage", StorageApi.PRIV_TEMPLATE)
+    // OCI images (Proxmox VE 9.1 and newer) are pulled by the node itself, which also needs Sys.AccessNetwork.
+    val ociSupported = StorageApi.supportsOci(access.version?.version.orEmpty())
+    val canPullOci = canDownload && c.sessions.canWrite("/nodes/$node", StorageApi.PRIV_NETWORK)
 
     Column(Modifier.fillMaxSize()) {
         ScreenTopBar(stringResource(R.string.storage_templates_title, storage))
@@ -101,6 +111,21 @@ fun TemplatesScreen(node: String, storage: String) {
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = Gutter, vertical = 8.dp),
             )
+            if (ociSupported) {
+                Group(stringResource(R.string.oci_group), footer = stringResource(R.string.oci_footer)) {
+                    GroupRow(
+                        title = stringResource(R.string.oci_pull),
+                        subtitle = when {
+                            server?.readOnly != false -> stringResource(R.string.oci_read_only)
+                            !canPullOci -> stringResource(R.string.oci_not_allowed)
+                            else -> stringResource(R.string.oci_pull_subtitle)
+                        },
+                        icon = Icons.Outlined.CloudDownload,
+                        showChevron = canPullOci,
+                        onClick = if (canPullOci && !tracker.busy) ({ pullingOci = true }) else null,
+                    )
+                }
+            }
             if (!canDownload) {
                 Text(
                     stringResource(R.string.not_allowed_action),
@@ -142,6 +167,20 @@ fun TemplatesScreen(node: String, storage: String) {
                 }
             }
         }
+    }
+
+    if (pullingOci) {
+        OciPullDialog(
+            storage = storage,
+            onDismiss = { pullingOci = false },
+            onPull = { reference, filename ->
+                pullingOci = false
+                val cl = client ?: return@OciPullDialog
+                tracker.run(context.getString(R.string.oci_task, reference), cl, server?.host.orEmpty(), server?.auth, { reload++ }) {
+                    StorageApi.pullOciImage(cl, node, storage, reference, filename)
+                }
+            },
+        )
     }
 
     downloading?.let { a ->
@@ -195,4 +234,49 @@ private fun TemplateRow(a: Appliance, downloaded: Boolean, enabled: Boolean, onD
             )
         }
     }
+}
+
+/** Asks for the image to pull: its reference (registry/repository:tag) and, optionally, a file name. */
+@Composable
+private fun OciPullDialog(storage: String, onDismiss: () -> Unit, onPull: (reference: String, filename: String?) -> Unit) {
+    var reference by rememberSaveable { mutableStateOf("") }
+    var filename by rememberSaveable { mutableStateOf("") }
+    val ref = reference.trim()
+    val valid = StorageApi.OCI_REFERENCE.matches(ref)
+    val plain = KeyboardOptions(autoCorrectEnabled = false, capitalization = KeyboardCapitalization.None, keyboardType = KeyboardType.Uri)
+    CtrlDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Outlined.CloudDownload, null, tint = MaterialTheme.colorScheme.primary) },
+        title = { Text(stringResource(R.string.oci_pull)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.oci_dialog_body, storage), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.size(12.dp))
+                CtrlTextField(
+                    value = reference,
+                    onValueChange = { reference = it.trim() },
+                    label = { Text(stringResource(R.string.oci_reference)) },
+                    placeholder = { Text("docker.io/library/debian:13") },
+                    supportingText = { Text(stringResource(if (ref.isEmpty() || valid) R.string.oci_reference_hint else R.string.oci_reference_invalid)) },
+                    isError = ref.isNotEmpty() && !valid,
+                    singleLine = true,
+                    keyboardOptions = plain,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                CtrlTextField(
+                    value = filename,
+                    onValueChange = { filename = it.take(255) },
+                    label = { Text(stringResource(R.string.oci_filename)) },
+                    supportingText = { Text(stringResource(R.string.oci_filename_hint)) },
+                    singleLine = true,
+                    keyboardOptions = plain,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onPull(ref, filename.trim().ifEmpty { null }) }, enabled = valid) { Text(stringResource(R.string.oci_pull_confirm)) }
+        },
+        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }

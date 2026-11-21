@@ -81,6 +81,43 @@ object StorageApi {
     suspend fun downloadTemplate(client: PveClient, node: String, storage: String, template: String): String? =
         (client.post("/nodes/$node/aplinfo", mapOf("storage" to storage, "template" to template)) as? JsonPrimitive)?.content
 
+    /** Pulling from a registry also needs Sys.AccessNetwork on the node. */
+    const val PRIV_NETWORK = "Sys.AccessNetwork"
+
+    /**
+     * What Proxmox accepts as an OCI image reference: an optional registry host (with port), the
+     * repository path and a tag, like "docker.io/library/debian:13" or "ghcr.io/home-assistant/home-assistant:stable".
+     * The same pattern as the API's own (pve-storage, PVE::API2::Storage::Status, oci-registry-pull).
+     */
+    val OCI_REFERENCE = Regex(
+        "^(?:(?:[a-zA-Z\\d]|[a-zA-Z\\d][a-zA-Z\\d-]*[a-zA-Z\\d])" +
+            "(?:\\.(?:[a-zA-Z\\d]|[a-zA-Z\\d][a-zA-Z\\d-]*[a-zA-Z\\d]))*(?::\\d+)?/)?[a-z\\d]+" +
+            "(?:(?:[._]|__|[-]*)[a-z\\d]+)*(?:/[a-z\\d]+(?:(?:[._]|__|[-]*)[a-z\\d]+)*)*" +
+            ":\\w[\\w.-]{0,127}$",
+    )
+
+    /** OCI images for containers came with Proxmox VE 9.1. */
+    fun supportsOci(version: String): Boolean {
+        val parts = version.split('.', '-')
+        val major = parts.getOrNull(0)?.toIntOrNull() ?: return false
+        val minor = parts.getOrNull(1)?.toIntOrNull() ?: 0
+        return major > 9 || (major == 9 && minor >= 1)
+    }
+
+    /**
+     * Pulls an OCI image from a registry into [storage] as a container template:
+     * POST /nodes/{node}/storage/{storage}/oci-registry-pull (Datastore.AllocateTemplate on the storage
+     * and Sys.AccessNetwork on the node). Proxmox refuses to overwrite a file that is already there.
+     * Returns the task's UPID.
+     */
+    suspend fun pullOciImage(client: PveClient, node: String, storage: String, reference: String, filename: String?): String? {
+        val params = buildMap {
+            put("reference", reference.trim())
+            if (!filename.isNullOrBlank()) put("filename", filename.trim())
+        }
+        return (client.post("/nodes/$node/storage/$storage/oci-registry-pull", params) as? JsonPrimitive)?.content
+    }
+
     fun parseStorages(node: String, data: JsonElement?): List<StorageInfo> =
         (data as? JsonArray).orEmpty().mapNotNull { it as? JsonObject }.mapNotNull { o ->
             StorageInfo(

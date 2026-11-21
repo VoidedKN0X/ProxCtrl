@@ -1479,4 +1479,62 @@
     <string name="ci_regenerate_pending">Changed since the image was last written: %1$s. Regenerate the image so the guest gets them at its next boot.</string>
     <string name="ci_task_save">Cloud-init: %1$s</string>
     <string name="ci_task_regenerate">Regenerate cloud-init image</string>
+
+    <!-- OCI images -->
+    <string name="oci_group">OCI image</string>
+    <string name="oci_pull">Pull an OCI image</string>
+    <string name="oci_pull_subtitle">From Docker Hub or another registry, to create a container from</string>
+    <string name="oci_footer">Proxmox VE 9.1 and newer can make containers from OCI images (the kind Docker uses). The node downloads the image itself; it then shows up with the templates when you create a container.</string>
+    <string name="oci_read_only">Not available in read-only mode</string>
+    <string name="oci_not_allowed">Needs Datastore.AllocateTemplate on this storage and Sys.AccessNetwork on the node</string>
+    <string name="oci_dialog_body">The node pulls the image and saves it on %1$s. This needs skopeo on the node, which Proxmox VE 9.1 installs by default.</string>
+    <string name="oci_reference">Image</string>
+    <string name="oci_reference_hint">Registry, name and tag, like docker.io/library/debian:13. The tag is required.</string>
+    <string name="oci_reference_invalid">Not a valid image reference. Use lower-case registry/name:tag, like ghcr.io/owner/app:1.2.</string>
+    <string name="oci_filename">File name (optional)</string>
+    <string name="oci_filename_hint">Leave empty to name the file after the image. Proxmox won\'t overwrite a file that is already there.</string>
+    <string name="oci_pull_confirm">Pull</string>
+    <string name="oci_task">Pull %1$s</string>
+
+    <!-- PCI passthrough -->
+    <string name="pci_row">GPU and PCI passthrough</string>
+    <string name="pci_row_subtitle">Which card is given to which guest</string>
+    <string name="pci_title">Passthrough on %1$s</string>
+    <string name="pci_forbidden">Listing the node\'s PCI devices needs Sys.Audit on / for this sign-in.</string>
+    <string name="pci_empty">Nothing to show</string>
+    <string name="pci_empty_hint">The node reports no graphics card, and no guest has a PCI device or host device files.</string>
+    <string name="pci_gpus">Graphics cards</string>
+    <string name="pci_gpus_footer">A card passed through belongs to that VM alone while it runs. Proxmox doesn\'t report which kernel driver a card is bound to.</string>
+    <string name="pci_others">Other devices given to VMs</string>
+    <string name="pci_iommu_group">IOMMU group %1$d</string>
+    <string name="pci_no_iommu">no IOMMU group</string>
+    <string name="pci_with_host">Not given to a VM: it stays with the host, where containers can share it</string>
+    <string name="pci_given_to">Given to %1$s</string>
+    <string name="pci_mapping">mapping %1$s</string>
+    <string name="pci_unmatched">Passthrough without a matching device</string>
+    <string name="pci_unmatched_footer">These VMs name a device that isn\'t in the node\'s list, or use a resource mapping this sign-in can\'t see (Mapping.Audit).</string>
+    <string name="pci_containers">Containers with host devices</string>
+    <string name="pci_containers_footer">Containers don\'t get a card of their own: they get device files and share the card through the host\'s driver. Proxmox doesn\'t record which card a device file belongs to.</string>
+    <string name="pci_unreadable">%1$d guests couldn\'t be checked: this sign-in can\'t read their configuration.</string>
+
+    <!-- Backup job editing -->
+    <string name="job_edit">Edit</string>
+    <string name="job_edit_title">Edit backup job</string>
+    <string name="job_edit_not_allowed">Changing a job needs Sys.Modify on / and Datastore.Allocate on the job\'s storage.</string>
+    <string name="job_edit_enabled">Job is on</string>
+    <string name="job_edit_comment">Name (comment)</string>
+    <string name="job_edit_schedule">Schedule</string>
+    <string name="job_edit_schedule_hint">As in Proxmox: 21:00 (daily), sat 03:00, mon..fri 02:30, */6:00 (every six hours)</string>
+    <string name="job_edit_mode">Mode</string>
+    <string name="job_mode_snapshot">Snapshot</string>
+    <string name="job_mode_suspend">Suspend</string>
+    <string name="job_mode_stop">Stop</string>
+    <string name="job_edit_compress">Compression</string>
+    <string name="job_compress_none">None</string>
+    <string name="job_edit_guests">Guests</string>
+    <string name="job_edit_chosen">Only these</string>
+    <string name="job_edit_except">All except</string>
+    <string name="job_edit_pick_one">Pick at least one guest.</string>
+    <string name="job_edit_pool">This job backs up pool %1$s. Change which pool in the Proxmox web interface.</string>
+    <string name="job_edit_task">Change backup job %1$s</string>
 </resources>

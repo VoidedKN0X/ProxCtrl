@@ -34,7 +34,33 @@ data class BackupJob(
     val comment: String,
     /** The job's options, sent as they are to vzdump for "Run now", as the web UI does. */
     val options: Map<String, String>,
-)
+) {
+    /** Compression as vzdump names it; "0" (none) when the job sets nothing. "1" is the old name for lzo. */
+    val compress: String get() = options["compress"]?.let { if (it == "1") "lzo" else it } ?: "0"
+}
+
+/** What the job editor can change. */
+data class JobEdit(
+    val enabled: Boolean,
+    val schedule: String,
+    val comment: String,
+    /** snapshot, suspend or stop. */
+    val mode: String,
+    /** zstd, gzip, lzo or 0 (none). */
+    val compress: String,
+    val selection: JobSelection,
+) {
+    companion object {
+        fun from(job: BackupJob) = JobEdit(
+            enabled = job.enabled,
+            schedule = job.schedule,
+            comment = job.comment,
+            mode = job.mode.ifBlank { "snapshot" },
+            compress = job.compress,
+            selection = job.selection,
+        )
+    }
+}
 
 /** The newest vzdump task that looks like a run of a job. */
 data class JobRun(val upid: String, val node: String, val start: Long, val end: Long, val status: String) {
@@ -56,7 +82,57 @@ object BackupJobApi {
         "notes-template", "protected", "pbs-change-detection-mode",
     )
 
+    const val PRIV_MODIFY = "Sys.Modify"
+    const val PRIV_STORAGE = "Datastore.Allocate"
+
+    val MODES = listOf("snapshot", "suspend", "stop")
+    val COMPRESSIONS = listOf("zstd", "gzip", "lzo", "0")
+
     suspend fun list(client: PveClient): List<BackupJob> = parse(client.get("/cluster/backup"))
+
+    /**
+     * The form fields that turn [job] into [edit]: only what changed, plus whether the job is on.
+     * Proxmox clears the other ways of choosing guests itself when "vmid" or "all" is sent, except
+     * the exclude list, which has to be deleted when a job goes from "all except" to "all".
+     */
+    fun updateParams(job: BackupJob, edit: JobEdit): Map<String, String> {
+        val delete = mutableListOf<String>()
+        return buildMap {
+            put("enabled", if (edit.enabled) "1" else "0")
+            val schedule = edit.schedule.trim()
+            if (schedule.isNotEmpty() && schedule != job.schedule) put("schedule", schedule)
+            val comment = edit.comment.trim()
+            if (comment != job.comment) {
+                if (comment.isEmpty()) delete += "comment" else put("comment", comment)
+            }
+            if (edit.mode != job.mode.ifBlank { "snapshot" }) put("mode", edit.mode)
+            if (edit.compress != job.compress) put("compress", edit.compress)
+            if (edit.selection != job.selection) {
+                when (val sel = edit.selection) {
+                    JobSelection.All -> {
+                        put("all", "1")
+                        if (job.selection is JobSelection.AllExcept) delete += "exclude"
+                    }
+                    is JobSelection.AllExcept -> {
+                        put("all", "1")
+                        put("exclude", sel.vmids.joinToString(","))
+                    }
+                    is JobSelection.Guests -> put("vmid", sel.vmids.joinToString(","))
+                    // A pool is chosen in the web interface; the editor leaves pool jobs' guests alone.
+                    is JobSelection.Pool -> Unit
+                }
+            }
+            if (delete.isNotEmpty()) put("delete", delete.joinToString(","))
+        }
+    }
+
+    /**
+     * Changes a scheduled job: PUT /cluster/backup/{id}. Needs Sys.Modify on / and Datastore.Allocate
+     * on the job's storage (pve-manager, PVE::API2::Backup, update_job).
+     */
+    suspend fun update(client: PveClient, job: BackupJob, edit: JobEdit) {
+        client.put("/cluster/backup/${job.id}", updateParams(job, edit))
+    }
 
     /**
      * Starts [job] now on [nodes] (its own node when it has one): POST /nodes/{node}/vzdump with the
@@ -64,8 +140,16 @@ object BackupJobApi {
      */
     suspend fun runNow(client: PveClient, job: BackupJob, nodes: List<String>): List<String> {
         val targets = job.node?.let { listOf(it) } ?: nodes
-        return targets.mapNotNull { n -> (client.post("/nodes/$n/vzdump", job.options) as? JsonPrimitive)?.content?.takeIf { it.startsWith("UPID:") } }
+        val fields = runFields(job.options)
+        return targets.mapNotNull { n -> (client.postForm("/nodes/$n/vzdump", fields) as? JsonPrimitive)?.content?.takeIf { it.startsWith("UPID:") } }
     }
+
+    /** A job's options as form fields; a list (several excluded paths) is the same field sent once per entry. */
+    fun runFields(options: Map<String, String>): List<Pair<String, String>> =
+        options.flatMap { (key, value) -> value.split(LIST_SEPARATOR).filter { it.isNotEmpty() }.map { key to it } }
+
+    private const val LIST_SEPARATOR = "\u0000"
+
 
     /**
      * Last run of each job. Proxmox doesn't link tasks to jobs in the API (the job ID isn't in the
@@ -177,8 +261,8 @@ object BackupJobApi {
             if (key !in VZDUMP_OPTIONS) continue
             val text = when (value) {
                 is JsonObject -> value.entries.joinToString(",") { (k, v) -> "$k=${(v as? JsonPrimitive)?.content ?: v.toString()}" }
-                // A list of paths is a NUL-separated list in Proxmox's form encoding.
-                is JsonArray -> value.mapNotNull { (it as? JsonPrimitive)?.content }.joinToString("\u0000")
+                // A list of paths: kept NUL-separated here and sent as one field per entry (see runFields).
+                is JsonArray -> value.mapNotNull { (it as? JsonPrimitive)?.content }.joinToString(LIST_SEPARATOR)
                 is JsonPrimitive -> when (value.content) {
                     "true" -> "1"
                     "false" -> "0"

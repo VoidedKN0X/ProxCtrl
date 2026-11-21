@@ -15,6 +15,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.semantics.Role
+import com.vknxworks.proxctrl.data.storage.JobEdit
+import com.vknxworks.proxctrl.ui.components.CtrlDialog
+import com.vknxworks.proxctrl.ui.components.CtrlTextField
+import com.vknxworks.proxctrl.ui.components.GroupSwitch
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
@@ -75,6 +86,8 @@ fun BackupJobsScreen() {
     var refreshing by remember { mutableStateOf(false) }
     var reload by remember { mutableIntStateOf(0) }
     var running by remember { mutableStateOf<BackupJob?>(null) }
+    var editing by remember { mutableStateOf<BackupJob?>(null) }
+    val guestList by c.guests.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(server?.id, reload) {
         val cl = client ?: return@LaunchedEffect
@@ -96,6 +109,9 @@ fun BackupJobsScreen() {
 
     // "Run now" starts vzdump with the job's guests: it needs VM.Backup somewhere below /vms.
     val canRun = server?.readOnly == false && access.permissions.hasAnywhere("/vms", "VM.Backup")
+    // Changing a job needs Sys.Modify on / and Datastore.Allocate on the storage the job writes to.
+    fun canEdit(job: BackupJob): Boolean = server?.readOnly == false && access.permissions.has("/", BackupJobApi.PRIV_MODIFY) &&
+        (job.storage.isBlank() || access.permissions.has("/storage/${job.storage}", BackupJobApi.PRIV_STORAGE))
 
     Column(Modifier.fillMaxSize()) {
         ScreenTopBar(stringResource(R.string.storage_backup_jobs))
@@ -118,7 +134,10 @@ fun BackupJobsScreen() {
                         body = stringResource(R.string.storage_jobs_empty_hint),
                         modifier = Modifier.heightIn(min = 320.dp),
                     )
-                    else -> Group(footer = stringResource(R.string.storage_jobs_footer)) {
+                    else -> Group(
+                        footer = stringResource(R.string.storage_jobs_footer) +
+                            if (server?.readOnly == false && list.none { canEdit(it) }) "\n" + stringResource(R.string.job_edit_not_allowed) else "",
+                    ) {
                         list.forEachIndexed { i, job ->
                             JobRow(
                                 job = job,
@@ -127,6 +146,8 @@ fun BackupJobsScreen() {
                                 showRun = server?.readOnly == false,
                                 canRun = canRun && !tracker.busy,
                                 onRun = { running = job },
+                                canEdit = canEdit(job) && !tracker.busy,
+                                onEdit = { editing = job },
                             )
                         }
                     }
@@ -154,9 +175,166 @@ fun BackupJobsScreen() {
             },
         )
     }
+
+    editing?.let { job ->
+        JobEditDialog(
+            job = job,
+            guests = guestList.guests.filter { !it.isTemplate }.sortedBy { it.vmid }.map { it.vmid.toString() to it.name },
+            onDismiss = { editing = null },
+            onSave = { edit ->
+                editing = null
+                val cl = client ?: return@JobEditDialog
+                tracker.run(context.getString(R.string.job_edit_task, jobTitle(job)), cl, server?.host.orEmpty(), server?.auth, { reload++ }) {
+                    BackupJobApi.update(cl, job, edit)
+                    null
+                }
+            },
+        )
+    }
 }
 
 private fun jobTitle(job: BackupJob): String = job.comment.ifBlank { job.id }
+
+@Composable
+private fun modeLabel(mode: String): String = when (mode) {
+    "snapshot" -> stringResource(R.string.job_mode_snapshot)
+    "suspend" -> stringResource(R.string.job_mode_suspend)
+    "stop" -> stringResource(R.string.job_mode_stop)
+    else -> mode
+}
+
+@Composable
+private fun compressLabel(compress: String): String = when (compress) {
+    "0" -> stringResource(R.string.job_compress_none)
+    "zstd" -> "ZSTD"
+    "gzip" -> "GZIP"
+    "lzo" -> "LZO"
+    else -> compress
+}
+
+private enum class SelectionKind { ALL, CHOSEN, EXCEPT }
+
+/**
+ * Changes a scheduled backup job: on or off, its name, schedule, mode, compression and which guests
+ * it covers. Proxmox checks the schedule and shows its own message if it can't read it.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun JobEditDialog(job: BackupJob, guests: List<Pair<String, String>>, onDismiss: () -> Unit, onSave: (JobEdit) -> Unit) {
+    val start = remember(job) { JobEdit.from(job) }
+    var enabled by remember { mutableStateOf(start.enabled) }
+    var comment by remember { mutableStateOf(start.comment) }
+    var schedule by remember { mutableStateOf(start.schedule) }
+    var mode by remember { mutableStateOf(start.mode) }
+    var compress by remember { mutableStateOf(start.compress) }
+    val pool = job.selection as? JobSelection.Pool
+    var kind by remember {
+        mutableStateOf(
+            when (job.selection) {
+                is JobSelection.Guests -> SelectionKind.CHOSEN
+                is JobSelection.AllExcept -> SelectionKind.EXCEPT
+                else -> SelectionKind.ALL
+            },
+        )
+    }
+    var picked by remember {
+        mutableStateOf(
+            when (val sel = job.selection) {
+                is JobSelection.Guests -> sel.vmids.toSet()
+                is JobSelection.AllExcept -> sel.vmids.toSet()
+                else -> emptySet()
+            },
+        )
+    }
+    // Guests the job names that this sign-in can't see (or that are gone) stay in the list, by ID.
+    val rows = remember(guests, job) {
+        val known = guests.map { it.first }.toSet()
+        val extra = when (val sel = job.selection) {
+            is JobSelection.Guests -> sel.vmids
+            is JobSelection.AllExcept -> sel.vmids
+            else -> emptyList()
+        }.filter { it !in known }.map { it to "" }
+        (guests + extra).sortedBy { it.first.toIntOrNull() ?: Int.MAX_VALUE }
+    }
+    val ids = rows.map { it.first }.filter { it in picked }
+    val selection: JobSelection = when {
+        pool != null -> pool
+        kind == SelectionKind.ALL -> JobSelection.All
+        kind == SelectionKind.CHOSEN -> JobSelection.Guests(ids)
+        // "All except nobody" is simply all guests.
+        ids.isEmpty() -> JobSelection.All
+        else -> JobSelection.AllExcept(ids)
+    }
+    val valid = schedule.isNotBlank() && !(kind == SelectionKind.CHOSEN && pool == null && ids.isEmpty())
+    CtrlDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.job_edit_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                GroupSwitch(title = stringResource(R.string.job_edit_enabled), checked = enabled, onChange = { enabled = it })
+                CtrlTextField(
+                    value = comment,
+                    onValueChange = { comment = it.take(512) },
+                    label = { Text(stringResource(R.string.job_edit_comment)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                CtrlTextField(
+                    value = schedule,
+                    onValueChange = { schedule = it.take(128) },
+                    label = { Text(stringResource(R.string.job_edit_schedule)) },
+                    supportingText = { Text(stringResource(R.string.job_edit_schedule_hint)) },
+                    isError = schedule.isBlank(),
+                    singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(autoCorrectEnabled = false, capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.None),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(stringResource(R.string.job_edit_mode), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                    (BackupJobApi.MODES + mode).distinct().forEach { m ->
+                        FilterChip(selected = mode == m, onClick = { mode = m }, label = { Text(modeLabel(m)) })
+                    }
+                }
+                Text(stringResource(R.string.job_edit_compress), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                    (BackupJobApi.COMPRESSIONS + compress).distinct().forEach { z ->
+                        FilterChip(selected = compress == z, onClick = { compress = z }, label = { Text(compressLabel(z)) })
+                    }
+                }
+                Text(stringResource(R.string.job_edit_guests), style = MaterialTheme.typography.labelLarge)
+                if (pool != null) {
+                    Text(stringResource(R.string.job_edit_pool, pool.pool), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = kind == SelectionKind.ALL, onClick = { kind = SelectionKind.ALL }, label = { Text(stringResource(R.string.storage_job_all)) })
+                        FilterChip(selected = kind == SelectionKind.CHOSEN, onClick = { kind = SelectionKind.CHOSEN }, label = { Text(stringResource(R.string.job_edit_chosen)) })
+                        FilterChip(selected = kind == SelectionKind.EXCEPT, onClick = { kind = SelectionKind.EXCEPT }, label = { Text(stringResource(R.string.job_edit_except)) })
+                    }
+                    if (kind != SelectionKind.ALL) {
+                        if (kind == SelectionKind.CHOSEN && ids.isEmpty()) {
+                            Text(stringResource(R.string.job_edit_pick_one), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                        }
+                        rows.forEach { (id, name) ->
+                            val on = id in picked
+                            Row(
+                                Modifier.fillMaxWidth().toggleable(value = on, role = Role.Checkbox, onValueChange = { picked = if (it) picked + id else picked - id }),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Checkbox(checked = on, onCheckedChange = null, modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(listOf(id, name).filter { it.isNotBlank() }.joinToString("  "), style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(JobEdit(enabled, schedule, comment, mode, compress, selection)) }, enabled = valid) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = { TextButton(onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
 
 @Composable
 private fun selectionText(s: JobSelection): String = when (s) {
@@ -167,7 +345,16 @@ private fun selectionText(s: JobSelection): String = when (s) {
 }
 
 @Composable
-private fun JobRow(job: BackupJob, lastRun: JobRun?, lastRunLoading: Boolean, showRun: Boolean, canRun: Boolean, onRun: () -> Unit) {
+private fun JobRow(
+    job: BackupJob,
+    lastRun: JobRun?,
+    lastRunLoading: Boolean,
+    showRun: Boolean,
+    canRun: Boolean,
+    onRun: () -> Unit,
+    canEdit: Boolean,
+    onEdit: () -> Unit,
+) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(jobTitle(job), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
@@ -228,10 +415,18 @@ private fun JobRow(job: BackupJob, lastRun: JobRun?, lastRunLoading: Boolean, sh
             }
         }
         if (showRun) {
-            CtrlSecondaryButton(onClick = onRun, enabled = canRun, modifier = Modifier.padding(top = 8.dp)) {
-                Icon(Icons.Outlined.PlayArrow, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.storage_job_run))
+            Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                CtrlSecondaryButton(onClick = onRun, enabled = canRun) {
+                    Icon(Icons.Outlined.PlayArrow, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.storage_job_run))
+                }
+                Spacer(Modifier.width(8.dp))
+                CtrlSecondaryButton(onClick = onEdit, enabled = canEdit) {
+                    Icon(Icons.Outlined.Edit, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.job_edit))
+                }
             }
         }
     }

@@ -14,9 +14,13 @@ import kotlinx.serialization.Serializable
 /** A node's network interfaces and the cluster's SDN zones and VNets. */
 @Serializable data class NodeNetworkRoute(val node: String)
 
+/** A node's graphics cards and PCI devices, and which guest each is given to. */
+@Serializable data class NodePciRoute(val node: String)
+
 /** The Node tab's own screens, registered in the app's navigation graph. */
 fun NavGraphBuilder.nodeDestinations() {
     composable<NodeServicesRoute> { NodeServicesScreen(it.toRoute<NodeServicesRoute>().node) }
     composable<NodeUpdatesRoute> { NodeUpdatesScreen(it.toRoute<NodeUpdatesRoute>().node) }
     composable<NodeNetworkRoute> { NodeNetworkScreen(it.toRoute<NodeNetworkRoute>().node) }
+    composable<NodePciRoute> { NodePciScreen(it.toRoute<NodePciRoute>().node) }
 }
