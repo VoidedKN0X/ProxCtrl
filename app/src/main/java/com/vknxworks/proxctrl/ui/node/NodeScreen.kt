@@ -23,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeveloperBoard
 import androidx.compose.material.icons.outlined.Hub
+import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.RestartAlt
@@ -320,6 +321,16 @@ fun NodeScreen() {
                         showChevron = true,
                         onClick = { nav.navigate(NodePciRoute(node)) },
                     )
+                    // Only on a real cluster: a single node has no quorum, HA or replication to show.
+                    if (overview.isClustered) {
+                        GroupRow(
+                            title = stringResource(R.string.cluster_row),
+                            subtitle = stringResource(R.string.cluster_row_subtitle),
+                            icon = Icons.Outlined.Lan,
+                            showChevron = true,
+                            onClick = { nav.navigate(ClusterRoute(node)) },
+                        )
+                    }
                 }
 
                 NodeGraphs(rrd, timeframe, onTimeframe = { timeframe = it; rrd = emptyList() })

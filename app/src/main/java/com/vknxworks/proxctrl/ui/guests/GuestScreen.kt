@@ -25,6 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.MoveUp
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -163,6 +164,10 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
     var templating by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
+    var migrating by remember { mutableStateOf(false) }
+    // Other nodes of the cluster that are online; empty on a single node, where Migrate isn't offered.
+    val overviewState by c.overview.state.collectAsStateWithLifecycle()
+    val migrateTargets = overviewState.nodes.filter { it.isOnline && it.node != ref.node }.map { it.node }.sorted()
     var deletePurge by remember { mutableStateOf(true) }
     var deleteUnreferenced by remember { mutableStateOf(false) }
 
@@ -240,6 +245,15 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                                     leadingIcon = { Icon(Icons.Outlined.Description, null) },
                                     enabled = !tracker.busy && g.isStopped && c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_ALLOCATE),
                                     onClick = { menu = false; templating = true },
+                                )
+                            }
+                            if (overviewState.isClustered) {
+                                CtrlMenuItem(
+                                    text = { Text(stringResource(R.string.migrate)) },
+                                    leadingIcon = { Icon(Icons.Outlined.MoveUp, null) },
+                                    enabled = !tracker.busy && !g.isTemplate && migrateTargets.isNotEmpty() &&
+                                        c.sessions.canWrite(ref.aclPath, com.vknxworks.proxctrl.data.cluster.ClusterApi.PRIV_MIGRATE),
+                                    onClick = { menu = false; migrating = true },
                                 )
                             }
                             // Deleting: only a stopped guest without protection, and only with VM.Allocate.
@@ -541,6 +555,37 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 val cl = client ?: return@TypedConfirmDialog
                 tracker.run(context.getString(R.string.template_task, vmid), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
                     ResourcesApi.convertToTemplate(cl, ref)
+                }
+            },
+        )
+    }
+
+    if (migrating) {
+        val isRunning = guest?.isRunning == true
+        MigrateDialog(
+            label = guest?.name?.ifBlank { null } ?: vmid.toString(),
+            type = ref.type,
+            running = isRunning,
+            targets = migrateTargets,
+            onDismiss = { migrating = false },
+            onMigrate = { target, withLocalDisks ->
+                migrating = false
+                val cl = client ?: return@MigrateDialog
+                tracker.run(
+                    context.getString(R.string.migrate_task, vmid, target),
+                    cl,
+                    server?.host.orEmpty(),
+                    server?.auth,
+                    onFinished = { ok ->
+                        scope.launch { c.guests.refresh() }
+                        // The guest now lives on another node, so this page's address is stale.
+                        if (ok) {
+                            android.widget.Toast.makeText(context, context.getString(R.string.migrate_done, vmid, target), android.widget.Toast.LENGTH_LONG).show()
+                            nav.close(com.vknxworks.proxctrl.ui.nav.GuestRoute::class)
+                        }
+                    },
+                ) {
+                    com.vknxworks.proxctrl.data.cluster.ClusterApi.migrate(cl, ref, target, isRunning, withLocalDisks)
                 }
             },
         )

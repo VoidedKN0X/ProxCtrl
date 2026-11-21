@@ -17,10 +17,14 @@ import kotlinx.serialization.Serializable
 /** A node's graphics cards and PCI devices, and which guest each is given to. */
 @Serializable data class NodePciRoute(val node: String)
 
+/** The cluster: members, quorum, high availability, replication and Ceph. Only reachable on servers with more than one node. */
+@Serializable data class ClusterRoute(val node: String)
+
 /** The Node tab's own screens, registered in the app's navigation graph. */
 fun NavGraphBuilder.nodeDestinations() {
     composable<NodeServicesRoute> { NodeServicesScreen(it.toRoute<NodeServicesRoute>().node) }
     composable<NodeUpdatesRoute> { NodeUpdatesScreen(it.toRoute<NodeUpdatesRoute>().node) }
     composable<NodeNetworkRoute> { NodeNetworkScreen(it.toRoute<NodeNetworkRoute>().node) }
     composable<NodePciRoute> { NodePciScreen(it.toRoute<NodePciRoute>().node) }
+    composable<ClusterRoute> { ClusterScreen(it.toRoute<ClusterRoute>().node) }
 }

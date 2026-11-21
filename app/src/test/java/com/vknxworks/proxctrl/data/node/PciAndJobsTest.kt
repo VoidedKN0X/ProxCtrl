@@ -135,3 +135,50 @@ class PciAndJobsTest {
         assertEquals("lzo", j.compress)
     }
 }
+
+/** What only applies to clusters: status parsing and the fields a migration sends. */
+class ClusterTest {
+    private val api = com.vknxworks.proxctrl.data.cluster.ClusterApi
+
+    @Test
+    fun `a single node has no cluster entry`() {
+        val alone = api.parseState(Json.parseToJsonElement("""[{"type":"node","name":"VKLab","online":1,"local":1,"ip":"192.168.1.10","nodeid":0}]"""))
+        assertEquals(null, alone.name)
+        assertTrue(alone.quorate)
+        assertEquals(listOf("VKLab"), alone.members.map { it.name })
+        val two = api.parseState(
+            Json.parseToJsonElement("""[{"type":"cluster","name":"home","nodes":2,"quorate":0},{"type":"node","name":"b","online":0},{"type":"node","name":"a","online":1,"local":1}]"""),
+        )
+        assertEquals("home", two.name)
+        assertFalse(two.quorate)
+        assertEquals(listOf("a", "b"), two.members.map { it.name })
+        assertFalse(two.members[1].online)
+    }
+
+    @Test
+    fun `what a migration sends`() {
+        assertEquals(mapOf("target" to "b"), api.migrateParams(GuestType.QEMU, "b", running = false, withLocalDisks = true))
+        assertEquals(mapOf("target" to "b", "online" to "1"), api.migrateParams(GuestType.QEMU, "b", running = true, withLocalDisks = false))
+        assertEquals(mapOf("target" to "b", "online" to "1", "with-local-disks" to "1"), api.migrateParams(GuestType.QEMU, "b", running = true, withLocalDisks = true))
+        assertEquals(mapOf("target" to "b", "restart" to "1"), api.migrateParams(GuestType.LXC, "b", running = true, withLocalDisks = true))
+        assertEquals(mapOf("target" to "b"), api.migrateParams(GuestType.LXC, "b", running = false, withLocalDisks = false))
+    }
+
+    @Test
+    fun `replication and ceph status`() {
+        val jobs = api.parseReplication(Json.parseToJsonElement("""[{"id":"100-0","guest":100,"target":"b","schedule":"*/15","last_sync":1700000000,"next_sync":1700000900,"fail_count":2,"error":"timeout"}]"""))
+        assertEquals(2, jobs.single().failCount)
+        assertEquals("timeout", jobs.single().error)
+        val ceph = api.parseCeph(
+            Json.parseToJsonElement(
+                """{"health":{"status":"HEALTH_WARN","checks":{"OSD_DOWN":{"severity":"HEALTH_WARN","summary":{"message":"1 osds down"}}}},"pgmap":{"bytes_used":10,"bytes_total":40},"osdmap":{"num_osds":3,"num_up_osds":2,"num_in_osds":3}}""",
+            ),
+        )
+        assertEquals("HEALTH_WARN", ceph.health)
+        assertEquals(listOf("OSD_DOWN: 1 osds down"), ceph.checks)
+        assertEquals(40L, ceph.totalBytes)
+        assertEquals(2, ceph.osdsUp)
+        val old = api.parseCeph(Json.parseToJsonElement("""{"health":{"status":"HEALTH_OK"},"osdmap":{"osdmap":{"num_osds":6,"num_up_osds":6,"num_in_osds":6}}}"""))
+        assertEquals(6, old.osds)
+    }
+}

@@ -1537,4 +1537,66 @@
     <string name="job_edit_pick_one">Pick at least one guest.</string>
     <string name="job_edit_pool">This job backs up pool %1$s. Change which pool in the Proxmox web interface.</string>
     <string name="job_edit_task">Change backup job %1$s</string>
+
+    <!-- Cluster (only shown on servers with more than one node) -->
+    <string name="cluster_row">Cluster</string>
+    <string name="cluster_row_subtitle">Members, quorum, high availability, replication and Ceph</string>
+    <string name="cluster_title">Cluster</string>
+    <string name="cluster_named">Cluster %1$s</string>
+    <string name="cluster_members">Nodes</string>
+    <string name="cluster_quorum">Quorum</string>
+    <string name="cluster_quorate">Quorate: enough nodes are online to make changes</string>
+    <string name="cluster_not_quorate">No quorum: too few nodes are online, so nothing can be changed</string>
+    <string name="cluster_this_node">connected here</string>
+    <string name="cluster_online">Online</string>
+    <string name="cluster_offline">Offline</string>
+    <string name="cluster_ha">High availability</string>
+    <string name="cluster_ha_manager">Manager</string>
+    <string name="cluster_ha_footer">Guests that high availability looks after, with their state and the node they are on.</string>
+    <string name="cluster_replication">Replication from %1$s</string>
+    <string name="cluster_repl_job">%1$s to %2$s</string>
+    <string name="cluster_repl_last">Last sync %1$s</string>
+    <string name="cluster_repl_never">Never synced</string>
+    <string name="cluster_repl_failed">Failed %1$d times in a row</string>
+    <string name="cluster_ceph">Ceph</string>
+    <string name="cluster_ceph_health">Health</string>
+    <string name="cluster_ceph_usage">Usage</string>
+    <string name="cluster_ceph_osds">OSDs</string>
+    <string name="cluster_ceph_osds_value">%1$d in total, %2$d up, %3$d in</string>
+    <string name="migrate">Migrate</string>
+    <string name="migrate_title">Move %1$s to another node?</string>
+    <string name="migrate_body_stopped">The guest is stopped, so its configuration and disks are simply moved to the other node.</string>
+    <string name="migrate_body_vm">The VM keeps running while it moves (live migration). Disks on shared storage stay where they are.</string>
+    <string name="migrate_body_lxc">A container can\'t move while it runs: it is shut down, moved and started again on the other node.</string>
+    <string name="migrate_target">Target node</string>
+    <string name="migrate_no_target">No other node is online.</string>
+    <string name="migrate_local_disks">Move local disks too</string>
+    <string name="migrate_local_disks_hint">Needed when the VM has disks on storage that only this node has. Slower: the disks are copied while the VM runs</string>
+    <string name="migrate_confirm">Migrate</string>
+    <string name="migrate_task">Migrate %1$d to %2$s</string>
+    <string name="migrate_done">Guest %1$d now runs on %2$s.</string>
+
+    <!-- Settings: back up and restore -->
+    <string name="backup_group">Back up and restore</string>
+    <string name="backup_footer">The file holds this app\'s settings only: how the guest list is sorted and shown, the warning thresholds, the two Hide switches and your notification choices. It never holds servers, token secrets, passwords, certificates or anything about the app lock, so set those up again on a new phone.</string>
+    <string name="backup_export">Export settings</string>
+    <string name="backup_export_subtitle">Save them to a file you choose</string>
+    <string name="backup_import">Import settings</string>
+    <string name="backup_import_subtitle">Read them from a file exported by ProxCtrl</string>
+    <string name="backup_export_done">Settings exported.</string>
+    <string name="backup_export_failed">Couldn\'t write the file.</string>
+    <string name="backup_import_unreadable">Couldn\'t read that file.</string>
+    <string name="backup_import_not_ours">That isn\'t a ProxCtrl settings file.</string>
+    <string name="backup_import_same">The file has the same settings as this phone. Nothing to change.</string>
+    <string name="backup_import_title">Replace these settings?</string>
+    <string name="backup_import_body">Importing replaces what this phone has for:</string>
+    <string name="backup_import_keeps">Everything else stays as it is. An import never turns off a Hide switch, never touches the app lock, and never adds a server, trusts a certificate or allows plain HTTP.</string>
+    <string name="backup_import_confirm">Replace</string>
+    <string name="backup_import_done">Settings imported.</string>
+    <string name="backup_field_sort">Guest list sorting</string>
+    <string name="backup_field_sort_direction">Guest list sort direction</string>
+    <string name="backup_field_interval">How often background checks run</string>
+    <string name="backup_field_events">Which events notify you</string>
+    <string name="backup_field_cpu">High CPU threshold</string>
+    <string name="backup_field_sustain">How long CPU or memory must stay high</string>
 </resources>

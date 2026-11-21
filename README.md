@@ -27,6 +27,9 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Storage**: storages and their content, backup deletion, ISO upload (also from the share menu), container templates, OCI images from a registry (Proxmox VE 9.1+), disks with SMART health, ZFS pools, LVM, and backup jobs you can run and edit
 - **Tasks** with live logs, history filters and Stop
 - **Node**: status and graphs, services, updates with changelogs, network and SDN, GPU and PCI passthrough (which card is given to which guest), reboot and shutdown, Wake-on-LAN
+- **Clusters** (only shown when your server has more than one node): members and quorum, high availability, storage replication and Ceph status, and **Migrate** to move a guest to another node
+- **Export and import** of the app's own settings to a file (never logins, certificates or the app lock)
+- **Follows your phone's language**: English and Dutch
 - **App lock** with its own PIN and optional fingerprint, on opening and before changes; your server logins can be encrypted with the PIN while locked
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
@@ -158,6 +161,7 @@ Even with this the token can't install updates (you run the upgrade in the node 
 | `VM.Config.Disk` | Growing a disk |
 | `VM.Clone`, `VM.Allocate` | Cloning guests, cloning templates and converting a guest to a template |
 | `VM.Allocate` | Deleting a guest |
+| `VM.Migrate` | Moving a guest to another node (clusters only) |
 | `VM.Config.Network` | Adding, changing and deleting a guest's firewall rules |
 | `VM.GuestAgent.FileSystemMgmt` (PVE 9) | Freezing and thawing a VM's file systems through the guest agent |
 | `VM.GuestAgent.Unrestricted` (PVE 9) | Running a command in a VM through the guest agent (this is as powerful as a root shell in the guest) |
@@ -262,6 +266,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Options and firewall**: the guest's options and firewall settings (read-only), and its **firewall rules**, which you can change with `VM.Config.Network`: add a rule (direction, action, a macro such as SSH or a protocol with ports, source, destination, interface, comment), edit one, switch it on or off, move it up or down, or delete it. Tap a rule for edit, move and delete. A new rule goes to the top of the list, as in the web interface, and rules apply at once when the guest's firewall is on, so take care not to lock yourself out of a guest you reach over the network. References to security groups can be switched, moved and deleted but not edited.
 - **Guest agent** (running VMs with the QEMU guest agent turned on; hidden in read-only mode): shows whether the agent answers and its version, **freezes and thaws** the guest's file systems, asks the guest's own system for a **clean shutdown**, and **runs one command** in the guest and shows its exit code, output and errors. A command runs as the agent's user (root or SYSTEM) without a shell: type `sh -c "df -h | tail -n 3"` when you need pipes. ProxCtrl shows how it split the line into program and arguments before it runs anything.
 - **Cloud-init** (VMs with a cloud-init drive or cloud-init settings): user, password (write-only; Proxmox never shows it), SSH public keys, package upgrade, DNS domain and servers, and the IP settings of each network device, plus **Regenerate image**. ProxCtrl lists which settings changed since the image was last written. The password dialog is always kept out of screenshots.
+- **Migrate** (in the ⋮ menu, only on a cluster): pick another node that is online. A running VM moves live, with a switch to take its local disks along; a running container is shut down, moved and started again; a stopped guest is simply moved. Needs `VM.Migrate`.
 - **Delete** a stopped guest from the ⋮ menu: the guest ID has to be typed in first. Two switches choose whether the ID is also taken out of backup jobs, replication and HA (on by default) and whether disks the configuration no longer mentions are deleted too (off by default). Proxmox refuses while the guest runs or has protection on. Backups of the guest are never deleted by this.
 - **Task history** for the guest.
 - **Clone** a guest or template: the next free ID is suggested, with a name, a full or (for templates) linked clone, and where the copy's disks go. **Convert to template** asks for the guest ID first; the guest must be stopped.
@@ -292,6 +297,7 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Updates** lists the available package updates with the installed and new version; tap one for its changelog. **Refresh** updates the package database. ProxCtrl also tells you when a newer kernel is installed than the one running, so a reboot is due. Installing updates is up to you in the node shell (`apt dist-upgrade`).
 - **Network** shows the node's interfaces, bridges, bonds and VLANs with their addresses, and the cluster's SDN zones and VNets. Read-only.
 - **GPU and PCI passthrough** shows which card is given to which guest. Every graphics card of the node is listed with its address and IOMMU group and, under it, the VM it is passed through to (from the VM's `hostpci` lines, also through resource mappings), or a note that it stays with the host. Other passed-through devices (a card's audio function, a USB or network card) are listed too, as are containers that are handed host device files such as `/dev/nvidia0` or `/dev/dri/renderD128`. Containers share a card through the host's driver and Proxmox doesn't record which card a device file belongs to, so ProxCtrl lists the files rather than guessing. Tap a guest to open it. Read-only; needs `Sys.Audit` on `/` and `VM.Audit` on the guests.
+- **Cluster** (the row only appears when the server has more than one node): the cluster's name, whether it has quorum, and every node with its address and whether it's online; **High availability** with the manager's status and every HA-managed guest with its state and node; **Replication** jobs from the node with their schedule, last sync and failures; and **Ceph** health, usage and OSD counts. Each of the last three only shows when it is in use. Read-only. Ceph on a single, non-clustered node isn't shown.
 - **Reboot** and **Shut down** the node after typing its name (for example `VKLab`).
 - **Wake-on-LAN**: enter the node's MAC address (and, if needed, your network's broadcast address and port) from the menu on the Node tab, and ProxCtrl can turn the node back on. When the node can't be reached, the Node tab offers to wake it. The packet is sent from your phone, so your phone has to be on the same network as the node, and Wake-on-LAN must be turned on in the node's firmware and network card. ProxCtrl never looks at your Wi-Fi name or location.
 - Services, updates and changelogs need `Sys.Modify` on the node (see step 3 of the API token setup), and reboot and shutdown need `Sys.PowerMgmt`.
@@ -329,6 +335,14 @@ While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation suc
 - With an API token, the node shell asks for a Linux login, because Proxmox only skips the login for `root@pam`. Sign in with `root@pam` and its password if you want a root shell straight away.
 - **Select, copy and share text**: in a terminal (containers, the node shell, serial consoles), the copy button at the top shows what's on the terminal as ordinary text. Long-press to select a part with Android's own handles, or use **Copy all** or **Share**; **With scrollback** includes up to the last 2,000 lines. Copied console text is marked sensitive, so keyboards don't keep it in their clipboard history. A VM's screen is a picture, so there is no text to copy there. Check the text for passwords or keys before you share it.
 - If a console doesn't behave, tap the bug icon at the top for a live diagnostics readout (connection, data sent and received, keyboard, page errors) and copy it into an issue. It never includes what you typed.
+
+## Back up and restore settings
+
+**Settings → Back up and restore** writes ProxCtrl's own settings to a JSON file you choose and reads such a file back.
+
+- **In the file:** how the guest list is sorted and shown, the disk, memory and backup-age warning thresholds, the two Hide switches, and your notification choices (which events, how often, the CPU threshold and how long a high value must last).
+- **Never in the file:** servers and their addresses, API token secrets, passwords, sessions, pinned certificates, which addresses may use plain HTTP, the app lock, its PIN and fingerprint setting, whether background checks and push are switched on (they depend on this phone's permissions and its ntfy registration), and Wake-on-LAN addresses. Add your servers again on a new phone.
+- **Importing** shows which settings would be replaced and asks first. It only reads the settings listed above from the file and ignores everything else, so a file can't add a server, trust a certificate, allow plain HTTP or change the app lock. It can turn a Hide switch on, never off. Values the app doesn't know are skipped.
 
 ## Privacy
 
