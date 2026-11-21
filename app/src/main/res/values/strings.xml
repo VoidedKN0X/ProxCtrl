@@ -554,7 +554,7 @@
     <string name="hide_screenshots_subtitle">Screenshots and screen recordings show a blank screen</string>
     <string name="hide_recents">Hide in recent apps</string>
     <string name="hide_recents_subtitle">The recent apps view shows a blank card instead of the app</string>
-    <string name="hide_content_footer">Signing in to a server, consoles and the lock and PIN screens are always kept out of screenshots and recordings, even with Hide in screenshots off. With the app lock on, the recent apps view always shows a blank card.</string>
+    <string name="hide_content_footer">Signing in to a server, creating a container and the lock and PIN screens are always kept out of screenshots and recordings, even with Hide in screenshots off. Consoles follow the switch above. With the app lock on, the recent apps view always shows a blank card.</string>
     <!-- Tasks started from the app -->
     <string name="task_running">%1$s…</string>
     <string name="task_done">%1$s: done</string>

@@ -107,7 +107,6 @@ import com.vknxworks.proxctrl.data.api.PveError
 import com.vknxworks.proxctrl.data.console.ConsoleSession
 import com.vknxworks.proxctrl.data.console.ConsoleTarget
 import com.vknxworks.proxctrl.data.server.AuthMethod
-import com.vknxworks.proxctrl.ui.components.SecureScreen
 import com.vknxworks.proxctrl.ui.components.errorMessage
 import com.vknxworks.proxctrl.ui.nav.LocalNavigator
 import kotlinx.coroutines.launch
@@ -181,7 +180,8 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     }
 
     // A shell shows whatever the server prints (keys, passwords, configs): never in screenshots or Recents.
-    SecureScreen()
+    // Consoles follow "Hide in screenshots" like every other screen: command output often has to be
+    // shared (a log line, an error), and the owner decides with that switch.
 
     // Full screen while the console is open; restore bars and rotation when leaving.
     DisposableEffect(Unit) {

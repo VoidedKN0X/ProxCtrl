@@ -31,7 +31,8 @@ val LocalAppCovered = compositionLocalOf { false }
 
 /**
  * Screens that always get FLAG_SECURE, whatever "Hide in screenshots" says: server sign-in
- * (token secret, password, two-factor code) and consoles (a root shell and whatever it prints).
+ * (token secret, password, two-factor code) and creating a container (its root password). Consoles
+ * follow the setting, so their output can be captured and shared.
  * A count rather than a flag, so two such screens overlapping during a transition can't clear it early.
  */
 object ScreenPrivacy {

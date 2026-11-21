@@ -4,6 +4,14 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## v1.8.1 (2026-11-21)
+
+Built and checked by CI only: not run on a phone when it was published.
+
+### Changed
+
+- **Consoles can be screenshotted.** VM, container and node consoles used to be kept out of screenshots and screen recordings no matter what, which made it impossible to share a log line or an error from a shell. They now follow **Hide in screenshots** (Settings, off by default) like the rest of the app: leave it off to capture console output, turn it on to blank everything. Signing in to a server, creating a container and the lock and PIN screens stay hidden regardless. Keep in mind that a console screenshot shows whatever the shell printed, so check it for passwords or keys before sharing.
+
 ## v1.8.0 (2026-11-21)
 
 Built and checked by CI only: nothing in this release had been run on a phone when it was published. It is the first release built with the new build tools (Android Gradle Plugin 9, stricter code shrinking), so update over your installed version and check that your data and settings are still there.
