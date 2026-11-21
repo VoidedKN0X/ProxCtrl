@@ -1,8 +1,11 @@
 package com.vknxworks.proxctrl.ui.tasks
 
 import android.content.Context
+import android.icu.util.Measure
+import android.icu.util.MeasureUnit
 import androidx.annotation.StringRes
 import com.vknxworks.proxctrl.R
+import com.vknxworks.proxctrl.ui.components.narrowUnits
 
 /** What a task is about, shown before the action ("VM 106 – Start"). */
 private enum class Subject { NONE, VM, CT, GUEST, SERVICE, DISK }
@@ -132,15 +135,15 @@ private fun subject(context: Context, subj: Subject, id: String, guestName: Stri
     }
 }
 
-/** "45s", "3m 12s", "1h 4m". */
+/** "45s", "3m 12s", "1h 4m" in English; the phone's own short units in other languages. */
 fun formatDuration(seconds: Long): String {
     val s = seconds.coerceAtLeast(0)
     val h = s / 3600
     val m = (s % 3600) / 60
     val sec = s % 60
     return when {
-        h > 0 -> "${h}h ${m}m"
-        m > 0 -> "${m}m ${sec}s"
-        else -> "${sec}s"
+        h > 0 -> narrowUnits(Measure(h, MeasureUnit.HOUR), Measure(m, MeasureUnit.MINUTE))
+        m > 0 -> narrowUnits(Measure(m, MeasureUnit.MINUTE), Measure(sec, MeasureUnit.SECOND))
+        else -> narrowUnits(Measure(sec, MeasureUnit.SECOND))
     }
 }
