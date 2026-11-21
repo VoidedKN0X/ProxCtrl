@@ -45,6 +45,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.ScreenRotation
@@ -119,6 +120,10 @@ private const val ASSET_HOST = "https://appassets.androidplatform.net"
 
 private enum class ConsoleState { CONNECTING, CONNECTED, CLOSED, FAILED }
 
+/** The text view shows at most this much of the scrollback, so selecting and sharing stay quick. */
+private const val CONSOLE_TEXT_MAX_LINES = 2000
+private const val CONSOLE_TEXT_MAX_CHARS = 200_000
+
 /** What the hidden keyboard field always holds, so Backspace always has something to delete. */
 private const val KEYBOARD_SENTINEL = "                                "
 
@@ -174,6 +179,22 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     SideEffect { coveredNow.set(covered) }
     val focusManager = LocalFocusManager.current
     var consoleBounds by remember { mutableStateOf<List<Int>?>(null) }
+    // The terminal's text as plain text, to select, copy or share; null while the terminal itself shows.
+    var consoleText by remember { mutableStateOf<String?>(null) }
+    var consoleTextAll by remember { mutableStateOf(false) }
+
+    /** Reads the terminal's text from the page: what's on screen, or with the scrollback. */
+    fun loadConsoleText(all: Boolean) {
+        consoleTextAll = all
+        val wv = webView
+        if (wv == null) {
+            consoleText = ""
+            return
+        }
+        wv.evaluateJavascript("typeof pcText === 'function' ? pcText($all, $CONSOLE_TEXT_MAX_LINES) : ''") { result ->
+            consoleText = decodeJsString(result).take(CONSOLE_TEXT_MAX_CHARS)
+        }
+    }
 
     fun js(code: String) {
         main.post { webView?.evaluateJavascript(code, null) }
@@ -477,9 +498,11 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     // underneath the page) stay visible until then.
     // The page is a view on top of the whole window, so it's also hidden while the lock screen or a PIN
     // screen covers the app: a console must never show (or take typing) over the lock.
-    LaunchedEffect(state, webView, covered) {
-        webView?.visibility = if (state == ConsoleState.CONNECTED && !covered) View.VISIBLE else View.INVISIBLE
+    val showingText = consoleText != null
+    LaunchedEffect(state, webView, covered, showingText) {
+        webView?.visibility = if (state == ConsoleState.CONNECTED && !covered && !showingText) View.VISIBLE else View.INVISIBLE
     }
+    androidx.activity.compose.BackHandler(enabled = showingText) { consoleText = null }
 
     // Covered: drop the keyboard field's focus and close the keyboard (the session stays open). Uncovered
     // again: a terminal that had the keyboard up gets it back, so you can carry on typing.
@@ -511,6 +534,19 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                 modifier = Modifier.weight(1f),
             )
             if (!target.isScreen) {
+                // A terminal's output as text. A VM's screen is a picture, so there's nothing to copy there.
+                IconButton(
+                    onClick = {
+                        if (showingText) consoleText = null else { hideKeyboard(); loadConsoleText(false) }
+                    },
+                    enabled = state == ConsoleState.CONNECTED || showingText,
+                ) {
+                    Icon(
+                        Icons.Outlined.ContentCopy,
+                        stringResource(R.string.console_text),
+                        tint = if (showingText) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.White,
+                    )
+                }
                 IconButton(onClick = { fontSize = (fontSize - 1).coerceAtLeast(8); js("pcFontSize($fontSize)") }) {
                     Icon(Icons.Outlined.TextDecrease, stringResource(R.string.console_font_smaller), tint = androidx.compose.ui.graphics.Color.White)
                 }
@@ -614,6 +650,14 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                     }
                 }
                 ConsoleState.CONNECTED -> Unit
+            }
+            consoleText?.let { text ->
+                ConsoleTextPanel(
+                    text = text,
+                    all = consoleTextAll,
+                    onScope = ::loadConsoleText,
+                    onClose = { consoleText = null },
+                )
             }
         }
 

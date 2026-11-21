@@ -4,6 +4,18 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+Built and checked by CI only: nothing below has been run on a phone yet. Every new action talks to Proxmox through API calls checked against Proxmox's own source code, but please try each one on a throwaway guest first.
+
+### New
+
+- **Copy and share text from a console.** Terminals (containers, the node shell and VMs with a serial console) have a new copy button at the top. It shows what is on the terminal as ordinary text: long-press to select a part and copy it with Android's own selection handles, or tap **Copy all** or **Share** to send it to another app. **With scrollback** adds up to the last 2,000 lines above the screen. The text is a snapshot; close it to carry on typing. Copied text is marked sensitive so keyboards don't keep it in their clipboard history. A VM's graphical screen is a picture, so it has no text view. Look the text over for passwords or keys before sharing.
+- **Delete a guest.** The ⋮ menu on a guest's page has **Delete**. The guest must be stopped and unprotected, and you type its ID before the button works. Two switches: **Remove from jobs** (on: the ID is also taken out of backup jobs, replication and HA) and **Delete unreferenced disks** (off: also delete disks with this ID that the configuration no longer mentions). The guest's backups are never deleted. Needs `VM.Allocate` on the guest; the menu says why when it's greyed out.
+- **Firewall rules can be changed.** On a guest's Options and firewall page, rules used to be read-only. With `VM.Config.Network` you can now add a rule (direction, action, a macro or a protocol with ports, source, destination, interface, comment), edit one, switch it on or off with its switch, move it up or down, and delete it; tap a rule for edit, move and delete. A new rule goes to the top of the list, as in Proxmox's web interface. Proxmox checks the values and its answer is shown if it refuses a rule. Rules take effect at once when the guest's firewall is on.
+- **Guest agent actions for VMs.** A running VM with the QEMU guest agent turned on gets a **Guest agent** row. The page shows whether the agent answers (with its version), and can **freeze** and **thaw** the guest's file systems, ask the guest's own system for a **clean shutdown** (for guests that ignore the power button), and **run one command** in the guest, showing its exit code, output and errors. Commands run without a shell, as the agent's user; ProxCtrl shows how it split your line into program and arguments and asks before running it. Needs `VM.GuestAgent.FileSystemMgmt` for freeze and thaw and `VM.GuestAgent.Unrestricted` for commands on Proxmox VE 9 (`VM.Monitor` on Proxmox VE 8). The row is hidden in read-only mode, because every agent action is a change.
+- **Cloud-init settings for VMs.** A VM with a cloud-init drive (or cloud-init settings) gets a **Cloud-init** row: user, password, SSH public keys, package upgrade, DNS domain and servers and the IP settings of each network device can be changed, and **Regenerate image** writes the cloud-init drive again. The page lists which settings changed since the image was last written. The password is write-only (Proxmox never sends it back), an empty password field changes nothing, and the password dialog is always kept out of screenshots. Needs `VM.Config.Cloudinit`.
+
 ## v1.8.1 (2026-11-21)
 
 Built and checked by CI only: not run on a phone when it was published.

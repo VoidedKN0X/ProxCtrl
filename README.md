@@ -16,6 +16,11 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Guests**: all your containers and VMs with CPU, memory and disk use, tags, search, sorting, a compact view and bulk start/stop
 - **Create guests** from the + button on Guests: a new container (template, password or SSH key, unprivileged, nesting, disk, CPU, memory, network with DHCP or static IPv4/IPv6 and VLAN, DNS) or a new VM (ISO, SeaBIOS or UEFI with Secure Boot and TPM, q35 or i440fx, SCSI controller, disk, CPU, memory, ballooning, network, guest agent), or a full or linked clone of a template, with the task log right after
 - **Guest pages** with live status, graphs, power controls, IP addresses, notes, console, snapshots, backups and restore
+- **Firewall rules** of a guest: add, edit, switch on or off, reorder and delete
+- **Guest agent** actions for VMs: freeze and thaw the file systems, a clean shutdown through the agent, and running a command with its output
+- **Cloud-init** settings for VMs: user, password, SSH keys, DNS, IP settings, and regenerating the image
+- **Delete a guest**, with the guest ID typed in first
+- **Console text**: a terminal's output as text you can select, copy or share
 - **Move disks** of VMs (also while running) and containers to another storage, with format, delete-original and speed-limit options
 - **Node shell** from the node's card on the Overview
 - **Notifications**: background checks, plus instant push from Proxmox through [ntfy](https://f-droid.org/packages/io.heckel.ntfy/) and your own ntfy server
@@ -26,7 +31,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
 - **Open a guest from other apps** with a `proxctrl://guest/<id>` link (TrueCtrl uses it); a link never changes anything
-- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk or making a template, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore (in the StrongBox security chip when the phone has one)
+- **Safe by design**: read-only mode that blocks every change at the connection level, confirmation before bulk actions, the guest ID typed in before rolling back or deleting a snapshot, restoring a backup, growing a disk, making a template or deleting a guest, the node name typed in before a reboot or shutdown, an optional app lock with its own PIN, certificate pinning, HTTPS by default (plain HTTP only for your own server after a warning), **Hide in screenshots** and **Hide in recent apps** switches, sign-in always kept out of screenshots, and token secrets and passwords encrypted with the Android Keystore (in the StrongBox security chip when the phone has one)
 
 ## Requirements
 
@@ -152,6 +157,11 @@ Even with this the token can't install updates (you run the upgrade in the node 
 | `VM.Config.Options` | Editing a guest's notes and tags |
 | `VM.Config.Disk` | Growing a disk |
 | `VM.Clone`, `VM.Allocate` | Cloning guests, cloning templates and converting a guest to a template |
+| `VM.Allocate` | Deleting a guest |
+| `VM.Config.Network` | Adding, changing and deleting a guest's firewall rules |
+| `VM.GuestAgent.FileSystemMgmt` (PVE 9) | Freezing and thawing a VM's file systems through the guest agent |
+| `VM.GuestAgent.Unrestricted` (PVE 9) | Running a command in a VM through the guest agent (this is as powerful as a root shell in the guest) |
+| `VM.Config.Cloudinit` | Changing a VM's cloud-init settings and regenerating its image |
 | `VM.Allocate`, `VM.Config.CPU`, `VM.Config.Memory`, `VM.Config.Disk`, `VM.Config.Network`, `VM.Config.Options`, `VM.Config.HWType` | Creating containers and VMs (`VM.Config.Options` and `VM.Config.HWType` for VMs only), plus `Datastore.AllocateSpace` on the disk's storage and `SDN.Use` on the bridge |
 | `SDN.Use` on `/sdn/zones/localnetwork` | Connecting new guests to a bridge such as `vmbr0` (or on `/sdn/zones/localnetwork/vmbr0/<tag>` for one VLAN only) |
 | `VM.Config.Disk`, `Datastore.AllocateSpace` | Moving a disk to another storage |
@@ -247,7 +257,10 @@ Android can delay background checks to save battery, and ColorOS (OPPO, OnePlus,
 - **Edit cores and memory** (and swap for containers). A running VM may only take some changes after its next restart; Proxmox keeps those as pending.
 - **Edit tags**, with the same colours as in the web interface.
 - **Grow a disk**: only ever bigger, never smaller, and only after typing the guest ID. The partition and file system inside the guest may need growing too.
-- **Options and firewall**: the guest's options, firewall settings and firewall rules, read-only.
+- **Options and firewall**: the guest's options and firewall settings (read-only), and its **firewall rules**, which you can change with `VM.Config.Network`: add a rule (direction, action, a macro such as SSH or a protocol with ports, source, destination, interface, comment), edit one, switch it on or off, move it up or down, or delete it. Tap a rule for edit, move and delete. A new rule goes to the top of the list, as in the web interface, and rules apply at once when the guest's firewall is on, so take care not to lock yourself out of a guest you reach over the network. References to security groups can be switched, moved and deleted but not edited.
+- **Guest agent** (running VMs with the QEMU guest agent turned on; hidden in read-only mode): shows whether the agent answers and its version, **freezes and thaws** the guest's file systems, asks the guest's own system for a **clean shutdown**, and **runs one command** in the guest and shows its exit code, output and errors. A command runs as the agent's user (root or SYSTEM) without a shell: type `sh -c "df -h | tail -n 3"` when you need pipes. ProxCtrl shows how it split the line into program and arguments before it runs anything.
+- **Cloud-init** (VMs with a cloud-init drive or cloud-init settings): user, password (write-only; Proxmox never shows it), SSH public keys, package upgrade, DNS domain and servers, and the IP settings of each network device, plus **Regenerate image**. ProxCtrl lists which settings changed since the image was last written. The password dialog is always kept out of screenshots.
+- **Delete** a stopped guest from the ⋮ menu: the guest ID has to be typed in first. Two switches choose whether the ID is also taken out of backup jobs, replication and HA (on by default) and whether disks the configuration no longer mentions are deleted too (off by default). Proxmox refuses while the guest runs or has protection on. Backups of the guest are never deleted by this.
 - **Task history** for the guest.
 - **Clone** a guest or template: the next free ID is suggested, with a name, a full or (for templates) linked clone, and where the copy's disks go. **Convert to template** asks for the guest ID first; the guest must be stopped.
 
@@ -310,6 +323,7 @@ While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation suc
 - ProxCtrl opens the console connection itself, signed with your token or session and pinned to your server's certificate, and shows it full screen with an extra-keys bar: Esc, Tab, Ctrl and Alt (and Super for VMs) that stay pressed for the next key, arrows, Home, End, Page Up/Down, Delete, Ctrl+Alt+Del for VMs, and Paste. Rotate to landscape with the rotate button.
 - Consoles need `VM.Console` on the guest, and the node shell needs `Sys.Console` on the node. They're hidden in read-only mode.
 - With an API token, the node shell asks for a Linux login, because Proxmox only skips the login for `root@pam`. Sign in with `root@pam` and its password if you want a root shell straight away.
+- **Select, copy and share text**: in a terminal (containers, the node shell, serial consoles), the copy button at the top shows what's on the terminal as ordinary text. Long-press to select a part with Android's own handles, or use **Copy all** or **Share**; **With scrollback** includes up to the last 2,000 lines. Copied console text is marked sensitive, so keyboards don't keep it in their clipboard history. A VM's screen is a picture, so there is no text to copy there. Check the text for passwords or keys before you share it.
 - If a console doesn't behave, tap the bug icon at the top for a live diagnostics readout (connection, data sent and received, keyboard, page errors) and copy it into an issue. It never includes what you typed.
 
 ## Privacy

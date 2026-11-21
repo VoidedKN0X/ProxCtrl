@@ -94,10 +94,19 @@ class PveClient(
         return b.build()
     }
 
-    suspend fun get(path: String, query: Map<String, String> = emptyMap()): JsonElement = call("GET", path, query, emptyMap())
-    suspend fun post(path: String, params: Map<String, String> = emptyMap()): JsonElement = call("POST", path, emptyMap(), params)
-    suspend fun put(path: String, params: Map<String, String> = emptyMap()): JsonElement = call("PUT", path, emptyMap(), params)
-    suspend fun delete(path: String, query: Map<String, String> = emptyMap()): JsonElement = call("DELETE", path, query, emptyMap())
+    suspend fun get(path: String, query: Map<String, String> = emptyMap()): JsonElement = call("GET", path, query, emptyList())
+    suspend fun post(path: String, params: Map<String, String> = emptyMap()): JsonElement = call("POST", path, emptyMap(), params.toList())
+    suspend fun put(path: String, params: Map<String, String> = emptyMap()): JsonElement = call("PUT", path, emptyMap(), params.toList())
+    suspend fun delete(path: String, query: Map<String, String> = emptyMap()): JsonElement = call("DELETE", path, query, emptyList())
+
+    /**
+     * POST with form fields that may repeat. Proxmox reads a field sent several times as a list, which
+     * is how list parameters (a command and its arguments, a list of paths) are sent in a form.
+     */
+    suspend fun postForm(path: String, fields: List<Pair<String, String>>): JsonElement = call("POST", path, emptyMap(), fields)
+
+    /** PUT with form fields that may repeat; see [postForm]. */
+    suspend fun putForm(path: String, fields: List<Pair<String, String>>): JsonElement = call("PUT", path, emptyMap(), fields)
 
     /**
      * POSTs a multipart [body] (file uploads such as ISO images). Same checks as every other change:
@@ -132,7 +141,7 @@ class PveClient(
         }
     }
 
-    private suspend fun call(method: String, path: String, query: Map<String, String>, params: Map<String, String>): JsonElement {
+    private suspend fun call(method: String, path: String, query: Map<String, String>, params: List<Pair<String, String>>): JsonElement {
         // Read-only mode is enforced here, for every request that could change something (power
         // actions, notes, consoles and anything added later), not only by hiding buttons.
         if (method != "GET" && isReadOnly()) throw PveError.ReadOnly()
@@ -148,7 +157,7 @@ class PveClient(
         }
     }
 
-    private suspend fun execute(method: String, path: String, query: Map<String, String>, params: Map<String, String>): JsonElement =
+    private suspend fun execute(method: String, path: String, query: Map<String, String>, params: List<Pair<String, String>>): JsonElement =
         withContext(Dispatchers.IO) {
             val body = if (method == "GET" || method == "DELETE") null
             else FormBody.Builder().apply { params.forEach { (k, v) -> add(k, v) } }.build()

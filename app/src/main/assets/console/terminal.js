@@ -96,6 +96,25 @@
   window.pcFocus = function () {};
   window.pcFontSize = function (size) { term.options.fontSize = size; fit.fit(); };
 
+  // The terminal's text, for the app's text view (select, copy, share): the lines on screen, or with
+  // the scrollback (the last `max` lines). Lines the terminal wrapped are joined back into one.
+  window.pcText = function (all, max) {
+    const buf = term.buffer.active;
+    let from = all ? 0 : buf.viewportY;
+    const to = all ? buf.length : Math.min(buf.length, buf.viewportY + term.rows);
+    if (all && max > 0 && to - from > max) from = to - max;
+    const out = [];
+    for (let i = from; i < to; i++) {
+      const line = buf.getLine(i);
+      if (!line) continue;
+      const next = i + 1 < buf.length ? buf.getLine(i + 1) : null;
+      const text = line.translateToString(!(next && next.isWrapped));
+      if (line.isWrapped && out.length) out[out.length - 1] += text; else out.push(text);
+    }
+    while (out.length && out[out.length - 1] === '') out.pop();
+    return out.join('\n');
+  };
+
   window.pcDiag = function () {
     window.pcTick();
     const s = window.pcStats;

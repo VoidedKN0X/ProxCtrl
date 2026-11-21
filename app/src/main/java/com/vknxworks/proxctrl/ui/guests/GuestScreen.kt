@@ -73,7 +73,10 @@ import com.vknxworks.proxctrl.ui.components.TypedConfirmDialog
 import com.vknxworks.proxctrl.ui.components.ShieldScreen
 import com.vknxworks.proxctrl.ui.components.rememberTaskTracker
 import com.vknxworks.proxctrl.ui.tasks.GuestTasksRoute
+import androidx.compose.material.icons.outlined.CloudQueue
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.SupportAgent
+import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Tune
@@ -159,6 +162,9 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
     var cloning by remember { mutableStateOf(false) }
     var templating by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    var deletePurge by remember { mutableStateOf(true) }
+    var deleteUnreferenced by remember { mutableStateOf(false) }
 
     PollWhileVisible(ref to server?.id, STATUS_POLL_MS) {
         val cl = client ?: return@PollWhileVisible false
@@ -236,6 +242,25 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                                     onClick = { menu = false; templating = true },
                                 )
                             }
+                            // Deleting: only a stopped guest without protection, and only with VM.Allocate.
+                            CtrlMenuItem(
+                                text = {
+                                    Column {
+                                        val why = when {
+                                            !c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_ALLOCATE) -> R.string.guest_delete_not_allowed
+                                            !g.isStopped -> R.string.guest_delete_stop_first
+                                            config?.isProtected == true -> R.string.guest_delete_protected
+                                            else -> null
+                                        }
+                                        Text(stringResource(R.string.guest_delete), color = if (why == null && !tracker.busy) MaterialTheme.colorScheme.error else androidx.compose.ui.graphics.Color.Unspecified)
+                                        if (why != null) Text(stringResource(why), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                },
+                                leadingIcon = { Icon(Icons.Outlined.DeleteForever, null) },
+                                enabled = !tracker.busy && g.isStopped && config?.isProtected != true &&
+                                    c.sessions.canWrite(ref.aclPath, ResourcesApi.PRIV_ALLOCATE),
+                                onClick = { menu = false; deletePurge = true; deleteUnreferenced = false; deleting = true },
+                            )
                         }
                     }
                 }
@@ -344,6 +369,23 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                         showChevron = true,
                         onClick = { nav.navigate(GuestOptionsRoute(ref.node, ref.type.api, ref.vmid, guest?.name.orEmpty())) },
                     )
+                    // The guest agent's actions all change something, so the row is left out in read-only mode.
+                    if (ref.type == GuestType.QEMU && guest?.isRunning == true && config?.agentEnabled == true && server?.readOnly == false) {
+                        GroupRow(
+                            title = stringResource(R.string.agent_row),
+                            icon = Icons.Outlined.SupportAgent,
+                            showChevron = true,
+                            onClick = { nav.navigate(GuestAgentRoute(ref.node, ref.vmid, guest?.name.orEmpty())) },
+                        )
+                    }
+                    if (ref.type == GuestType.QEMU && config?.hasCloudInit == true) {
+                        GroupRow(
+                            title = stringResource(R.string.ci_row),
+                            icon = Icons.Outlined.CloudQueue,
+                            showChevron = true,
+                            onClick = { nav.navigate(CloudInitRoute(ref.node, ref.vmid, guest?.name.orEmpty())) },
+                        )
+                    }
                     GroupRow(
                         title = stringResource(R.string.guest_task_history),
                         icon = Icons.Outlined.History,
@@ -499,6 +541,56 @@ fun GuestScreen(node: String, type: String, vmid: Int) {
                 val cl = client ?: return@TypedConfirmDialog
                 tracker.run(context.getString(R.string.template_task, vmid), cl, server?.host.orEmpty(), server?.auth, ::afterChange) {
                     ResourcesApi.convertToTemplate(cl, ref)
+                }
+            },
+        )
+    }
+
+    if (deleting) {
+        val label = guest?.name?.ifBlank { null } ?: vmid.toString()
+        TypedConfirmDialog(
+            title = stringResource(R.string.guest_delete_title, label),
+            body = stringResource(if (ref.type == GuestType.LXC) R.string.guest_delete_body_lxc else R.string.guest_delete_body_vm, vmid),
+            expected = vmid.toString(),
+            confirmLabel = stringResource(R.string.guest_delete_confirm),
+            icon = Icons.Outlined.DeleteForever,
+            extra = {
+                Column {
+                    com.vknxworks.proxctrl.ui.components.GroupSwitch(
+                        title = stringResource(R.string.guest_delete_purge),
+                        subtitle = stringResource(R.string.guest_delete_purge_hint),
+                        checked = deletePurge,
+                        onChange = { deletePurge = it },
+                    )
+                    com.vknxworks.proxctrl.ui.components.GroupSwitch(
+                        title = stringResource(R.string.guest_delete_unreferenced),
+                        subtitle = stringResource(R.string.guest_delete_unreferenced_hint),
+                        checked = deleteUnreferenced,
+                        onChange = { deleteUnreferenced = it },
+                    )
+                }
+            },
+            onDismiss = { deleting = false },
+            onConfirm = {
+                deleting = false
+                val cl = client ?: return@TypedConfirmDialog
+                val purge = deletePurge
+                val unreferenced = deleteUnreferenced
+                tracker.run(
+                    context.getString(R.string.guest_delete_task, vmid),
+                    cl,
+                    server?.host.orEmpty(),
+                    server?.auth,
+                    onFinished = { ok ->
+                        scope.launch { c.guests.refresh() }
+                        if (ok) {
+                            // The guest is gone: its page has nothing left to show.
+                            android.widget.Toast.makeText(context, context.getString(R.string.guest_deleted, vmid), android.widget.Toast.LENGTH_LONG).show()
+                            nav.close(com.vknxworks.proxctrl.ui.nav.GuestRoute::class)
+                        }
+                    },
+                ) {
+                    ResourcesApi.destroy(cl, ref, purge, unreferenced)
                 }
             },
         )

@@ -81,6 +81,8 @@ data class GuestConfig(
     val rootfs: String? = null,
     /** Protection: the guest can't be removed or restored over until it's turned off. */
     val isProtected: Boolean = false,
+    /** VMs: there is a cloud-init drive, or cloud-init settings are stored in the configuration. */
+    val hasCloudInit: Boolean = false,
 ) {
     /** The serial port a VM's console uses instead of a display, if any. */
     val serialConsole: String? get() = vga?.substringBefore(',')?.let { t -> t.substringAfter("type=", t) }?.takeIf { it.matches(Regex("serial[0-3]")) }
@@ -108,6 +110,7 @@ data class GuestConfig(
                 vga = o.str("vga"),
                 rootfs = o.str("rootfs"),
                 isProtected = (o.long("protection") ?: 0) != 0L,
+                hasCloudInit = CloudInitApi.hasDrive(o) || o.keys.any { it in CloudInitApi.KEYS || CloudInitApi.IPCONFIG.matches(it) },
             )
         }
     }

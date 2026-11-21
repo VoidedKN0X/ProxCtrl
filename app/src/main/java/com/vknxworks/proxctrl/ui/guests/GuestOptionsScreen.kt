@@ -28,7 +28,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.api.PveError
+import com.vknxworks.proxctrl.data.guests.FirewallApi
 import com.vknxworks.proxctrl.data.guests.FirewallOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import com.vknxworks.proxctrl.ui.components.ChoiceSheet
+import com.vknxworks.proxctrl.ui.components.ConfirmDialog
+import com.vknxworks.proxctrl.ui.components.CtrlSwitch
+import com.vknxworks.proxctrl.ui.components.TaskCard
+import com.vknxworks.proxctrl.ui.components.rememberTaskTracker
 import com.vknxworks.proxctrl.data.guests.FirewallRule
 import com.vknxworks.proxctrl.data.guests.GuestOption
 import com.vknxworks.proxctrl.data.guests.GuestRef
@@ -44,7 +52,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class GuestOptionsRoute(val node: String, val type: String, val vmid: Int, val name: String = "")
 
-/** A guest's options and firewall (options and rules), read-only. */
+/** A guest's options (read-only) and its firewall: options, and rules that can be added, changed, reordered and deleted. */
 @Composable
 fun GuestOptionsScreen(node: String, type: String, vmid: Int, name: String) {
     val context = LocalContext.current
@@ -62,6 +70,22 @@ fun GuestOptionsScreen(node: String, type: String, vmid: Int, name: String) {
     var firewallError by remember { mutableStateOf<PveError?>(null) }
     var refreshing by remember { mutableStateOf(false) }
     var reload by remember { mutableIntStateOf(0) }
+    val tracker = rememberTaskTracker()
+    var adding by remember { mutableStateOf(false) }
+    var editing by remember { mutableStateOf<FirewallRule?>(null) }
+    var acting by remember { mutableStateOf<FirewallRule?>(null) }
+    var removing by remember { mutableStateOf<FirewallRule?>(null) }
+    val readOnly = server?.readOnly != false
+    val canEditRules = c.sessions.canWrite(ref.aclPath, FirewallApi.PRIV)
+
+    /** Sends one change to the rules and reloads them, whatever the outcome. */
+    fun change(label: String, action: suspend (com.vknxworks.proxctrl.data.api.PveClient) -> Unit) {
+        val cl = client ?: return
+        tracker.run(label, cl, server?.host.orEmpty(), server?.auth, { reload++ }) {
+            action(cl)
+            null
+        }
+    }
 
     LaunchedEffect(ref, server?.id, reload) {
         val cl = client ?: return@LaunchedEffect
@@ -87,6 +111,7 @@ fun GuestOptionsScreen(node: String, type: String, vmid: Int, name: String) {
         PullToRefreshBox(isRefreshing = refreshing, onRefresh = { refreshing = true; reload++ }, modifier = Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(bottom = 24.dp)) {
                 if (access.error != null) ConnectionBanner()
+                TaskCard(tracker)
                 val opts = options
                 val err = error
                 when {
@@ -112,18 +137,99 @@ fun GuestOptionsScreen(node: String, type: String, vmid: Int, name: String) {
                         fw.other.forEach { o -> GroupRow(o.key, o.value) }
                     }
                     val list = rules.orEmpty()
-                    Group(stringResource(R.string.firewall_rules), footer = if (fw.enabled) null else stringResource(R.string.firewall_off_hint)) {
+                    val footer = listOfNotNull(
+                        if (fw.enabled) null else stringResource(R.string.firewall_off_hint),
+                        if (!readOnly && !canEditRules) stringResource(R.string.fw_rules_not_allowed) else null,
+                        if (canEditRules && list.isNotEmpty()) stringResource(R.string.fw_rules_hint) else null,
+                    ).joinToString("\n").ifBlank { null }
+                    Group(stringResource(R.string.firewall_rules), footer = footer) {
                         if (list.isEmpty()) GroupRow(stringResource(R.string.firewall_no_rules))
-                        list.forEach { r -> RuleRow(r) }
+                        list.forEach { r ->
+                            RuleRow(
+                                r = r,
+                                canEdit = canEditRules && !tracker.busy,
+                                onClick = { acting = r },
+                                onToggle = { on ->
+                                    change(context.getString(if (on) R.string.fw_task_enable else R.string.fw_task_disable, r.pos)) { cl -> FirewallApi.setEnabled(cl, ref, r, on) }
+                                },
+                            )
+                        }
+                        if (canEditRules) {
+                            GroupRow(
+                                title = stringResource(R.string.fw_rule_add),
+                                icon = Icons.Outlined.Add,
+                                titleColor = MaterialTheme.colorScheme.primary,
+                                onClick = if (tracker.busy) null else ({ adding = true }),
+                            )
+                        }
                     }
                 }
             }
         }
     }
+
+    val rulesNow = rules.orEmpty()
+    if (adding) {
+        RuleEditorDialog(
+            original = null,
+            firewallOn = firewall?.enabled == true,
+            onDismiss = { adding = false },
+            onSave = { draft ->
+                adding = false
+                change(context.getString(R.string.fw_task_add)) { cl -> FirewallApi.create(cl, ref, draft) }
+            },
+        )
+    }
+    editing?.let { rule ->
+        RuleEditorDialog(
+            original = rule,
+            firewallOn = firewall?.enabled == true,
+            onDismiss = { editing = null },
+            onSave = { draft ->
+                editing = null
+                change(context.getString(R.string.fw_task_edit, rule.pos)) { cl -> FirewallApi.update(cl, ref, rule, draft) }
+            },
+        )
+    }
+    acting?.let { rule ->
+        val choices = buildList {
+            // A security group reference has no fields of its own to edit here.
+            if (!rule.isGroup) add(RuleAction.EDIT to stringResource(R.string.fw_rule_edit))
+            if (rule.pos > 0) add(RuleAction.MOVE_UP to stringResource(R.string.fw_rule_move_up))
+            if (rule.pos < rulesNow.size - 1) add(RuleAction.MOVE_DOWN to stringResource(R.string.fw_rule_move_down))
+            add(RuleAction.DELETE to stringResource(R.string.fw_rule_delete))
+        }
+        ChoiceSheet<RuleAction>(
+            title = stringResource(R.string.fw_rule_title, rule.pos),
+            options = choices,
+            selected = null,
+            onDismiss = { acting = null },
+        ) { picked ->
+            acting = null
+            when (picked) {
+                RuleAction.EDIT -> editing = rule
+                RuleAction.MOVE_UP -> change(context.getString(R.string.fw_task_move, rule.pos)) { cl -> FirewallApi.move(cl, ref, rule, up = true) }
+                RuleAction.MOVE_DOWN -> change(context.getString(R.string.fw_task_move, rule.pos)) { cl -> FirewallApi.move(cl, ref, rule, up = false) }
+                RuleAction.DELETE -> removing = rule
+            }
+        }
+    }
+    removing?.let { rule ->
+        ConfirmDialog(
+            title = stringResource(R.string.fw_rule_delete_title, rule.pos),
+            body = stringResource(if (firewall?.enabled == true) R.string.fw_rule_delete_body_on else R.string.fw_rule_delete_body),
+            confirmLabel = stringResource(R.string.delete),
+            onDismiss = { removing = null },
+            onConfirm = {
+                removing = null
+                change(context.getString(R.string.fw_task_delete, rule.pos)) { cl -> FirewallApi.delete(cl, ref, rule) }
+            },
+        )
+    }
 }
 
 @Composable
-private fun RuleRow(r: FirewallRule) {
+private fun RuleRow(r: FirewallRule, canEdit: Boolean, onClick: () -> Unit, onToggle: (Boolean) -> Unit) {
     val head = buildString {
         append(r.type.uppercase())
         append("  ")
@@ -144,6 +250,13 @@ private fun RuleRow(r: FirewallRule) {
         title = "#${r.pos}  $head",
         subtitle = details,
         titleColor = if (r.enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+        onClick = if (canEdit) onClick else null,
+        // The switch turns the rule on or off; tapping the row offers edit, move and delete.
+        trailing = if (canEdit) {
+            { CtrlSwitch(checked = r.enabled, onCheckedChange = onToggle) }
+        } else {
+            null
+        },
     )
 }
 

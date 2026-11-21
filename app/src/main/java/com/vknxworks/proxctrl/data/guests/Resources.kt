@@ -68,7 +68,14 @@ data class FirewallRule(
     val sport: String?,
     val iface: String?,
     val comment: String?,
-)
+    val log: String? = null,
+    val icmpType: String? = null,
+    /** Digest of the rule list, sent back when changing a rule so a concurrent change isn't overwritten. */
+    val digest: String? = null,
+) {
+    /** A reference to a security group rather than a rule of its own: only on/off, order and delete apply. */
+    val isGroup: Boolean get() = type == "group"
+}
 
 /**
  * Hardware, options and firewall of a guest. Editing cores needs VM.Config.CPU, memory and swap need
@@ -239,6 +246,20 @@ object ResourcesApi {
     suspend fun convertToTemplate(client: PveClient, ref: GuestRef): String? =
         (client.post("${ref.base}/template") as? JsonPrimitive)?.content
 
+    /**
+     * Deletes the guest and the disks it owns: DELETE /nodes/{node}/{qemu|lxc}/{vmid} (VM.Allocate on
+     * /vms/{vmid}). Proxmox refuses while the guest runs or is protected. [purge] also removes it from
+     * backup jobs, replication and HA; [destroyUnreferenced] also deletes disks with this ID that the
+     * configuration no longer mentions. Returns the task's UPID.
+     */
+    suspend fun destroy(client: PveClient, ref: GuestRef, purge: Boolean, destroyUnreferenced: Boolean): String? {
+        val query = buildMap {
+            if (purge) put("purge", "1")
+            if (destroyUnreferenced) put("destroy-unreferenced-disks", "1")
+        }
+        return (client.delete(ref.base, query) as? JsonPrimitive)?.content
+    }
+
     suspend fun firewallOptions(client: PveClient, ref: GuestRef): FirewallOptions {
         val o = client.get("${ref.base}/firewall/options") as? JsonObject ?: JsonObject(emptyMap())
         val shown = setOf("enable", "policy_in", "policy_out", "digest")
@@ -268,6 +289,9 @@ object ResourcesApi {
                 sport = o.str("sport"),
                 iface = o.str("iface"),
                 comment = o.str("comment"),
+                log = o.str("log"),
+                icmpType = o.str("icmp-type"),
+                digest = o.str("digest"),
             )
         }.sortedBy { it.pos }
     }
