@@ -29,7 +29,7 @@ Part of the [Ctrl series](#the-ctrl-series) by VKNXWorks.
 - **Node**: status and graphs, services, updates with changelogs, network and SDN, GPU and PCI passthrough (which card is given to which guest), reboot and shutdown, Wake-on-LAN
 - **Clusters** (only shown when your server has more than one node): members and quorum, high availability, storage replication and Ceph status, and **Migrate** to move a guest to another node
 - **Export and import** of the app's own settings to a file (never logins, certificates or the app lock)
-- **Follows your phone's language**: English and Dutch
+- **Follows your phone's language**: English, Dutch, French and German (or pick one for ProxCtrl alone under Android's Settings › Apps › ProxCtrl › Language)
 - **App lock** with its own PIN and optional fingerprint, on opening and before changes; your server logins can be encrypted with the PIN while locked
 - **Several servers**, signed in with an API token or a password (two-factor codes work too), with a list of what each sign-in is allowed to do
 - **Works offline**: the last state stays on screen, marked as out of date, when the server can't be reached
