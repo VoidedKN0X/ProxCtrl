@@ -989,7 +989,7 @@
     <string name="pin_use_pin">Pincode gebruiken</string>
     <string name="pin_forgot">Pincode vergeten?</string>
     <string name="pin_forgot_title">Je pincode vergeten?</string>
-    <string name="pin_forgot_body">De pincode kan niet hersteld worden, omdat ze je serveraanmeldingen kan versleutelen. ProxCtrl verwijdert elke server van deze telefoon en zet de app-vergrendeling uit. Op je Proxmox-servers verandert er niets; voeg ze opnieuw toe om verder te gaan.</string>
+    <string name="pin_forgot_body">De pincode kan niet hersteld worden, omdat ze je serveraanmeldingen kan versleutelen. ProxCtrl verwijdert elke server van deze telefoon en zet de app-vergrendeling uit. Op je Proxmox-servers verandert er niets; voeg ze opnieuw toe om verder te gaan. Heeft je telefoon een schermvergrendeling, dan bevestig je eerst daarmee.</string>
     <string name="pin_forgot_confirm">Servers verwijderen en resetten</string>
     <string name="pin_fingerprint_changed">Er is een vingerafdruk toegevoegd of verwijderd. Ontgrendel met je pincode en schakel ontgrendelen met vingerafdruk daarna opnieuw in.</string>
     <string name="pin_fingerprint_failed">Kon niet ontgrendelen met je vingerafdruk. Gebruik je pincode.</string>
@@ -1409,4 +1409,7 @@
     <string name="key_pgup">PgUp</string>
     <string name="key_pgdn">PgDn</string>
     <string name="key_del">Del</string>
+    <string name="pin_reset_prompt_title">App-vergrendeling van ProxCtrl resetten</string>
+    <string name="pin_reset_prompt_subtitle">Bevestig met de schermvergrendeling van je telefoon dat jij het bent</string>
+    <string name="pin_reset_prompt_failed">De schermvergrendeling kon niet getoond worden</string>
 </resources>

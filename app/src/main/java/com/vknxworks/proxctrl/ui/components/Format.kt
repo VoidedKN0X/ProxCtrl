@@ -38,8 +38,24 @@ fun formatUptime(seconds: Long): String {
 }
 
 /** Amounts with short units in the phone's language, like "5h 3m". */
-fun narrowUnits(vararg measures: Measure): String =
-    MeasureFormat.getInstance(Locale.getDefault(), MeasureFormat.FormatWidth.NARROW).formatMeasures(*measures)
+fun narrowUnits(vararg measures: Measure): String = NarrowUnits.format(measures)
+
+/**
+ * One [MeasureFormat] for the current language, built again only when the language changes. Building one
+ * loads locale data, which is too slow to do for every row of a list that refreshes every few seconds.
+ * ICU formats aren't thread-safe, so use is serialised (lists format on the main thread anyway).
+ */
+private object NarrowUnits {
+    private var cached: Pair<Locale, MeasureFormat>? = null
+
+    @Synchronized
+    fun format(measures: Array<out Measure>): String {
+        val locale = Locale.getDefault()
+        val f = cached?.takeIf { it.first == locale }?.second
+            ?: MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.NARROW).also { cached = locale to it }
+        return f.formatMeasures(*measures)
+    }
+}
 
 fun percent(fraction: Double): Int = (fraction * 100).roundToInt().coerceIn(0, 100)
 

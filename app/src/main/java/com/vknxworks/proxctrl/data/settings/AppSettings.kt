@@ -98,6 +98,14 @@ class SettingsRepository(private val context: Context, scope: CoroutineScope) {
         .map { it.toSettings() }
         .stateIn(scope, SharingStarted.Eagerly, AppSettings())
 
+    /**
+     * True once [settings] holds the saved settings rather than the placeholder defaults. Until then the
+     * windows stay hidden from screenshots and Recents, so "Hide in…" can't lapse for a moment at start-up.
+     */
+    val loaded: StateFlow<Boolean> = context.appDataStore.data
+        .map { true }
+        .stateIn(scope, SharingStarted.Eagerly, false)
+
     /** The stored settings as they're read and changed, without [settings]' placeholder defaults at start-up. */
     val stored: Flow<AppSettings> = context.appDataStore.data.map { it.toSettings() }
 

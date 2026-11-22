@@ -13,6 +13,7 @@ import androidx.work.WorkerParameters
 import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.api.PveJson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,7 +63,8 @@ class NotifyWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         if (c.backgroundBlocked()) return Result.success()
         val notify = c.notifySettings.current()
         if (!notify.polling && !inputData.getBoolean(KEY_FORCE, false)) return Result.success()
-        val app = c.settings.settings.value
+        // The saved settings, not the flow: on a cold start in the background it may still hold the defaults.
+        val app = c.settings.stored.first()
         val servers = c.sessions.servers.value
         val checker = Checker(applicationContext)
         val config = CheckConfig(notify, app.diskWarnPercent, app.memWarnPercent, manyServers = servers.size > 1)

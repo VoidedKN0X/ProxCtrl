@@ -5,6 +5,7 @@ import com.vknxworks.proxctrl.data.server.Server
 import com.vknxworks.proxctrl.data.server.ServerSecrets
 import com.vknxworks.proxctrl.data.server.Tls
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -14,6 +15,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.FormBody
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -21,6 +24,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 
@@ -110,24 +115,45 @@ class PveClient(
 
     /**
      * POSTs a multipart [body] (file uploads such as ISO images). Same checks as every other change:
-     * read-only mode, the app lock, and a fresh ticket. Uploads can take long, so there's no read timeout.
+     * read-only mode, the app lock, and a fresh ticket.
+     *
+     * Leaving the screen cancels the coroutine, and that really stops the upload: the request is cancelled
+     * (its connection closed), so Proxmox never gets a whole file and stores nothing. A plain blocking
+     * `execute()` would carry on streaming in the background. Sending gives up after [UPLOAD_STALL_SECONDS]
+     * without any progress; waiting for the answer has no limit, because Proxmox only answers once it has
+     * received and checked the whole file.
      */
     suspend fun postMultipart(path: String, body: okhttp3.RequestBody): JsonElement {
         if (isReadOnly()) throw PveError.ReadOnly()
         if (!WriteGuard.check()) throw PveError.Cancelled()
         if (server.auth == AuthMethod.TICKET) ensureFreshTicket()
-        return withContext(Dispatchers.IO) {
+        // Off the main thread: the saved login may need the Keystore, and the client sets up TLS on first use.
+        val call = withContext(Dispatchers.IO) {
             val request = Request.Builder().url(url(path)).post(body).also { authorize(it, "POST") }.build()
             val uploadHttp = http.newBuilder()
                 .readTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
-                .writeTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .writeTimeout(UPLOAD_STALL_SECONDS, java.util.concurrent.TimeUnit.SECONDS)
                 .build()
-            try {
-                uploadHttp.newCall(request).execute().use { parse(it) }
-            } catch (e: IOException) {
-                // Also a connection that breaks while the answer is read: always a PveError, never a crash.
-                throw PveError.fromIo(e)
+            uploadHttp.newCall(request)
+        }
+        return try {
+            suspendCancellableCoroutine<JsonElement> { cont ->
+                cont.invokeOnCancellation { call.cancel() }
+                call.enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        // Ignored when the coroutine was already cancelled.
+                        cont.resumeWithException(e)
+                    }
+
+                    override fun onResponse(call: Call, response: Response) {
+                        val result = runCatching { response.use { parse(it) } }
+                        result.fold({ cont.resume(it) }, { cont.resumeWithException(it) })
+                    }
+                })
             }
+        } catch (e: IOException) {
+            // Also a connection that breaks while the answer is read: always a PveError, never a crash.
+            throw PveError.fromIo(e)
         }
     }
 
@@ -235,6 +261,9 @@ class PveClient(
         /** Proxmox tickets are valid for 2 hours; renew well before that. */
         const val TICKET_LIFETIME_MS = 2 * 60 * 60 * 1000L
         const val RENEW_AFTER_MS = 60 * 60 * 1000L
+
+        /** An upload that sends nothing for this long is given up (the connection has stalled). */
+        const val UPLOAD_STALL_SECONDS = 60L
 
         /** Reads a Proxmox response: the `data` member on success, a [PveError] otherwise. */
         fun parse(response: Response): JsonElement {

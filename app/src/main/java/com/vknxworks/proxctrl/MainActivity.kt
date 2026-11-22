@@ -53,8 +53,10 @@ class MainActivity : FragmentActivity() {
             // "Hide in screenshots" and "Hide in recent apps" (both off by default). FLAG_SECURE is always on
             // for sign-in, consoles and the lock and PIN screens, and with the app lock on Recents always
             // shows a blank card (a preview there would show your servers without the PIN).
-            val secure = settings.hideScreenshots || covered || ScreenPrivacy.forced > 0
-            WindowPrivacy(this, secure, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
+            // Until the saved settings are read, both stay on (the defaults would briefly lift them).
+            val loaded by c.settings.loaded.collectAsStateWithLifecycle()
+            val secure = !loaded || settings.hideScreenshots || covered || ScreenPrivacy.forced > 0
+            WindowPrivacy(this, secure, hideRecents = !loaded || settings.hideRecents || c.vault.enabled || AppLock.legacy)
             // Bars in the background colour, icons light in dark mode and dark in light mode.
             SignalSystemBars(this)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {

@@ -1064,7 +1064,7 @@
     <string name="pin_use_pin">Utiliser le code PIN</string>
     <string name="pin_forgot">Code PIN oublié ?</string>
     <string name="pin_forgot_title">Code PIN oublié ?</string>
-    <string name="pin_forgot_body">Le code PIN ne peut pas être récupéré, car il peut chiffrer vos identifiants de serveur. ProxCtrl va supprimer tous les serveurs de ce téléphone et désactiver le verrouillage de l’appli. Rien ne change sur vos serveurs Proxmox ; ajoutez-les à nouveau pour continuer.</string>
+    <string name="pin_forgot_body">Le code PIN ne peut pas être récupéré, car il peut chiffrer vos identifiants de serveur. ProxCtrl va supprimer tous les serveurs de ce téléphone et désactiver le verrouillage de l’appli. Rien ne change sur vos serveurs Proxmox ; ajoutez-les à nouveau pour continuer. Si votre téléphone a un verrouillage d’écran, vous le confirmerez d’abord avec celui-ci.</string>
     <string name="pin_forgot_confirm">Supprimer les serveurs et réinitialiser</string>
     <string name="pin_fingerprint_changed">Une empreinte a été ajoutée ou supprimée. Déverrouillez avec votre code PIN, puis réactivez le déverrouillage par empreinte.</string>
     <string name="pin_fingerprint_failed">Impossible de déverrouiller avec votre empreinte. Utilisez votre code PIN.</string>
@@ -1482,4 +1482,7 @@
     <string name="backup_field_cpu">Seuil de CPU élevé</string>
     <string name="backup_field_sustain">Durée pendant laquelle le CPU ou la mémoire doit rester élevé</string>
     <string name="agent_fs_tap">Touchez pour vérifier</string>
+    <string name="pin_reset_prompt_title">Réinitialiser le verrouillage de ProxCtrl</string>
+    <string name="pin_reset_prompt_subtitle">Utilisez le verrouillage d’écran de votre téléphone pour confirmer votre identité</string>
+    <string name="pin_reset_prompt_failed">Impossible d’afficher le verrouillage d’écran</string>
 </resources>

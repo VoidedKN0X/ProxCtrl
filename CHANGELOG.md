@@ -4,6 +4,24 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+Built and checked by CI only: nothing here has been run on a phone yet.
+
+### Fixed
+
+- **Leaving an ISO upload really stops it.** If you went back or left the Storage screen (or closed the share window) while an ISO was uploading, the screen went away but the upload kept streaming the whole file to Proxmox in the background, and Proxmox still stored the ISO you thought you had abandoned. Leaving now cancels the upload itself: the connection is closed, Proxmox gets no complete file and stores nothing. An upload that stops making any progress for a minute (a stalled connection) now gives up with an error instead of waiting forever; a slow but moving upload is not affected, and waiting for Proxmox's answer after the last byte still has no time limit.
+- **Background checks use your warning levels from the first run.** When Android started ProxCtrl in the background just for a check (no screen open), the disk and memory warning levels could still be the defaults (not yet read from storage), so a check right after a restart could warn at the wrong percentage. The check now reads your saved settings first.
+- **"Hide in screenshots" and "Hide in recent apps" hold from the first moment.** Right after opening ProxCtrl (and the Share → ProxCtrl window), for the instant before your settings were read, both protections were briefly lifted. They now stay on until the settings are known, then follow your choice as before.
+
+### Changed
+
+- **Uptimes and task durations are formatted a bit faster.** The short-unit formatter (like "14d 2h") is now made once per language instead of for every row on every refresh, which saves work in the task and guest lists while they update. What you see is the same.
+
+### Security
+
+- **"Forgot PIN?" now asks for your phone's screen lock.** Before, anyone holding your unlocked phone could tap "Forgot PIN?" on ProxCtrl's lock screen and remove the servers and the app lock without knowing the PIN (they couldn't see your servers' logins, but they could then add their own). Now the reset first asks for your phone's own PIN, pattern, password or fingerprint. If you cancel or it fails, nothing is reset. If your phone has no screen lock at all, the reset works as before, after the same confirmation. The explanation in the "Forgot your PIN?" dialog says so, in all four languages.
+
 ## v1.10.2 (2026-11-22)
 
 Built and checked by CI only: nothing in this release had been run on a phone when it was published.

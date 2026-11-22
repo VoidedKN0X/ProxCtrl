@@ -1064,7 +1064,7 @@
     <string name="pin_use_pin">PIN verwenden</string>
     <string name="pin_forgot">PIN vergessen?</string>
     <string name="pin_forgot_title">PIN vergessen?</string>
-    <string name="pin_forgot_body">Die PIN kann nicht wiederhergestellt werden, weil sie deine Server-Zugangsdaten verschlüsseln kann. ProxCtrl entfernt alle Server von diesem Handy und schaltet die App-Sperre aus. An deinen Proxmox-Servern ändert sich nichts; füge sie neu hinzu, um weiterzumachen.</string>
+    <string name="pin_forgot_body">Die PIN kann nicht wiederhergestellt werden, weil sie deine Server-Zugangsdaten verschlüsseln kann. ProxCtrl entfernt alle Server von diesem Handy und schaltet die App-Sperre aus. An deinen Proxmox-Servern ändert sich nichts; füge sie neu hinzu, um weiterzumachen. Wenn dein Handy eine Displaysperre hat, bestätigst du zuerst damit.</string>
     <string name="pin_forgot_confirm">Server entfernen und zurücksetzen</string>
     <string name="pin_fingerprint_changed">Ein Fingerabdruck wurde hinzugefügt oder entfernt. Entsperre mit deiner PIN und aktiviere das Entsperren per Fingerabdruck dann erneut.</string>
     <string name="pin_fingerprint_failed">Entsperren per Fingerabdruck fehlgeschlagen. Verwende deine PIN.</string>
@@ -1482,4 +1482,7 @@
     <string name="backup_field_cpu">Hohe CPU-Schwelle</string>
     <string name="backup_field_sustain">Wie lange CPU oder Arbeitsspeicher hoch bleiben müssen</string>
     <string name="agent_fs_tap">Zum Prüfen tippen</string>
+    <string name="pin_reset_prompt_title">App-Sperre von ProxCtrl zurücksetzen</string>
+    <string name="pin_reset_prompt_subtitle">Bestätige mit der Displaysperre deines Handys, dass du es bist</string>
+    <string name="pin_reset_prompt_failed">Displaysperre konnte nicht angezeigt werden</string>
 </resources>

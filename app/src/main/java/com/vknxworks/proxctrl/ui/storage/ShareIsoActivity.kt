@@ -86,8 +86,10 @@ class ShareIsoActivity : FragmentActivity() {
         setContent {
             val settings by c.settings.settings.collectAsStateWithLifecycle()
             val locked by AppLock.state.collectAsStateWithLifecycle()
-            val secure = settings.hideScreenshots || locked != AppLock.State.UNLOCKED || AppLock.confirm != null
-            WindowPrivacy(this, secure, hideRecents = settings.hideRecents || c.vault.enabled || AppLock.legacy)
+            // Until the saved settings are read, both stay on (the defaults would briefly lift them).
+            val loaded by c.settings.loaded.collectAsStateWithLifecycle()
+            val secure = !loaded || settings.hideScreenshots || locked != AppLock.State.UNLOCKED || AppLock.confirm != null
+            WindowPrivacy(this, secure, hideRecents = !loaded || settings.hideRecents || c.vault.enabled || AppLock.legacy)
             val lockState by AppLock.state.collectAsStateWithLifecycle()
             com.vknxworks.proxctrl.ui.theme.SignalSystemBars(this)
             ProxCtrlTheme(settings.theme, settings.dynamicColor) {
