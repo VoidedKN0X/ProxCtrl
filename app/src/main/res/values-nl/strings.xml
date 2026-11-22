@@ -457,9 +457,6 @@
     <string name="console_not_running">De gast is niet actief.</string>
     <string name="console_token_login">Je bent aangemeld met een API-token, dus de node vraagt een Linux-login. Alleen root@pam met een wachtwoord krijgt meteen een shell.</string>
     <string name="console_rotate">Draaien</string>
-    <string name="console_diagnostics">Diagnose</string>
-    <string name="console_diagnostics_copy">Kopiëren</string>
-    <string name="console_diagnostics_copied">Diagnose gekopieerd</string>
     <string name="console_keyboard">Toetsenbord</string>
     <string name="console_paste">Plakken</string>
     <string name="console_font_bigger">Grotere tekst</string>

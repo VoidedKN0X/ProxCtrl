@@ -4,6 +4,16 @@ What changed in each ProxCtrl release. Every release on the [Releases page](http
 
 To publish a new version: bump `versionCode` and `versionName` in `app/build.gradle.kts`, add a section here, and push to `main`. Pushes without a version bump only build; they don't make a release.
 
+## Unreleased
+
+### Removed
+
+- **Console diagnostics panel.** The bug icon at the top of consoles and the live diagnostics readout it opened (connection state, messages and bytes sent and received, keyboard events, page errors, and its Copy button) are gone, together with everything that collected that data in the background: the counters in the console connection, the error and frame counters in the console pages, and the page's error reports to the app. Consoles, the node shell, VM screens, the extra-keys bar and copying console text work as before.
+- **Remote debugging of the console page in test builds.** Test builds could let a computer inspect the console page over USB while the diagnostics panel was open. That switch is gone with the panel, so no build turns it on any more. Release builds never had it.
+- **All logging in release builds.** The release build now also strips warning, error and other log lines (until now only verbose, debug and info lines were stripped), including any from libraries. Messages from the console page still never reach the phone's log.
+
+Nothing else changes.
+
 ## v1.10.1 (2026-11-21)
 
 Built and checked by CI only: nothing in this release had been run on a phone when it was published.

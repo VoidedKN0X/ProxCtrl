@@ -476,9 +476,6 @@
     <string name="console_not_running">L’invité ne tourne pas.</string>
     <string name="console_token_login">Vous êtes connecté avec un jeton API : le nœud demande donc un identifiant Linux. Seul root@pam avec un mot de passe obtient directement un shell.</string>
     <string name="console_rotate">Pivoter</string>
-    <string name="console_diagnostics">Diagnostic</string>
-    <string name="console_diagnostics_copy">Copier</string>
-    <string name="console_diagnostics_copied">Diagnostic copié</string>
     <string name="console_keyboard">Clavier</string>
     <string name="console_paste">Coller</string>
     <string name="console_font_bigger">Texte plus grand</string>

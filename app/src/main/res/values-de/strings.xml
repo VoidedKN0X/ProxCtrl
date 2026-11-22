@@ -476,9 +476,6 @@
     <string name="console_not_running">Der Gast läuft nicht.</string>
     <string name="console_token_login">Du bist mit einem API-Token angemeldet, daher fragt die Node nach einem Linux-Login. Nur root@pam mit Passwort bekommt direkt eine Shell.</string>
     <string name="console_rotate">Drehen</string>
-    <string name="console_diagnostics">Diagnose</string>
-    <string name="console_diagnostics_copy">Kopieren</string>
-    <string name="console_diagnostics_copied">Diagnose kopiert</string>
     <string name="console_keyboard">Tastatur</string>
     <string name="console_paste">Einfügen</string>
     <string name="console_font_bigger">Größerer Text</string>

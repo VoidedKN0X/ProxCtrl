@@ -21,9 +21,8 @@
   const mods = { ctrl: false, alt: false };
   const encoder = new TextEncoder();
 
-  let notReady = 0;
   function send(data) {
-    if (!connected) { notReady++; return; }
+    if (!connected) return;
     sock.send('0:' + encoder.encode(data).length + ':' + data);
   }
   function sendSize() {
@@ -113,15 +112,6 @@
     }
     while (out.length && out[out.length - 1] === '') out.pop();
     return out.join('\n');
-  };
-
-  window.pcDiag = function () {
-    window.pcTick();
-    const s = window.pcStats;
-    return JSON.stringify({
-      page: 'terminal', loggedIn: connected, recv: s.recv, sent: s.sent, blocked: s.blocked, beforeOk: notReady,
-      frames: s.frames, size: term.cols + 'x' + term.rows, view: innerWidth + 'x' + innerHeight, lines: term.buffer.active.length,
-    });
   };
 
   ProxBridge.pageReady();

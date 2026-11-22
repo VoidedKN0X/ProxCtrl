@@ -44,7 +44,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Keyboard
@@ -101,7 +100,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.webkit.WebViewAssetLoader
-import com.vknxworks.proxctrl.BuildConfig
 import com.vknxworks.proxctrl.R
 import com.vknxworks.proxctrl.container
 import com.vknxworks.proxctrl.data.api.PveError
@@ -112,6 +110,7 @@ import com.vknxworks.proxctrl.ui.components.errorMessage
 import com.vknxworks.proxctrl.ui.nav.LocalNavigator
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import org.json.JSONTokener
 import java.io.ByteArrayInputStream
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -119,6 +118,10 @@ import java.util.concurrent.atomic.AtomicReference
 private const val ASSET_HOST = "https://appassets.androidplatform.net"
 
 private enum class ConsoleState { CONNECTING, CONNECTED, CLOSED, FAILED }
+
+/** evaluateJavascript hands back a JSON value; a returned string arrives quoted and escaped. */
+private fun decodeJsString(raw: String?): String =
+    runCatching { JSONTokener(raw.orEmpty()).nextValue() as? String }.getOrNull() ?: raw.orEmpty()
 
 /** The text view shows at most this much of the scrollback, so selecting and sharing stay quick. */
 private const val CONSOLE_TEXT_MAX_LINES = 2000
@@ -169,9 +172,7 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
     val imeVisible = WindowInsets.isImeVisible
     // Read from WebView's bridge thread as well as the main thread.
     val sessionRef = remember { AtomicReference<ConsoleSession?>(null) }
-    var showDiag by remember { mutableStateOf(false) }
     var fieldFocused by remember { mutableStateOf(false) }
-    val diag = remember { ConsoleDiag() }
     // The lock screen or a PIN screen covers the app: no typing reaches the console until it's gone.
     // Also read from WebView's bridge thread.
     val covered = com.vknxworks.proxctrl.ui.components.LocalAppCovered.current
@@ -214,8 +215,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             controller?.show(WindowInsetsCompat.Type.systemBars())
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             sessionRef.getAndSet(null)?.close()
-            // Remote debugging (from the diagnostics panel) never outlives the console.
-            runCatching { WebView.setWebContentsDebuggingEnabled(false) }
         }
     }
 
@@ -247,7 +246,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         override fun onFailure(error: Throwable) {
             if (!current()) return
             val t = error
-            diag.log("socket: ${t.javaClass.simpleName}: ${t.message.orEmpty().take(120)}")
             js("pcError('socket')")
             main.post {
                 state = ConsoleState.FAILED
@@ -267,7 +265,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                 s.connect(listenerFor(s))
             } catch (e: Exception) {
                 if (sessionRef.get() !== s) return@launch
-                diag.log("proxy: ${e.javaClass.simpleName}: ${e.message.orEmpty().take(120)}")
                 state = ConsoleState.FAILED
                 error = errorMessage(context, e, server?.host.orEmpty(), server?.auth).let { m ->
                     if (e is PveError.Server && (e.detail?.contains("not running", true) == true)) context.getString(R.string.console_not_running) else m
@@ -285,12 +282,10 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             onConnected = { state = ConsoleState.CONNECTED },
             onDisconnected = { if (state != ConsoleState.FAILED) state = ConsoleState.CLOSED },
             onFailed = { message ->
-                diag.log("page: ${message.take(120)}")
                 state = ConsoleState.FAILED
                 error = context.getString(R.string.console_failed, message)
             },
             onModsReleased = { ctrl = false; alt = false; superKey = false },
-            onLog = diag::log,
             inputBlocked = {
                 coveredNow.get() || com.vknxworks.proxctrl.data.lock.AppLock.state.value != com.vknxworks.proxctrl.data.lock.AppLock.State.UNLOCKED
             },
@@ -342,8 +337,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         val common = old.commonPrefixWith(new).length
         val removed = old.length - common
         val added = new.substring(common)
-        diag.keyboardEvents++
-        diag.lastKeyboard = "+${added.length} -$removed"
         if (removed > 0) js("pcBackspace($removed)")
         if (added.isNotEmpty()) js("pcInput(${JSONObject.quote(added)})")
         input = TextFieldValue(KEYBOARD_SENTINEL, TextRange(KEYBOARD_SENTINEL.length))
@@ -354,7 +347,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
         // Behind the lock: swallow every key (also Tab and arrows, which would move to hidden buttons).
         if (covered || coveredNow.get()) return true
         if (event.type != KeyEventType.KeyDown) return false
-        diag.keyEvents++
         val name = when (event.key) {
             Key.Enter, Key.NumPadEnter -> "Enter"
             Key.Backspace -> "Backspace"
@@ -420,12 +412,8 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
                 }
                 webChromeClient = object : WebChromeClient() {
-                    override fun onConsoleMessage(message: ConsoleMessage): Boolean {
-                        if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
-                            diag.log("js: ${message.message().take(200)} @ ${message.sourceId().substringAfterLast('/')}:${message.lineNumber()}")
-                        }
-                        return true
-                    }
+                    // The page's console messages go nowhere (not to the system log either).
+                    override fun onConsoleMessage(message: ConsoleMessage): Boolean = true
                 }
                 addJavascriptInterface(bridge, "ProxBridge")
                 // Keyboard input goes through the app's own field, never into the page.
@@ -555,19 +543,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
                 }
             }
             IconButton(onClick = {
-                showDiag = !showDiag
-                // Debug builds only: lets the console page be inspected from a computer (chrome://inspect)
-                // while the panel is open. Never in a release, where it would expose the open shell to
-                // anything connected over USB debugging.
-                if (BuildConfig.DEBUG) runCatching { WebView.setWebContentsDebuggingEnabled(showDiag) }
-            }) {
-                Icon(
-                    Icons.Outlined.BugReport,
-                    stringResource(R.string.console_diagnostics),
-                    tint = if (showDiag) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.White,
-                )
-            }
-            IconButton(onClick = {
                 landscape = !landscape
                 activity?.requestedOrientation = if (landscape) ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE else ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }) { Icon(Icons.Outlined.ScreenRotation, stringResource(R.string.console_rotate), tint = androidx.compose.ui.graphics.Color.White) }
@@ -582,31 +557,6 @@ fun ConsoleScreen(target: ConsoleTarget, title: String) {
             }
         }
 
-        if (showDiag) {
-            DiagnosticsPanel(
-                diag = diag,
-                lines = {
-                    val st = sessionRef.get()?.stats
-                    buildList {
-                        add("state $state · page ready ${bridge.pageReadyCalls.get()}× · webview ${webViewVersion(context)}")
-                        add(
-                            if (st == null) "socket: no session"
-                            else "socket: proxy ${if (st.proxyStarted) "ok" else "-"} · open ${st.socketOpen}" + (st.closeInfo?.let { " · $it" } ?: ""),
-                        )
-                        if (st != null) {
-                            add("in ${st.framesIn.get()} msgs/${st.bytesIn.get()} B · out ${st.framesOut.get()} msgs/${st.bytesOut.get()} B · dropped ${st.dropped.get()} · last ${st.lastOut}")
-                        }
-                        add("page sends ${bridge.sendCalls.get()} · without session ${bridge.sendsWithoutSession.get()}")
-                        add("keyboard field focused $fieldFocused · ime $imeVisible · text ${diag.keyboardEvents} (${diag.lastKeyboard}) · keys ${diag.keyEvents}")
-                        add("page ${diag.page}")
-                        diag.errors().forEach { add("! $it") }
-                    }
-                },
-                refresh = {
-                    main.post { webView?.evaluateJavascript("typeof pcDiag === 'function' ? pcDiag() : 'no pcDiag'") { diag.page = decodeJsString(it) } }
-                },
-            )
-        }
         Box(Modifier.weight(1f).fillMaxWidth()) {
             // Where the console goes. The WebView itself is laid over this spot in the window (see below).
             Box(

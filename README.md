@@ -334,7 +334,6 @@ While the lock, PIN, **Confirm changes** or sign-in screen or a confirmation suc
 - Consoles need `VM.Console` on the guest, and the node shell needs `Sys.Console` on the node. They're hidden in read-only mode.
 - With an API token, the node shell asks for a Linux login, because Proxmox only skips the login for `root@pam`. Sign in with `root@pam` and its password if you want a root shell straight away.
 - **Select, copy and share text**: in a terminal (containers, the node shell, serial consoles), the copy button at the top shows what's on the terminal as ordinary text. Long-press to select a part with Android's own handles, or use **Copy all** or **Share**; **With scrollback** includes up to the last 2,000 lines. Copied console text is marked sensitive, so keyboards don't keep it in their clipboard history. A VM's screen is a picture, so there is no text to copy there. Check the text for passwords or keys before you share it.
-- If a console doesn't behave, tap the bug icon at the top for a live diagnostics readout (connection, data sent and received, keyboard, page errors) and copy it into an issue. It never includes what you typed.
 
 ## Back up and restore settings
 

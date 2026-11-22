@@ -4,7 +4,6 @@ import android.os.Handler
 import android.util.Base64
 import android.webkit.JavascriptInterface
 import com.vknxworks.proxctrl.data.console.ConsoleSession
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * What the console pages can call, as `ProxBridge`. A named class (not an anonymous object) so the
@@ -21,37 +20,25 @@ class ConsoleBridge(
     private val onDisconnected: () -> Unit,
     private val onFailed: (String) -> Unit,
     private val onModsReleased: () -> Unit,
-    private val onLog: (String) -> Unit,
     /** True while the lock screen or a PIN screen covers the app. */
     private val inputBlocked: () -> Boolean = { false },
 ) {
-    /** Calls from the page, for the diagnostics panel. */
-    val pageReadyCalls = AtomicLong()
-    val sendCalls = AtomicLong()
-    val sendsWithoutSession = AtomicLong()
-    val sendsBlocked = AtomicLong()
-
     @JavascriptInterface
     fun pageReady() {
-        pageReadyCalls.incrementAndGet()
         main.post { onPageReady() }
     }
 
     @JavascriptInterface
     fun sendText(text: String) {
-        sendCalls.incrementAndGet()
         // Typing (a terminal's "0:" data frame) never reaches the server while the app is covered by the
         // lock. Resizes and keep-alives still go through, so the session stays open behind the lock.
-        if (text.startsWith("0:") && inputBlocked()) { sendsBlocked.incrementAndGet(); return }
-        val s = session() ?: run { sendsWithoutSession.incrementAndGet(); return }
-        s.sendText(text)
+        if (text.startsWith("0:") && inputBlocked()) return
+        session()?.sendText(text)
     }
 
     @JavascriptInterface
     fun sendBinary(b64: String) {
-        sendCalls.incrementAndGet()
-        val s = session() ?: run { sendsWithoutSession.incrementAndGet(); return }
-        s.sendBinary(Base64.decode(b64, Base64.NO_WRAP))
+        session()?.sendBinary(Base64.decode(b64, Base64.NO_WRAP))
     }
 
     @JavascriptInterface
@@ -84,9 +71,4 @@ class ConsoleBridge(
 
     @JavascriptInterface
     fun vncPassword(): String = session()?.vncPassword.orEmpty()
-
-    @JavascriptInterface
-    fun log(message: String) {
-        main.post { onLog(message) }
-    }
 }
